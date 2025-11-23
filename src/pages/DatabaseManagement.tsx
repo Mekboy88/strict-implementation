@@ -1,4 +1,4 @@
-import { Database, Settings, Shield, HardDrive, ArrowLeft, LayoutDashboard, Users, Zap, Brain, Key, ScrollText, Table, Plus, FileDown, Loader2 } from "lucide-react";
+import { Database, Settings, Shield, HardDrive, ArrowLeft, LayoutDashboard, Users, Zap, Brain, Key, ScrollText, Table, Plus, FileDown, Loader2, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -609,42 +609,42 @@ const DatabaseManagement = () => {
 
                     {/* Filter Panel */}
                     {showFilter && (
-                      <Card className="bg-card border-border p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <label className="text-sm text-muted-foreground mb-2 block">Search in:</label>
-                            <select 
-                              value={searchColumn}
-                              onChange={(e) => setSearchColumn(e.target.value)}
-                              className="w-full border border-border bg-card text-foreground rounded px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:border-border transition-none"
-                            >
-                              <option value="all">All Columns</option>
-                              {getCurrentTableColumns().map(col => (
-                                <option key={col} value={col}>{col}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex-[2]">
-                            <label className="text-sm text-muted-foreground mb-2 block">Search query:</label>
-                            <input
-                              type="text"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              placeholder="Enter search term..."
-                              className="w-full border border-border bg-background rounded px-3 py-2 text-sm"
-                            />
-                          </div>
-                          <div className="flex gap-2 items-end">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                setSearchQuery("");
-                                setSearchColumn("all");
-                              }}
-                            >
-                              Clear
-                            </Button>
+                      <Card className="bg-card border-border p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search rows..."
+                                className="pl-9 pr-20 bg-background border-border h-9"
+                              />
+                              {searchQuery && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setSearchQuery("")}
+                                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 text-muted-foreground hover:text-foreground"
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>in</span>
+                              <select 
+                                value={searchColumn}
+                                onChange={(e) => setSearchColumn(e.target.value)}
+                                className="border border-border bg-background text-foreground rounded px-2 py-1.5 text-sm min-w-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
+                              >
+                                <option value="all">All columns</option>
+                                {getCurrentTableColumns().map(col => (
+                                  <option key={col} value={col}>{col}</option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
                         </div>
                       </Card>
