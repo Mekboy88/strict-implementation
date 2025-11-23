@@ -46,8 +46,10 @@ const DatabaseManagement = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchColumn, setSearchColumn] = useState<string>("all");
+  const [filterColumn, setFilterColumn] = useState<string>("");
+  const [filterOperator, setFilterOperator] = useState<string>("=");
+  const [filterValue, setFilterValue] = useState<string>("");
+  const [appliedFilters, setAppliedFilters] = useState<Array<{column: string, operator: string, value: string}>>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newRowData, setNewRowData] = useState<Record<string, any>>({});
 
@@ -272,26 +274,47 @@ const DatabaseManagement = () => {
           .from(selectedTable as any)
           .select('*');
 
-        // Apply search filter if search query exists
-        if (searchQuery.trim()) {
-          const columns = getCurrentTableColumns();
-          
-          if (searchColumn === "all") {
-            // Search across all text-based columns using OR logic
-            const textColumns = columns.filter(col => 
-              !col.includes('_at') && !col.includes('password') && !col.includes('token')
-            );
+        // Apply filters
+        if (appliedFilters.length > 0) {
+          appliedFilters.forEach(filter => {
+            const { column, operator, value } = filter;
             
-            if (textColumns.length > 0) {
-              // Use ilike for case-insensitive search on first column
-              query = query.or(
-                textColumns.map(col => `${col}.ilike.%${searchQuery}%`).join(',')
-              );
+            switch (operator) {
+              case '=':
+                query = query.eq(column, value);
+                break;
+              case '!=':
+                query = query.neq(column, value);
+                break;
+              case '>':
+                query = query.gt(column, value);
+                break;
+              case '<':
+                query = query.lt(column, value);
+                break;
+              case '>=':
+                query = query.gte(column, value);
+                break;
+              case '<=':
+                query = query.lte(column, value);
+                break;
+              case 'contains':
+                query = query.ilike(column, `%${value}%`);
+                break;
+              case 'starts_with':
+                query = query.ilike(column, `${value}%`);
+                break;
+              case 'ends_with':
+                query = query.ilike(column, `%${value}`);
+                break;
+              case 'is_null':
+                query = query.is(column, null);
+                break;
+              case 'is_not_null':
+                query = query.not(column, 'is', null);
+                break;
             }
-          } else {
-            // Search specific column
-            query = query.ilike(searchColumn, `%${searchQuery}%`);
-          }
+          });
         }
 
         const { data, error } = await query.limit(50);
@@ -311,7 +334,7 @@ const DatabaseManagement = () => {
     };
 
     fetchTableData();
-  }, [selectedTable, isAdmin, toast, searchQuery, searchColumn]);
+  }, [selectedTable, isAdmin, toast, appliedFilters]);
 
   const formatCellValue = (value: any): string => {
     if (value === null || value === undefined) return '-';
@@ -369,6 +392,32 @@ const DatabaseManagement = () => {
     
     // Default to nullable for flexibility
     return true;
+  };
+
+  const handleAddFilter = () => {
+    if (!filterColumn || !filterValue) {
+      toast({
+        title: "Invalid Filter",
+        description: "Please select a column and enter a value",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAppliedFilters([...appliedFilters, {
+      column: filterColumn,
+      operator: filterOperator,
+      value: filterValue
+    }]);
+
+    // Reset filter inputs
+    setFilterColumn("");
+    setFilterOperator("=");
+    setFilterValue("");
+  };
+
+  const handleRemoveFilter = (index: number) => {
+    setAppliedFilters(appliedFilters.filter((_, i) => i !== index));
   };
 
   const handleOpenAddDialog = () => {
@@ -596,9 +645,10 @@ const DatabaseManagement = () => {
                           variant="outline" 
                           className="gap-2"
                           onClick={() => {
-                            setSearchQuery("");
-                            setSearchColumn("all");
-                            setSelectedTable(selectedTable);
+                            setAppliedFilters([]);
+                            setFilterColumn("");
+                            setFilterOperator("=");
+                            setFilterValue("");
                           }}
                         >
                           <ArrowLeft className="w-4 h-4 rotate-90" />
@@ -609,43 +659,83 @@ const DatabaseManagement = () => {
 
                     {/* Filter Panel */}
                     {showFilter && (
-                      <Card className="bg-card border-border p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 flex items-center gap-2">
-                            <div className="relative flex-1">
-                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                              <Input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search rows..."
-                                className="pl-9 pr-20 bg-background border-border h-9"
-                              />
-                              {searchQuery && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setSearchQuery("")}
-                                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 text-muted-foreground hover:text-foreground"
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>in</span>
+                      <Card className="bg-card border-border p-4">
+                        <div className="space-y-3">
+                          {/* Filter Builder */}
+                          <div className="grid grid-cols-12 gap-2 items-end">
+                            <div className="col-span-4">
                               <select 
-                                value={searchColumn}
-                                onChange={(e) => setSearchColumn(e.target.value)}
-                                className="border border-border bg-background text-foreground rounded px-2 py-1.5 text-sm min-w-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
+                                value={filterColumn}
+                                onChange={(e) => setFilterColumn(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                               >
-                                <option value="all">All columns</option>
+                                <option value="">Select column</option>
                                 {getCurrentTableColumns().map(col => (
                                   <option key={col} value={col}>{col}</option>
                                 ))}
                               </select>
                             </div>
+                            <div className="col-span-3">
+                              <select 
+                                value={filterOperator}
+                                onChange={(e) => setFilterOperator(e.target.value)}
+                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                              >
+                                <option value="=">equals</option>
+                                <option value="!=">not equals</option>
+                                <option value=">">greater than</option>
+                                <option value="<">less than</option>
+                                <option value=">=">greater or equal</option>
+                                <option value="<=">less or equal</option>
+                                <option value="contains">contains</option>
+                                <option value="starts_with">starts with</option>
+                                <option value="ends_with">ends with</option>
+                                <option value="is_null">is null</option>
+                                <option value="is_not_null">is not null</option>
+                              </select>
+                            </div>
+                            <div className="col-span-3">
+                              <Input
+                                type="text"
+                                value={filterValue}
+                                onChange={(e) => setFilterValue(e.target.value)}
+                                placeholder="Enter value..."
+                                className="h-9 bg-background border-border"
+                                disabled={filterOperator === 'is_null' || filterOperator === 'is_not_null'}
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <Button 
+                                size="sm" 
+                                onClick={handleAddFilter}
+                                className="w-full h-9"
+                              >
+                                Add Filter
+                              </Button>
+                            </div>
                           </div>
+
+                          {/* Applied Filters */}
+                          {appliedFilters.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                              {appliedFilters.map((filter, index) => (
+                                <div 
+                                  key={index}
+                                  className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-md text-sm"
+                                >
+                                  <span className="font-medium text-foreground">{filter.column}</span>
+                                  <span className="text-muted-foreground">{filter.operator}</span>
+                                  <span className="text-foreground">"{filter.value}"</span>
+                                  <button
+                                    onClick={() => handleRemoveFilter(index)}
+                                    className="ml-1 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </Card>
                     )}
