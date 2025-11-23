@@ -404,10 +404,6 @@ const UrDevLandingPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 text-[11px] text-gray-500">
-                  UR-DEV turns your description into real pages with Supabase, GitHub, and AI agents wired from the
-                  first draft.
-                </div>
               </div>
             </section>
 
