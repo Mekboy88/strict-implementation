@@ -166,6 +166,12 @@ function UrDevEditorPage() {
     }
   }
 
+  function handleSaveFile() {
+    // In a real implementation, this would save to a backend
+    // For now, we'll just reset the file contents to match the original
+    setFileContents((prev) => ({ ...prev, [activeFileId]: currentContent }));
+  }
+
   function isLineChanged(index: number, line: string) {
     return line !== (originalLines[index] || "");
   }
@@ -443,9 +449,18 @@ function UrDevEditorPage() {
                       <span className="text-xs">⧉</span>
                       <span>Copy file</span>
                     </button>
-                    <span className="hidden sm:inline rounded-full bg-sky-500/20 px-2 py-0.5 text-sky-200">
+                    <button
+                      type="button"
+                      onClick={handleSaveFile}
+                      disabled={!hasFileChanges}
+                      className={`hidden sm:inline rounded-full px-2 py-0.5 transition-all ${
+                        hasFileChanges
+                          ? "bg-sky-500/20 text-sky-200 cursor-pointer hover:bg-sky-500/30"
+                          : "bg-sky-500/10 text-sky-300/60 cursor-default"
+                      }`}
+                    >
                       {hasFileChanges ? "Save" : "Saved"}
-                    </span>
+                    </button>
                   </div>
                 </div>
 
