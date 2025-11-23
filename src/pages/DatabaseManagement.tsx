@@ -482,11 +482,11 @@ const DatabaseManagement = () => {
                             <select 
                               value={searchColumn}
                               onChange={(e) => setSearchColumn(e.target.value)}
-                              className="w-full border border-border bg-background text-foreground rounded px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:border-border transition-none [&>option]:bg-background [&>option]:text-foreground"
+                              className="w-full border border-border bg-card text-foreground rounded px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:border-border transition-none"
                             >
-                              <option value="all" className="bg-background text-foreground">All Columns</option>
+                              <option value="all">All Columns</option>
                               {getCurrentTableColumns().map(col => (
-                                <option key={col} value={col} className="bg-background text-foreground">{col}</option>
+                                <option key={col} value={col}>{col}</option>
                               ))}
                             </select>
                           </div>
