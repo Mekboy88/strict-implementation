@@ -791,7 +791,7 @@ function UrDevEditorPage() {
                     </div>
                   </div>
                 )}
-                <div className="flex items-end gap-2 rounded-xl bg-black/80 px-3 py-3">
+                <div className="flex items-start gap-2 rounded-xl bg-black/80 px-3 py-3">
                   <button
                     type="button"
                     onClick={() => setShowQuickActions((v) => !v)}
