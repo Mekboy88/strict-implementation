@@ -796,9 +796,9 @@ function UrDevEditorPage() {
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
                     spellCheck={true}
-                    className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none resize-none min-h-[420px] max-h-[420px] px-0 py-1 transition-all duration-300 selection:bg-blue-500/60 selection:text-white overflow-y-auto"
+                    className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none resize-none min-h-[40px] max-h-[420px] px-0 py-1 transition-all duration-300 selection:bg-blue-500/60 selection:text-white overflow-y-auto"
                     placeholder="Type your message here..."
-                    rows={20}
+                    rows={1}
                   />
                   <div className="flex items-center gap-2 justify-between">
                   <button
