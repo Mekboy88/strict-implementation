@@ -240,10 +240,6 @@ function UrDevEditorPage() {
           </button>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
-          <button className="hidden sm:inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100">
-            <span className="text-xs">▶</span>
-            <span>Run checks</span>
-          </button>
           <button className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_22px_rgba(56,189,248,0.8)] hover:bg-sky-400">
             <span>Preview</span>
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
