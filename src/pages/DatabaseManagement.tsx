@@ -482,7 +482,7 @@ const DatabaseManagement = () => {
                             <select 
                               value={searchColumn}
                               onChange={(e) => setSearchColumn(e.target.value)}
-                              className="w-full border border-border bg-background rounded px-3 py-2 text-sm"
+                              className="w-full border border-border bg-background rounded px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:border-border transition-none"
                             >
                               <option value="all">All Columns</option>
                               {getCurrentTableColumns().map(col => (
