@@ -295,7 +295,7 @@ function UrDevEditorPage() {
               </g>
             </svg>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-2">
             <svg fill="currentColor" height="16px" width="16px" version="1.1" viewBox="0 0 511.999 511.999" xmlns="http://www.w3.org/2000/svg">
               <g>
                 <g>
