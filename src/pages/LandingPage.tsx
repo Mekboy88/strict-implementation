@@ -396,6 +396,24 @@ const UrDevLandingPage: React.FC = () => {
                       →
                     </span>
                   </button>
+                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 flex flex-wrap items-center gap-2 text-[11px] text-gray-300">
+                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
+                        <span className="text-xs">＋</span>
+                        <span>Attach</span>
+                      </button>
+                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
+                        <span className="text-xs">🎨</span>
+                        <span>Import from Figma</span>
+                      </button>
+                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        <span>Public</span>
+                      </button>
+                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
+                        <span className="text-[10px]">⚡</span>
+                        <span>Supabase</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-2 text-[11px] text-gray-500">
