@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   MessageCircle,
 } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const initialFiles = [
   {
@@ -563,7 +564,9 @@ function UrDevEditorPage() {
 
         {/* CENTER: EDITOR OR PREVIEW */}
         <main className="flex-1 flex overflow-hidden">
-          <section className="flex-1 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            <ResizablePanel defaultSize={70} minSize={50}>
+              <section className="flex-1 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-black h-full">
             {showPreview ? (
               <div className="flex-1 overflow-auto">
                 <UrDevPreviewFrame />
@@ -687,10 +690,13 @@ function UrDevEditorPage() {
                 </div>
               </>
             )}
-          </section>
+              </section>
+            </ResizablePanel>
 
-          {/* RIGHT ASSISTANT PANEL */}
-          <aside className="hidden xl:flex w-80 min-w-[260px] max-w-[520px] resize-x overflow-hidden flex-col border-l border-white/10 bg-black/95">
+            <ResizableHandle withHandle className="hidden xl:flex" />
+
+            <ResizablePanel defaultSize={30} minSize={20} maxSize={40} className="hidden xl:block">
+              <aside className="flex h-full flex-col border-l border-white/10 bg-black/95">
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
@@ -814,7 +820,9 @@ function UrDevEditorPage() {
                 </div>
               </div>
             </div>
-          </aside>
+              </aside>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </main>
       </div>
     </div>
