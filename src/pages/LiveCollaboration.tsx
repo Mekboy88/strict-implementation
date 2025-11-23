@@ -1,8 +1,23 @@
+import { Users } from "lucide-react";
+import ComingSoonFeature from "@/components/ComingSoonFeature";
+
 const LiveCollaboration = () => {
   return (
-    <div className="min-h-screen bg-background p-6">
-      <h1 className="text-3xl font-bold">Live Collaboration</h1>
-    </div>
+    <ComingSoonFeature
+      icon={Users}
+      title="Live Collaboration"
+      description="Real-time collaborative coding with your team"
+      color="bg-blue-950/40 border-2 border-blue-500/30"
+      features={[
+        "Real-time cursor tracking and presence indicators",
+        "Live code editing with conflict resolution",
+        "Voice and video chat integration",
+        "Collaborative debugging sessions",
+        "Shared terminal access",
+        "Comment and annotation system",
+        "Project permission management",
+      ]}
+    />
   );
 };
 

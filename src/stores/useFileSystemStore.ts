@@ -22,6 +22,7 @@ interface FileSystemStore {
   initializeProject: () => void;
   getAllFiles: () => FileNode[];
   setCurrentProject: (projectId: string) => Promise<void>;
+  getFileContent: (path: string) => string | undefined;
 }
 
 export const useFileSystemStore = create<FileSystemStore>((set, get) => ({
@@ -87,5 +88,10 @@ export const useFileSystemStore = create<FileSystemStore>((set, get) => ({
 
   setCurrentProject: async (projectId: string) => {
     set({ currentProjectId: projectId });
+  },
+
+  getFileContent: (path: string) => {
+    const file = get().files.find(f => f.path === path);
+    return file?.content;
   },
 }));
