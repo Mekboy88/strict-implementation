@@ -81,17 +81,6 @@ function buildInitialContents() {
 function UrDevPreviewFrame() {
   return (
     <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-950 overflow-hidden shadow-[0_0_55px_rgba(15,23,42,0.9)]">
-      <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-2 text-[11px] text-slate-300">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-2 w-2 rounded-full bg-rose-500" />
-          <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
-          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="ml-3 text-xs text-slate-400">UR-DEV · Preview</span>
-        </div>
-        <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-400">
-          Desktop · 100%
-        </span>
-      </div>
       <div className="h-full overflow-auto bg-gradient-to-b from-slate-950 via-slate-900 to-black">
         <main className="min-h-[540px] px-10 py-10">
           <section className="mx-auto max-w-4xl rounded-2xl border border-slate-800/80 bg-slate-950/80 px-10 py-10 shadow-[0_0_45px_rgba(8,47,73,0.75)]">
