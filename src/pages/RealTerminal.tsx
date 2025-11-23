@@ -1,8 +1,23 @@
+import { Terminal } from "lucide-react";
+import ComingSoonFeature from "@/components/ComingSoonFeature";
+
 const RealTerminal = () => {
   return (
-    <div className="min-h-screen bg-background p-6">
-      <h1 className="text-3xl font-bold">Real Terminal</h1>
-    </div>
+    <ComingSoonFeature
+      icon={Terminal}
+      title="Real Terminal Execution"
+      description="Execute commands in a real sandboxed environment"
+      color="bg-emerald-950/40 border-2 border-emerald-500/30"
+      features={[
+        "Full terminal access with bash/zsh support",
+        "Package manager integration (npm, yarn, pip)",
+        "Git operations and version control",
+        "Environment variable management",
+        "Process monitoring and logs",
+        "Secure sandboxed execution",
+        "Terminal session persistence",
+      ]}
+    />
   );
 };
 
