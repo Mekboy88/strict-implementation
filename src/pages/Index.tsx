@@ -708,9 +708,6 @@ function UrDevEditorPage() {
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
-                <div className="mt-0.5 text-[10px] text-slate-500">
-                  Academic-grade explanations for your code.
-                </div>
               </div>
               <span className="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-200">
                 Online
