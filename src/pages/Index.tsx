@@ -146,6 +146,7 @@ function UrDevEditorPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isEditingEnabled, setIsEditingEnabled] = useState(false);
   const [showEditNotification, setShowEditNotification] = useState(false);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -345,48 +346,62 @@ function UrDevEditorPage() {
         <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-[#050816]">
           <div className="px-3 py-3 border-b border-white/10">
             <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
-              <span className="text-xs font-semibold text-slate-100">Explorer</span>
-              <svg fill="currentColor" height="14px" width="14px" version="1.1" viewBox="0 0 511.999 511.999" xmlns="http://www.w3.org/2000/svg">
-                <g>
-                  <g>
-                    <path d="M386.455,198.212l-53.811-53.811c-3.253-3.254-8.528-3.255-11.784,0c-3.254,3.253-3.254,8.529,0,11.783l47.92,47.92 l-47.92,47.919c-3.254,3.253-3.254,8.529,0,11.783c1.628,1.628,3.76,2.441,5.892,2.441c2.132,0,4.265-0.814,5.891-2.44 l53.811-53.811C389.709,206.742,389.709,201.466,386.455,198.212z"></path>
-                  </g>
-                </g>
-                <g>
-                  <g>
-                    <path d="M143.223,204.102l47.919-47.92c3.254-3.253,3.254-8.529,0-11.783c-3.253-3.254-8.529-3.254-11.783,0l-53.811,53.811 c-3.254,3.253-3.254,8.529,0,11.783l53.811,53.811c1.626,1.628,3.759,2.441,5.891,2.441s4.265-0.814,5.891-2.442 c3.254-3.253,3.254-8.529,0-11.783L143.223,204.102z"></path>
-                  </g>
-                </g>
-                <g>
-                  <g>
-                    <path d="M283.22,118.176c-4.386-1.39-9.07,1.041-10.458,5.427L223.356,279.57c-1.39,4.387,1.04,9.07,5.427,10.46 c0.838,0.266,1.685,0.391,2.519,0.391c3.535,0,6.816-2.269,7.941-5.818l49.404-155.967 C290.037,124.248,287.607,119.565,283.22,118.176z"></path>
-                  </g>
-                </g>
-                <g>
-                  <g>
-                    <path d="M471.246,24.766H40.754C18.283,24.766,0,43.049,0,65.52v59.227c0,4.602,3.731,8.332,8.332,8.332 c4.601,0,8.332-3.731,8.332-8.332V65.52c0-13.284,10.807-24.09,24.09-24.09h430.492c13.284,0,24.09,10.807,24.09,24.09v284.411 h-52.21c-4.602,0-8.332,3.731-8.332,8.332s3.731,8.332,8.332,8.332h52.21v15.273c0,13.284-10.807,24.09-24.09,24.09h-155.41 H196.164H40.754c-13.284,0-24.09-10.807-24.09-24.09v-15.273h398.688c4.602,0,8.332-3.731,8.332-8.332s-3.731-8.332-8.332-8.332 H16.664V152.522c0-4.602-3.731-8.332-8.332-8.332c-4.601,0-8.332,3.73-8.332,8.332V381.87c0,22.472,18.283,40.754,40.754,40.754 H183.54l-20.494,47.945h-40.034c-4.602,0-8.332,3.731-8.332,8.332s3.731,8.332,8.332,8.332h265.975 c4.602,0,8.332-3.731,8.332-8.332s-3.731-8.332-8.332-8.332h-40.034l-20.494-47.945h142.786c22.472,0,40.754-18.282,40.754-40.754 V65.52C512,43.049,493.717,24.766,471.246,24.766z M330.83,470.568H181.17l14.238-33.31h121.185L330.83,470.568z"></path>
-                  </g>
-                </g>
-                <g>
-                  <g>
-                    <path d="M262.924,379.679c-1.914-2.906-5.583-4.299-8.952-3.457c-3.517,0.879-6.116,4.048-6.291,7.67 c-0.364,7.534,9.106,11.629,14.33,6.172C264.674,387.282,265.089,382.887,262.924,379.679z"></path>
-                  </g>
-                </g>
-              </svg>
-              <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="14px" width="14px">
-                <path d="M19,8c0.6,0,1-0.4,1-1V5c0-1.7-1.3-3-3-3H7C5.3,2,4,3.3,4,5v22c0,1.7,1.3,3,3,3h10c1.7,0,3-1.3,3-3v-4c0-0.6-0.4-1-1-1H6V8 H19z M11,25h2c0.6,0,1,0.4,1,1s-0.4,1-1,1h-2c-0.6,0-1-0.4-1-1S10.4,25,11,25z"></path>
-                <g>
-                  <path d="M14,19c-0.3,0-0.5-0.1-0.7-0.3l-3-3c-0.4-0.4-0.4-1,0-1.4l3-3c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4L12.4,15l2.3,2.3 c0.4,0.4,0.4,1,0,1.4C14.5,18.9,14.3,19,14,19z"></path>
-                </g>
-                <g>
-                  <path d="M24,19c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l2.3-2.3l-2.3-2.3c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l3,3 c0.4,0.4,0.4,1,0,1.4l-3,3C24.5,18.9,24.3,19,24,19z"></path>
-                </g>
-                <g>
-                  <path d="M17,20c-0.1,0-0.3,0-0.4-0.1c-0.5-0.2-0.7-0.8-0.4-1.3l4-8c0.2-0.5,0.8-0.7,1.3-0.4c0.5,0.2,0.7,0.8,0.4,1.3l-4,8 C17.7,19.8,17.4,20,17,20z"></path>
-                </g>
-              </svg>
-            </div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
+                <span className="text-xs font-semibold text-slate-100">Explorer</span>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('desktop')}
+                  className={`transition-colors ${viewMode === 'desktop' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  title="Desktop files"
+                >
+                  <svg fill="currentColor" height="14px" width="14px" version="1.1" viewBox="0 0 511.999 511.999" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                      <g>
+                        <path d="M386.455,198.212l-53.811-53.811c-3.253-3.254-8.528-3.255-11.784,0c-3.254,3.253-3.254,8.529,0,11.783l47.92,47.92 l-47.92,47.919c-3.254,3.253-3.254,8.529,0,11.783c1.628,1.628,3.76,2.441,5.892,2.441c2.132,0,4.265-0.814,5.891-2.44 l53.811-53.811C389.709,206.742,389.709,201.466,386.455,198.212z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <g>
+                        <path d="M143.223,204.102l47.919-47.92c3.254-3.253,3.254-8.529,0-11.783c-3.253-3.254-8.529-3.254-11.783,0l-53.811,53.811 c-3.254,3.253-3.254,8.529,0,11.783l53.811,53.811c1.626,1.628,3.759,2.441,5.891,2.441s4.265-0.814,5.891-2.442 c3.254-3.253,3.254-8.529,0-11.783L143.223,204.102z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <g>
+                        <path d="M283.22,118.176c-4.386-1.39-9.07,1.041-10.458,5.427L223.356,279.57c-1.39,4.387,1.04,9.07,5.427,10.46 c0.838,0.266,1.685,0.391,2.519,0.391c3.535,0,6.816-2.269,7.941-5.818l49.404-155.967 C290.037,124.248,287.607,119.565,283.22,118.176z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <g>
+                        <path d="M471.246,24.766H40.754C18.283,24.766,0,43.049,0,65.52v59.227c0,4.602,3.731,8.332,8.332,8.332 c4.601,0,8.332-3.731,8.332-8.332V65.52c0-13.284,10.807-24.09,24.09-24.09h430.492c13.284,0,24.09,10.807,24.09,24.09v284.411 h-52.21c-4.602,0-8.332,3.731-8.332,8.332s3.731,8.332,8.332,8.332h52.21v15.273c0,13.284-10.807,24.09-24.09,24.09h-155.41 H196.164H40.754c-13.284,0-24.09-10.807-24.09-24.09v-15.273h398.688c4.602,0,8.332-3.731,8.332-8.332s-3.731-8.332-8.332-8.332 H16.664V152.522c0-4.602-3.731-8.332-8.332-8.332c-4.601,0-8.332,3.73-8.332,8.332V381.87c0,22.472,18.283,40.754,40.754,40.754 H183.54l-20.494,47.945h-40.034c-4.602,0-8.332,3.731-8.332,8.332s3.731,8.332,8.332,8.332h265.975 c4.602,0,8.332-3.731,8.332-8.332s-3.731-8.332-8.332-8.332h-40.034l-20.494-47.945h142.786c22.472,0,40.754-18.282,40.754-40.754 V65.52C512,43.049,493.717,24.766,471.246,24.766z M330.83,470.568H181.17l14.238-33.31h121.185L330.83,470.568z"></path>
+                      </g>
+                    </g>
+                    <g>
+                      <g>
+                        <path d="M262.924,379.679c-1.914-2.906-5.583-4.299-8.952-3.457c-3.517,0.879-6.116,4.048-6.291,7.67 c-0.364,7.534,9.106,11.629,14.33,6.172C264.674,387.282,265.089,382.887,262.924,379.679z"></path>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('mobile')}
+                  className={`transition-colors ${viewMode === 'mobile' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  title="Mobile files"
+                >
+                  <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="14px" width="14px">
+                    <path d="M19,8c0.6,0,1-0.4,1-1V5c0-1.7-1.3-3-3-3H7C5.3,2,4,3.3,4,5v22c0,1.7,1.3,3,3,3h10c1.7,0,3-1.3,3-3v-4c0-0.6-0.4-1-1-1H6V8 H19z M11,25h2c0.6,0,1,0.4,1,1s-0.4,1-1,1h-2c-0.6,0-1-0.4-1-1S10.4,25,11,25z"></path>
+                    <g>
+                      <path d="M14,19c-0.3,0-0.5-0.1-0.7-0.3l-3-3c-0.4-0.4-0.4-1,0-1.4l3-3c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4L12.4,15l2.3,2.3 c0.4,0.4,0.4,1,0,1.4C14.5,18.9,14.3,19,14,19z"></path>
+                    </g>
+                    <g>
+                      <path d="M24,19c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l2.3-2.3l-2.3-2.3c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l3,3 c0.4,0.4,0.4,1,0,1.4l-3,3C24.5,18.9,24.3,19,24,19z"></path>
+                    </g>
+                    <g>
+                      <path d="M17,20c-0.1,0-0.3,0-0.4-0.1c-0.5-0.2-0.7-0.8-0.4-1.3l4-8c0.2-0.5,0.8-0.7,1.3-0.4c0.5,0.2,0.7,0.8,0.4,1.3l-4,8 C17.7,19.8,17.4,20,17,20z"></path>
+                    </g>
+                  </svg>
+                </button>
+              </div>
               <svg 
                 viewBox="0 0 24 24" 
                 fill="none" 
@@ -409,81 +424,124 @@ function UrDevEditorPage() {
 
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 text-[11px] text-slate-300">
             <div className="mb-2 px-2 text-slate-500 uppercase tracking-[0.16em] text-[10px]">
-              PROJECT
+              {viewMode === 'desktop' ? 'DESKTOP PROJECT' : 'MOBILE PROJECT'}
             </div>
-            <div className="space-y-1">
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">node_modules</span>
-              </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">public</span>
-              </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">src</span>
-              </button>
-
-              <div className="ml-5 space-y-1 min-w-0">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+            
+            {viewMode === 'desktop' ? (
+              <div className="space-y-1">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
                   <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">components</span>
+                  <span className="truncate">node_modules</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveFileId("banner")}
-                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    activeFileId === "banner"
-                      ? "bg-sky-500/25 text-sky-100"
-                      : "hover:bg-white/5 hover:text-sky-100"
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">banner.tsx</span>
-                  </span>
-                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                </button>
-              </div>
-
-              <div className="ml-5 space-y-1 min-w-0">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
                   <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">app</span>
+                  <span className="truncate">public</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveFileId("layout")}
-                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    activeFileId === "layout"
-                      ? "bg-sky-500/25 text-sky-100"
-                      : "hover:bg-white/5 hover:text-sky-100"
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">layout.tsx</span>
-                  </span>
-                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">src</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveFileId("page")}
-                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    activeFileId === "page"
-                      ? "bg-sky-500/25 text-sky-100"
-                      : "hover:bg-white/5 hover:text-sky-100"
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">page.tsx</span>
-                  </span>
-                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                </button>
+
+                <div className="ml-5 space-y-1 min-w-0">
+                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                    <Folder className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">components</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFileId("banner")}
+                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                      activeFileId === "banner"
+                        ? "bg-sky-500/25 text-sky-100"
+                        : "hover:bg-white/5 hover:text-sky-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0 flex-1">
+                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">banner.tsx</span>
+                    </span>
+                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                  </button>
+                </div>
+
+                <div className="ml-5 space-y-1 min-w-0">
+                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                    <Folder className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">app</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFileId("layout")}
+                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                      activeFileId === "layout"
+                        ? "bg-sky-500/25 text-sky-100"
+                        : "hover:bg-white/5 hover:text-sky-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0 flex-1">
+                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">layout.tsx</span>
+                    </span>
+                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFileId("page")}
+                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                      activeFileId === "page"
+                        ? "bg-sky-500/25 text-sky-100"
+                        : "hover:bg-white/5 hover:text-sky-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0 flex-1">
+                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">page.tsx</span>
+                    </span>
+                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-1">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">mobile</span>
+                </button>
+                <div className="ml-5 space-y-1 min-w-0">
+                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
+                    <Folder className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">public</span>
+                  </button>
+                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
+                    <Folder className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">src</span>
+                  </button>
+                  <div className="ml-5 space-y-1 min-w-0">
+                    <button className="flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5">
+                      <span className="flex items-center gap-2 min-w-0 flex-1">
+                        <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">MobileApp.tsx</span>
+                      </span>
+                      <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                    </button>
+                    <button className="flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5">
+                      <span className="flex items-center gap-2 min-w-0 flex-1">
+                        <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">main.tsx</span>
+                      </span>
+                      <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
+                    </button>
+                    <button className="flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5">
+                      <span className="flex items-center gap-2 min-w-0 flex-1">
+                        <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">router.ts</span>
+                      </span>
+                      <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TS</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-white/10 px-4 py-3 text-[10px] text-slate-500 flex items-center justify-between">
