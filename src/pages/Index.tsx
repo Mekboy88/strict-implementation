@@ -802,7 +802,7 @@ function UrDevEditorPage() {
                   <textarea
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
-                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none resize-none min-h-[32px] py-1 focus:min-h-[96px] transition-all duration-300"
+                    className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none resize-none min-h-[32px] py-1 focus:min-h-[96px] transition-all duration-300"
                     placeholder="Ask UR-DEV to analyse or rewrite this file in an academic tone…"
                     rows={1}
                   />
