@@ -799,11 +799,12 @@ function UrDevEditorPage() {
                   >
                     <Settings2 className="h-4 w-4" />
                   </button>
-                  <input
+                  <textarea
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
-                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none py-6 focus:py-10 transition-all duration-300"
+                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none py-6 focus:py-10 transition-all duration-300 resize-none"
                     placeholder="Ask UR-DEV to analyse or rewrite this file in an academic tone…"
+                    rows={1}
                   />
                   <svg 
                     viewBox="0 0 24 24" 
