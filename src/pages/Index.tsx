@@ -147,6 +147,7 @@ function UrDevEditorPage() {
   const [isEditingEnabled, setIsEditingEnabled] = useState(false);
   const [showEditNotification, setShowEditNotification] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [showFileExplorer, setShowFileExplorer] = useState(false);
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -256,10 +257,15 @@ function UrDevEditorPage() {
         {/* FAR LEFT ACTIVITY RAIL */}
         <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-[#030711] py-3">
           <div className="flex flex-col items-center gap-3">
-            <svg viewBox="0 0 36 36" className="h-4 w-4" fill="currentColor">
-              <path fill="#269" d="M0 29a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4h-9c-3.562 0-3-5-8.438-5H4a4 4 0 0 0-4 4v22z"></path>
-              <path fill="#55ACEE" d="M30 10h-6.562C18 10 18.562 15 15 15H6a4 4 0 0 0-4 4v10a1 1 0 1 1-2 0a4 4 0 0 0 4 4h26a4 4 0 0 0 4-4V14a4 4 0 0 0-4-4z"></path>
-            </svg>
+            <button 
+              onClick={() => setShowFileExplorer(!showFileExplorer)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10 transition-colors"
+            >
+              <svg viewBox="0 0 36 36" className="h-4 w-4" fill="currentColor">
+                <path fill="#269" d="M0 29a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4h-9c-3.562 0-3-5-8.438-5H4a4 4 0 0 0-4 4v22z"></path>
+                <path fill="#55ACEE" d="M30 10h-6.562C18 10 18.562 15 15 15H6a4 4 0 0 0-4 4v10a1 1 0 1 1-2 0a4 4 0 0 0 4 4h26a4 4 0 0 0 4-4V14a4 4 0 0 0-4-4z"></path>
+              </svg>
+            </button>
             <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
               <FileCode2 className="h-4 w-4" />
             </button>
@@ -357,7 +363,8 @@ function UrDevEditorPage() {
         </aside>
 
         {/* LEFT SIDEBAR (EXPLORER) */}
-        <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-[#050816]">
+        {showFileExplorer && (
+          <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-[#050816]">
           <div className="px-3 py-3 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
@@ -566,6 +573,7 @@ function UrDevEditorPage() {
             <span className="text-[9px] text-slate-600">UR-DEV workspace</span>
           </div>
         </aside>
+        )}
 
         {/* CENTER: EDITOR OR PREVIEW */}
         <main className="flex-1 flex overflow-hidden">
