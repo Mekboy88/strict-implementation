@@ -1,547 +1,576 @@
-import { Code, FolderTree, Monitor, Smartphone, Database, Eye, Search, Lightbulb, ChevronDown, Bug, Layers, Wand2, Palette, Settings, Sparkles, Keyboard, Info, Rocket, Home } from "lucide-react";
-import supabaseLogo from "@/assets/supabase-logo-icon.svg";
-import githubLogo from "@/assets/github-mark.svg";
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import FileTree from "@/components/FileTree";
-import EditorPanel from "@/components/EditorPanel";
-import AssistantPanel from "@/components/AssistantPanel";
-import EditorTabs from "@/components/EditorTabs";
-import CommandPalette from "@/components/CommandPalette";
-import UnifiedMenuDropdown from "@/components/UnifiedMenuDropdown";
-import MobilePreview from "@/components/MobilePreview";
-import PremiumSettingsDropup from "@/components/PremiumSettingsDropup";
-import { GitHubIntegration } from "@/components/GitHubIntegration";
-import { CloudIntegration } from "@/components/CloudIntegration";
-import { BuildingLoadingScreen } from "@/components/BuildingLoadingScreen";
-import { useProjectInit } from "@/hooks/useProjectInit";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { usePreviewStore } from "@/stores/usePreviewStore";
-import { useFileSystemStore } from "@/stores/useFileSystemStore";
+  Folder,
+  FileCode2,
+  Search,
+  Settings2,
+  Paperclip,
+  HelpCircle,
+  WalletCards,
+  ShoppingBag,
+  MessageCircle,
+} from "lucide-react";
 
-const Index = () => {
-  const navigate = useNavigate();
-  const { isInitializing, isReady } = useProjectInit();
-  const [explorerOpen, setExplorerOpen] = useState(true);
-  const [activePlatform, setActivePlatform] = useState<"web" | "mobile">("web");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [activeDeviceView, setActiveDeviceView] = useState<'desktop' | 'mobile' | 'preview'>('desktop');
-  const [githubPopupOpen, setGithubPopupOpen] = useState(false);
-  const [cloudPopupOpen, setCloudPopupOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'code' | 'preview'>('code');
-  const githubButtonRef = useRef<HTMLButtonElement>(null);
-  const cloudButtonRef = useRef<HTMLButtonElement>(null);
-  const githubPopupRef = useRef<HTMLDivElement>(null);
-  const [initialPrompt, setInitialPrompt] = useState<string | null>(null);
-  const [showBuildingScreen, setShowBuildingScreen] = useState(false);
-  const { setDesktopPreview, setMobilePreview } = usePreviewStore();
-  const { getFileContent } = useFileSystemStore();
+const initialFiles = [
+  {
+    id: "banner",
+    name: "banner.tsx",
+    path: "src/components/banner.tsx",
+    language: "tsx",
+    content: [
+      "import React from 'react'",
+      "",
+      "export function Banner() {",
+      "  return (",
+      '    <section className="px-8 py-10 bg-slate-900/60 border-b border-slate-800">',
+      '      <h1 className="text-2xl font-semibold text-sky-200">UR-DEV Banner</h1>',
+      '      <p className="mt-2 text-sm text-slate-300 max-w-xl">',
+      "        This is a demo banner component rendered inside the editor preview.",
+      "      </p>",
+      "    </section>",
+      "  )",
+      "}",
+    ],
+  },
+  {
+    id: "layout",
+    name: "layout.tsx",
+    path: "src/app/layout.tsx",
+    language: "tsx",
+    content: [
+      "import React from 'react'",
+      "",
+      "export default function RootLayout({ children }) {",
+      "  return (",
+      '    <html lang="en">',
+      '      <body className="bg-slate-950 text-slate-100">{children}</body>',
+      "    </html>",
+      "  )",
+      "}",
+    ],
+  },
+  {
+    id: "page",
+    name: "page.tsx",
+    path: "src/app/page.tsx",
+    language: "tsx",
+    content: [
+      "import React from 'react'",
+      "import { Banner } from '../components/banner'",
+      "",
+      "export default function Page() {",
+      "  return (",
+      '    <main className="min-h-screen bg-slate-950">',
+      "      <Banner />",
+      "    </main>",
+      "  )",
+      "}",
+    ],
+  },
+];
 
-  // Extract prompt and type from URL or location state on mount
-  useEffect(() => {
-    const locationState = window.history.state?.usr;
-    
-    if (locationState?.showBuildingAnimation) {
-      setShowBuildingScreen(true);
-    }
-    
-    if (locationState?.initialPrompt) {
-      setInitialPrompt(locationState.initialPrompt);
-    }
-    
-    if (locationState?.detectedType === 'mobile') {
-      setActivePlatform('mobile');
-      setActiveDeviceView('mobile');
-    } else if (locationState?.detectedType === 'web') {
-      setActivePlatform('web');
-      setActiveDeviceView('desktop');
-    }
-    
-    const searchParams = new URLSearchParams(window.location.search);
-    const prompt = searchParams.get('prompt');
-    const type = searchParams.get('type');
-    
-    if (prompt) {
-      setInitialPrompt(prompt);
-    }
-    
-    if (type === 'mobile') {
-      setActivePlatform('mobile');
-      setActiveDeviceView('mobile');
-    } else if (type === 'web') {
-      setActivePlatform('web');
-      setActiveDeviceView('desktop');
-    }
-    
-    // Clear the URL parameters after extracting them
-    if (prompt || type) {
-      window.history.replaceState({}, '', '/ide');
-    }
-  }, []);
+function buildInitialContents() {
+  const map: Record<string, string> = {};
+  for (const file of initialFiles) {
+    map[file.id] = file.content.join(`
+`);
+  }
+  return map;
+}
 
-  // Sync device view with platform changes
-  useEffect(() => {
-    if (activePlatform === 'mobile') {
-      setActiveDeviceView('mobile');
-      const mobileHtml = getFileContent('mobile/public/preview.html') || getFileContent('mobile/index.html');
-      if (mobileHtml) {
-        setMobilePreview(mobileHtml);
+function UrDevPreviewFrame() {
+  return (
+    <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-950 overflow-hidden shadow-[0_0_55px_rgba(15,23,42,0.9)]">
+      <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-2 text-[11px] text-slate-300">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-2 w-2 rounded-full bg-rose-500" />
+          <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
+          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="ml-3 text-xs text-slate-400">UR-DEV · Preview</span>
+        </div>
+        <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-400">
+          Desktop · 100%
+        </span>
+      </div>
+      <div className="h-full overflow-auto bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+        <main className="min-h-[540px] px-10 py-10">
+          <section className="mx-auto max-w-4xl rounded-2xl border border-slate-800/80 bg-slate-950/80 px-10 py-10 shadow-[0_0_45px_rgba(8,47,73,0.75)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-400">
+              UR-DEV · LIVE PREVIEW
+            </p>
+            <h1 className="mt-4 text-3xl font-semibold text-sky-100 sm:text-4xl">
+              UR-DEV Banner preview
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-slate-300">
+              This area simulates how your <span className="font-mono text-cyan-300">banner.tsx</span>{" "}
+              component will render inside the app shell. When you switch back to{" "}
+              <span className="font-semibold text-sky-200">Code</span>, you can continue editing the
+              component line by line.
+            </p>
+            <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900/70 px-7 py-6">
+              <h2 className="text-xl font-semibold text-sky-100">UR-DEV Banner</h2>
+              <p className="mt-2 text-sm text-slate-300">
+                This is a demo banner component rendered inside the editor preview. You can adapt the
+                structure to match your real project once the full compiler integration is wired in.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3 text-[11px]">
+                <span className="inline-flex items-center rounded-full bg-sky-500/15 px-3 py-1 text-sky-200">
+                  • React component
+                </span>
+                <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-1 text-emerald-200">
+                  • Tailwind styles
+                </span>
+                <span className="inline-flex items-center rounded-full bg-violet-500/15 px-3 py-1 text-violet-200">
+                  • UR-DEV layout frame
+                </span>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function UrDevEditorPage() {
+  const [activeFileId, setActiveFileId] = useState("banner");
+  const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
+    buildInitialContents()
+  );
+  const [showReasoning, setShowReasoning] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+
+  const activeFile = initialFiles.find((file) => file.id === activeFileId) || initialFiles[0];
+  const currentContent = fileContents[activeFileId] || activeFile.content.join(`
+`);
+  const currentLines = currentContent.split(`
+`);
+  const originalLines = activeFile.content;
+
+  function handleChangeContent(value: string) {
+    setFileContents((prev) => ({ ...prev, [activeFileId]: value }));
+  }
+
+  async function handleCopyFile() {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(currentContent);
       }
-    } else if (activePlatform === 'web') {
-      setActiveDeviceView('desktop');
-      const desktopHtml = getFileContent('public/preview.html');
-      if (desktopHtml) {
-        setDesktopPreview(desktopHtml);
-      }
+    } catch {
+      // ignore clipboard failures
     }
-  }, [activePlatform, getFileContent, setDesktopPreview, setMobilePreview]);
-  
-  const [supabasePopupOpen, setSupabasePopupOpen] = useState(false);
-  const [supabaseConnected, setSupabaseConnected] = useState(false);
-  const [showProjectList, setShowProjectList] = useState(false);
-  const supabaseButtonRef = useRef<HTMLButtonElement>(null);
-  const supabasePopupRef = useRef<HTMLDivElement>(null);
-  
-  // Mock projects data
-  const supabaseProjects = [
-    { id: '1', name: 'Production App', org: 'Main Organization' },
-    { id: '2', name: 'Staging Environment', org: 'Main Organization' },
-    { id: '3', name: 'Dev Workspace', org: 'Testing Team' },
-  ];
+  }
 
-  const themes = [
-    { name: "Dark", gradient: "from-zinc-900 to-black" },
-    { name: "Deep Blue", gradient: "from-blue-950 to-slate-900" },
-    { name: "Midnight", gradient: "from-indigo-950 to-slate-950" },
-    { name: "Hacker Green", gradient: "from-green-950 to-emerald-950" },
-  ];
+  function isLineChanged(index: number, line: string) {
+    return line !== (originalLines[index] || "");
+  }
 
-  const toggleExplorer = () => {
-    setExplorerOpen(prev => !prev);
-  };
-
-  // Close GitHub popup when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        githubPopupOpen &&
-        githubPopupRef.current &&
-        !githubPopupRef.current.contains(event.target as Node) &&
-        githubButtonRef.current &&
-        !githubButtonRef.current.contains(event.target as Node)
-      ) {
-        setGithubPopupOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [githubPopupOpen]);
-
-  // Close Supabase popup when clicking outside or ESC
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        supabasePopupOpen &&
-        supabasePopupRef.current &&
-        !supabasePopupRef.current.contains(event.target as Node) &&
-        supabaseButtonRef.current &&
-        !supabaseButtonRef.current.contains(event.target as Node)
-      ) {
-        setSupabasePopupOpen(false);
-        setShowProjectList(false);
-      }
-    };
-
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && supabasePopupOpen) {
-        setSupabasePopupOpen(false);
-        setShowProjectList(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscKey);
-    };
-  }, [supabasePopupOpen]);
+  const hasFileChanges = currentContent !== activeFile.content.join(`
+`);
 
   return (
-    <div className="h-screen w-full flex flex-col bg-background">
-      {/* Command Palette */}
-      <CommandPalette />
-      
-      {/* Top Bar */}
-      <header className="h-12 bg-ide-panel border-b border-ide-border flex items-center px-3 flex-shrink-0 relative">
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-2 py-1 hover:bg-white/5 hover:backdrop-blur-md rounded transition-colors">
-              <Code className="w-5 h-5 text-ide-active" />
-              <h1 className="text-sm font-semibold text-foreground">
-                Codient
-              </h1>
-            </DropdownMenuTrigger>
-            
-            <DropdownMenuContent 
-              align="start" 
-              className="w-64 bg-ide-panel border-ide-border shadow-xl z-50"
-              sideOffset={8}
-            >
-              <DropdownMenuItem 
-                onClick={() => navigate('/')}
-                className="flex items-center gap-3 cursor-pointer hover:bg-blue-500/10 hover:backdrop-blur-md transition-all"
-              >
-                <Home className="w-4 h-4 text-gray-400" />
-                <span>Back to Home</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator className="bg-ide-border" />
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center gap-3 hover:bg-blue-500/10 hover:backdrop-blur-md transition-all">
-                  <Wand2 className="w-4 h-4 text-purple-400" />
-                  <span>AI Tools</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="bg-ide-panel border-ide-border z-50">
-                  <DropdownMenuItem className="flex items-center gap-3 cursor-pointer hover:bg-blue-500/10 hover:backdrop-blur-md transition-all">
-                    <Bug className="w-4 h-4 text-red-400" />
-                    <span>Debug</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-3 cursor-pointer hover:bg-blue-500/10 hover:backdrop-blur-md transition-all">
-                    <Wand2 className="w-4 h-4 text-green-400" />
-                    <span>Fix Code</span>
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center gap-3 hover:bg-blue-500/10 hover:backdrop-blur-md transition-all">
-                  <Palette className="w-4 h-4 text-pink-400" />
-                  <span>Themes</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="bg-ide-panel border-ide-border z-50">
-                  {themes.map((theme) => (
-                    <DropdownMenuItem 
-                      key={theme.name}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-blue-500/10 hover:backdrop-blur-md transition-all"
-                    >
-                      <div className={`w-4 h-4 rounded bg-gradient-to-br ${theme.gradient}`} />
-                      <span>{theme.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              <DropdownMenuItem 
-                onClick={() => setSettingsOpen(true)}
-                className="flex items-center gap-3 cursor-pointer hover:bg-blue-500/10 hover:backdrop-blur-md transition-all"
-              >
-                <Settings className="w-4 h-4 text-gray-400" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <ChevronDown className="w-3 h-3 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Untitled</span>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center gap-0">
-          <div className="flex items-center gap-0 border border-ide-border rounded-full px-1 py-1 backdrop-blur-md bg-ide-panel/30">
-            <button 
-              onClick={() => setViewMode('preview')}
-              className={`px-4 py-1.5 text-sm rounded-full transition-colors backdrop-blur-sm ${
-                viewMode === 'preview' 
-                  ? 'bg-blue-500/10 text-blue-400 font-medium' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Preview
-            </button>
-            <button 
-              className="px-4 py-1.5 text-sm rounded-full text-muted-foreground hover:text-foreground transition-colors backdrop-blur-sm hover:bg-white/5"
-            >
-              Design
-            </button>
-            <button 
-              onClick={() => setViewMode('code')}
-              className={`px-4 py-1.5 text-sm rounded-full transition-colors backdrop-blur-sm ${
-                viewMode === 'code'
-                  ? 'bg-blue-500/10 text-blue-400 font-medium'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Code
-            </button>
+    <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col">
+      {/* TOP BAR */}
+      <header className="flex items-center justify-between border-b border-white/10 bg-black/90 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-400/70 text-xs font-semibold text-cyan-200">
+            UR
+          </div>
+          <div>
+            <div className="text-sm font-semibold tracking-tight">UR-DEV IDE</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
+              YOU ARE THE DEVELOPER
+            </div>
           </div>
         </div>
-
-        <div className="ml-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-            <span className="text-sm font-medium text-gray-300">A</span>
-          </div>
-
-          <Button className="bg-blue-500/10 hover:bg-blue-500/15 text-blue-400 h-8 px-4 text-sm font-medium rounded-full backdrop-blur-md border border-blue-500/20">
-            Invite
-          </Button>
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-1 py-1 text-[11px]">
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            className={`rounded-full px-3 py-1 ${
+              showPreview ? "bg-sky-500 text-black font-semibold" : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Preview
+          </button>
+          <button className="rounded-full px-3 py-1 text-slate-300 hover:text-white">Design</button>
+          <button
+            type="button"
+            onClick={() => setShowPreview(false)}
+            className={`rounded-full px-3 py-1 ${
+              !showPreview
+                ? "bg-sky-500 text-black font-semibold shadow-[0_0_18px_rgba(56,189,248,0.6)]"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Code
+          </button>
+        </div>
+        <div className="flex items-center gap-2 text-[11px]">
+          <button className="hidden sm:inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100">
+            <span className="text-xs">▶</span>
+            <span>Run checks</span>
+          </button>
+          <button className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_22px_rgba(56,189,248,0.8)] hover:bg-sky-400">
+            <span>Preview</span>
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
+              ↗
+            </span>
+          </button>
         </div>
       </header>
 
-      {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Icon Sidebar - Very narrow with just icons */}
-        <div className="w-12 bg-[#1a1a1a] border-r border-ide-border flex flex-col items-center py-3 gap-0">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+        {/* FAR LEFT ACTIVITY RAIL */}
+        <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-[#030711] py-3">
+          <div className="flex flex-col items-center gap-3">
+            <button className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-cyan-500/20 text-xs font-semibold text-cyan-200 border border-cyan-400/70">
+              UR
+            </button>
+            <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
+              <Folder className="h-4 w-4" />
+            </button>
+            <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
+              <FileCode2 className="h-4 w-4" />
+            </button>
+            <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
+              <span className="text-[11px]">▶</span>
+            </button>
+          </div>
+          <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-300 hover:bg-white/10">
+            <Settings2 className="h-4 w-4" />
+          </button>
+        </aside>
+
+        {/* LEFT SIDEBAR (EXPLORER) */}
+        <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-[#050816]">
+          <div className="px-3 py-3 border-b border-white/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-900 border border-slate-700">
+                  <Folder className="h-3 w-3 text-slate-300" />
+                </span>
+                <span>Explorer</span>
+              </div>
+              <button className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-900 text-slate-400 border border-slate-700">
+                <Settings2 className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="mt-3 flex items-center gap-2 rounded-md bg-slate-900 px-2 py-1 text-[11px] text-slate-300 border border-slate-700/80">
+              <Search className="h-3 w-3 text-slate-500" />
+              <input
+                className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
+                placeholder="Search files..."
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-2 py-3 text-[11px] text-slate-300">
+            <div className="mb-2 px-2 text-slate-500 uppercase tracking-[0.16em] text-[10px]">
+              PROJECT
+            </div>
+            <div className="space-y-1">
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5">
+                <Folder className="h-3 w-3" />
+                <span>node_modules</span>
+              </button>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5">
+                <Folder className="h-3 w-3" />
+                <span>public</span>
+              </button>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5">
+                <Folder className="h-3 w-3" />
+                <span>src</span>
+              </button>
+
+              <div className="ml-5 space-y-1">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5">
+                  <Folder className="h-3 w-3" />
+                  <span>components</span>
+                </button>
                 <button
-                  onClick={toggleExplorer}
-                  className={`w-12 h-10 flex items-center justify-center transition-colors relative ${
-                    explorerOpen
-                      ? 'text-white before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-white'
-                      : 'text-muted-foreground hover:text-foreground'
+                  type="button"
+                  onClick={() => setActiveFileId("banner")}
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                    activeFileId === "banner"
+                      ? "bg-sky-500/25 text-sky-100"
+                      : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <FolderTree className="w-5 h-5" />
+                  <span className="flex items-center gap-2">
+                    <FileCode2 className="h-3 w-3" />
+                    <span>banner.tsx</span>
+                  </span>
+                  <span className="text-[9px] text-slate-400">TSX</span>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Explorer</p>
-              </TooltipContent>
-            </Tooltip>
+              </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                  <Search className="w-5 h-5" />
+              <div className="ml-5 space-y-1">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5">
+                  <Folder className="h-3 w-3" />
+                  <span>app</span>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Search</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                  <Layers className="w-5 h-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Source Control</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                  <Bug className="w-5 h-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Debug</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  onClick={() => setSupabasePopupOpen(!supabasePopupOpen)}
-                  ref={supabaseButtonRef}
-                  className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative"
-                >
-                  <img src={supabaseLogo} alt="Supabase" className="w-5 h-5" />
-                  {supabaseConnected && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Supabase</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  onClick={() => {
-                    console.log("GitHub button clicked, current state:", githubPopupOpen);
-                    setGithubPopupOpen(!githubPopupOpen);
-                  }}
-                  ref={githubButtonRef}
-                  className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <img src={githubLogo} alt="GitHub" className="w-5 h-5 brightness-[3] invert" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>GitHub</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  onClick={() => setCloudPopupOpen(!cloudPopupOpen)}
-                  ref={cloudButtonRef}
-                  className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <svg height="20px" width="20px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 56 56" xmlSpace="preserve" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path style={{fill:"#545E73"}} d="M49.455,8L49.455,8C48.724,3.538,38.281,0,25.5,0S2.276,3.538,1.545,8l0,0H1.5v0.5V20v0.5V21v11 v0.5V33v12h0.045c0.731,4.461,11.175,8,23.955,8s23.224-3.539,23.955-8H49.5V33v-0.5V32V21v-0.5V20V8.5V8H49.455z"></path> <g> <path style={{fill:"#38454F"}} d="M25.5,41c-13.255,0-24-3.806-24-8.5V45h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V32.5C49.5,37.194,38.755,41,25.5,41z"></path> <path style={{fill:"#38454F"}} d="M1.5,32v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path> <path style={{fill:"#38454F"}} d="M49.455,32c0.027,0.166,0.045,0.332,0.045,0.5V32H49.455z"></path> </g> <g> <path style={{fill:"#556080"}} d="M25.5,29c-13.255,0-24-3.806-24-8.5V33h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V20.5C49.5,25.194,38.755,29,25.5,29z"></path> <path style={{fill:"#556080"}} d="M1.5,20v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path> <path style={{fill:"#556080"}} d="M49.455,20c0.027,0.166,0.045,0.332,0.045,0.5V20H49.455z"></path> </g> <ellipse style={{fill:"#91BAE1"}} cx="25.5" cy="8.5" rx="24" ry="8.5"></ellipse> <g> <path style={{fill:"#8697CB"}} d="M25.5,17c-13.255,0-24-3.806-24-8.5V21h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V8.5C49.5,13.194,38.755,17,25.5,17z"></path> <path style={{fill:"#8697CB"}} d="M1.5,8v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path> <path style={{fill:"#8697CB"}} d="M49.455,8C49.482,8.166,49.5,8.332,49.5,8.5V8H49.455z"></path> </g> </g> <g> <g> <path style={{fill:"#48A0DC"}} d="M49.545,45.111C49.494,41.175,46.382,38,42.546,38c-2.568,0-4.806,1.426-6.025,3.546 c-0.421-0.141-0.87-0.22-1.337-0.22c-2.063,0-3.785,1.492-4.208,3.484C29.221,45.675,28,47.516,28,49.641 C28,52.589,30.343,55,33.208,55h10.775c0.061,0,0.119-0.007,0.18-0.009c0.06,0.002,0.119,0.009,0.18,0.009h4.31 c2.667,0,4.849-2.245,4.849-4.989C53.5,47.581,51.788,45.546,49.545,45.111z"></path> <path style={{fill:"#B1D3EF"}} d="M48.651,56h-4.31c-0.063,0-0.126-0.004-0.188-0.008C44.106,55.996,44.045,56,43.982,56H33.208 C29.785,56,27,53.147,27,49.642c0-2.262,1.209-4.372,3.116-5.503c0.686-2.235,2.746-3.813,5.066-3.813 c0.296,0,0.592,0.025,0.884,0.076C37.562,38.286,39.98,37,42.546,37c4.102,0,7.524,3.225,7.954,7.332 c2.358,0.806,4,3.079,4,5.679C54.5,53.313,51.876,56,48.651,56z M44.114,53.991l0.186,0.006L48.651,54 c2.122,0,3.849-1.79,3.849-3.989c0-1.917-1.323-3.564-3.146-3.919l-0.799-0.155l-0.011-0.813C48.501,41.747,45.811,39,42.546,39 c-2.135,0-4.063,1.139-5.158,3.045l-0.409,0.711l-0.777-0.261c-0.332-0.112-0.675-0.169-1.019-0.169 c-1.54,0-2.898,1.133-3.229,2.692l-0.102,0.475l-0.435,0.214C29.948,46.432,29,47.976,29,49.642C29,52.045,30.888,54,33.208,54 L44.114,53.991z"></path> </g> </g> </g> </g></svg>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>UR-DEV Cloud</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <div className="flex-1" />
-
-            {/* Device selector buttons at bottom of sidebar */}
-            <Tooltip>
-              <TooltipTrigger asChild>
                 <button
-                  onClick={() => setActiveDeviceView('desktop')}
-                  className={`w-12 h-10 flex items-center justify-center transition-colors relative ${
-                    activeDeviceView === 'desktop'
-                      ? 'text-white before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-white'
-                      : 'text-muted-foreground hover:text-foreground'
+                  type="button"
+                  onClick={() => setActiveFileId("layout")}
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                    activeFileId === "layout"
+                      ? "bg-sky-500/25 text-sky-100"
+                      : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <Monitor className="w-5 h-5" />
+                  <span className="flex items-center gap-2">
+                    <FileCode2 className="h-3 w-3" />
+                    <span>layout.tsx</span>
+                  </span>
+                  <span className="text-[9px] text-slate-400">TSX</span>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Desktop View</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
                 <button
-                  onClick={() => setActiveDeviceView('mobile')}
-                  className={`w-12 h-10 flex items-center justify-center transition-colors relative ${
-                    activeDeviceView === 'mobile'
-                      ? 'text-white before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-white'
-                      : 'text-muted-foreground hover:text-foreground'
+                  type="button"
+                  onClick={() => setActiveFileId("page")}
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                    activeFileId === "page"
+                      ? "bg-sky-500/25 text-sky-100"
+                      : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <Smartphone className="w-5 h-5" />
+                  <span className="flex items-center gap-2">
+                    <FileCode2 className="h-3 w-3" />
+                    <span>page.tsx</span>
+                  </span>
+                  <span className="text-[9px] text-slate-400">TSX</span>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Mobile View</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setSettingsOpen(true)}
-                  className="w-12 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Settings className="w-5 h-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Settings</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          {/* Explorer Panel - Toggleable */}
-          {explorerOpen && (
-            <>
-              <ResizablePanel defaultSize={18} minSize={15} maxSize={30}>
-                <FileTree activePlatform={activePlatform} onPlatformChange={setActivePlatform} />
-              </ResizablePanel>
-              <ResizableHandle withHandle className="w-px bg-ide-border hover:bg-ide-active transition-colors" />
-            </>
-          )}
-
-          {/* Center area - Editor with tabs */}
-          <ResizablePanel defaultSize={explorerOpen ? 52 : 70} minSize={30}>
-            <div className="h-full flex flex-col">
-              {/* Editor Tabs */}
-              {viewMode === 'code' && <EditorTabs viewMode={viewMode} />}
-              {/* Editor Content */}
-              <div className="flex-1 min-h-0">
-                {activeDeviceView === 'mobile' && viewMode === 'preview' ? (
-                  <MobilePreview />
-                ) : (
-                  <EditorPanel viewMode={viewMode} />
-                )}
               </div>
             </div>
-          </ResizablePanel>
+          </div>
 
-          <ResizableHandle withHandle className="w-px bg-ide-border hover:bg-ide-active transition-colors" />
+          <div className="border-t border-white/10 px-4 py-3 text-[10px] text-slate-500 flex items-center justify-between">
+            <button className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:bg-white/10">
+              <Settings2 className="h-3 w-3" />
+              <span>Project settings</span>
+            </button>
+            <span className="text-[9px] text-slate-600">UR-DEV workspace</span>
+          </div>
+        </aside>
 
-          {/* Right Panel - AI Assistance */}
-          <ResizablePanel defaultSize={30} minSize={25} maxSize={40}>
-            <AssistantPanel 
-              explorerOpen={explorerOpen} 
-              onToggleExplorer={toggleExplorer} 
-              onOpenSettings={() => setSettingsOpen(true)}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              initialPrompt={initialPrompt}
-              activePlatform={activePlatform}
-              onBuildComplete={() => setShowBuildingScreen(false)}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+        {/* CENTER: EDITOR OR PREVIEW */}
+        <main className="flex-1 flex overflow-hidden">
+          <section className="flex-1 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+            {showPreview ? (
+              <div className="flex-1 overflow-auto">
+                <UrDevPreviewFrame />
+              </div>
+            ) : (
+              <>
+                {/* File tabs + copy */}
+                <div className="flex items-center justify-between border-b border-white/10 bg-black/70 px-4 py-2 text-[11px]">
+                  <div className="flex items-center gap-2 overflow-x-auto">
+                    {initialFiles.map((file) => {
+                      const isActive = file.id === activeFileId;
+                      return (
+                        <button
+                          key={file.id}
+                          type="button"
+                          onClick={() => setActiveFileId(file.id)}
+                          className={`inline-flex items-center gap-2 rounded-t-md border-b-2 px-3 py-1 ${
+                            isActive
+                              ? "border-sky-400 bg-black text-sky-100"
+                              : "border-transparent text-slate-400 hover:text-slate-100"
+                          }`}
+                        >
+                          <span>{file.name}</span>
+                          <span className="text-[9px] uppercase text-slate-500">
+                            {file.language}
+                          </span>
+                          {file.id === activeFileId && hasFileChanges && (
+                            <span className="ml-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] text-amber-300">
+                              Modified
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                    <button
+                      type="button"
+                      onClick={handleCopyFile}
+                      className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-sky-400/70 hover:text-sky-100"
+                    >
+                      <span className="text-xs">⧉</span>
+                      <span>Copy file</span>
+                    </button>
+                    <span className="hidden sm:inline rounded-full bg-emerald-500/20 px-2 py-0.5 text-emerald-200">
+                      {hasFileChanges ? "Unsaved changes" : "Saved"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Editor surface */}
+                <div className="flex-1 overflow-hidden">
+                  <div className="relative h-full rounded-none border-0 bg-transparent shadow-none">
+                    <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-[11px] text-slate-400 bg-black/80">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-rose-500" />
+                        <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
+                        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                        <span className="ml-3 font-medium text-slate-300">{activeFile.path}</span>
+                      </div>
+                      <span className="hidden sm:inline text-[10px] text-slate-500">
+                        Editing in UR-DEV. Changes are highlighted in the gutter.
+                      </span>
+                    </div>
+
+                    <div className="flex h-full min-h-[720px] text-[13px] font-mono leading-relaxed overflow-hidden">
+                      <div className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-hidden text-[13px] leading-relaxed">
+                        {currentLines.map((line, index) => (
+                          <div
+                            key={index}
+                            className={
+                              isLineChanged(index, line)
+                                ? "bg-amber-500/10 text-amber-300 -mx-1 px-1 rounded-sm"
+                                : ""
+                            }
+                          >
+                            {index + 1}
+                          </div>
+                        ))}
+                      </div>
+                      <textarea
+                        value={currentContent}
+                        onChange={(e) => handleChangeContent(e.target.value)}
+                        spellCheck={false}
+                        className="flex-1 h-full resize-none bg-slate-950 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
+
+          {/* RIGHT ASSISTANT PANEL */}
+          <aside className="hidden xl:flex w-80 min-w-[260px] max-w-[520px] resize-x overflow-hidden flex-col border-l border-white/10 bg-black/95">
+            <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
+                <div className="mt-0.5 text-[10px] text-slate-500">
+                  Academic-grade explanations for your code.
+                </div>
+              </div>
+              <span className="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-200">
+                Online
+              </span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/90 p-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReasoning((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-1 text-[11px] text-slate-200"
+                >
+                  <span>Reasoning</span>
+                  <span className="text-xs">{showReasoning ? "▾" : "▸"}</span>
+                </button>
+                {showReasoning && (
+                  <div className="mt-2 rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 animate-pulse px-3 py-2 text-[11px] text-slate-200">
+                    The assistant analyses the current file, identifies structural issues, and
+                    proposes a clear, maintainable revision plan before suggesting any code edits.
+                  </div>
+                )}
+                <div className="mt-3 space-y-2 text-slate-100">
+                  <p>
+                    I have examined the active component and identified opportunities to simplify its
+                    layout, improve naming, and separate visual concerns from logic. The next step is
+                    to introduce small, focused helpers while preserving the original behaviour.
+                  </p>
+                  <p className="text-slate-300">
+                    All suggestions are conservative, emphasising readability, long-term
+                    maintainability, and type safety.
+                  </p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button className="rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400">
+                    Error fixing
+                  </button>
+                  <button className="rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400">
+                    Find logic bugs
+                  </button>
+                  <button className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] text-slate-100 hover:border-sky-400/80 hover:text-sky-100">
+                    Suggest refactor
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-slate-950/90 p-3">
+                <div className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  Recent analysis
+                </div>
+                <ul className="mt-2 space-y-1 text-slate-300">
+                  <li>• Verified props and state usage are coherent.</li>
+                  <li>• No unreachable branches detected in this file.</li>
+                  <li>• Recommended extracting layout into smaller sections.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 px-4 py-3">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/95 p-3 space-y-3">
+                {showQuickActions && (
+                  <div className="rounded-2xl bg-black/70 px-3 py-3">
+                    <div className="grid grid-cols-3 gap-3 text-[11px] text-slate-100">
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <Paperclip className="h-4 w-4" />
+                        <span>Attach File</span>
+                      </button>
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <Settings2 className="h-4 w-4" />
+                        <span>Settings</span>
+                      </button>
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <WalletCards className="h-4 w-4" />
+                        <span>Wallet</span>
+                      </button>
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <HelpCircle className="h-4 w-4" />
+                        <span>Help</span>
+                      </button>
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <ShoppingBag className="h-4 w-4" />
+                        <span>Market</span>
+                      </button>
+                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                        <MessageCircle className="h-4 w-4" />
+                        <span>Community</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-end gap-2 rounded-xl bg-black/80 px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickActions((v) => !v)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-slate-100 hover:bg-white/10"
+                  >
+                    <Settings2 className="h-4 w-4" />
+                  </button>
+                  <input
+                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none"
+                    placeholder="Ask UR-DEV to analyse or rewrite this file in an academic tone…"
+                  />
+                  <button className="inline-flex items-center justify-center rounded-lg bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_18px_rgba(56,189,248,0.7)] hover:bg-sky-400">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </main>
       </div>
-
-      {/* Premium Settings Drop-up */}
-      <PremiumSettingsDropup isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
-
-      {/* GitHub Integration Popup */}
-      <GitHubIntegration 
-        isOpen={githubPopupOpen} 
-        onClose={() => {
-          console.log("Closing GitHub popup");
-          setGithubPopupOpen(false);
-        }} 
-        buttonRef={githubButtonRef}
-      />
-
-      {/* Cloud Integration Popup */}
-      <CloudIntegration 
-        isOpen={cloudPopupOpen} 
-        onClose={() => setCloudPopupOpen(false)} 
-        buttonRef={cloudButtonRef}
-      />
-
-      {/* Building Loading Screen - Shows when building from landing page */}
-      {showBuildingScreen && <BuildingLoadingScreen />}
     </div>
   );
-};
+}
 
-export default Index;
+export default UrDevEditorPage;
