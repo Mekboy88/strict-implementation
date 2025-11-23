@@ -457,20 +457,6 @@ const Index = () => {
                 <p>Mobile View</p>
               </TooltipContent>
             </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="w-12 h-10 flex items-center justify-center text-yellow-400 hover:text-yellow-300 transition-colors">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                  </svg>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Premium</p>
-              </TooltipContent>
-            </Tooltip>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
