@@ -224,7 +224,6 @@ function UrDevEditorPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* FAR LEFT ACTIVITY RAIL */}
         <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-[#030711] py-3">
-          <div className="flex flex-col items-center gap-3">
             <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
               <svg viewBox="0 0 36 36" className="h-4 w-4" fill="currentColor">
                 <path fill="#269" d="M0 29a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4h-9c-3.562 0-3-5-8.438-5H4a4 4 0 0 0-4 4v22z"></path>
@@ -268,7 +267,6 @@ function UrDevEditorPage() {
                 </g>
               </svg>
             </button>
-          </div>
           <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-300 hover:bg-white/10">
             <Settings2 className="h-4 w-4" />
           </button>
