@@ -140,6 +140,7 @@ function UrDevEditorPage() {
   const [showReasoning, setShowReasoning] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
 
   const activeFile = initialFiles.find((file) => file.id === activeFileId) || initialFiles[0];
   const currentContent = fileContents[activeFileId] || activeFile.content.join(`
@@ -277,17 +278,24 @@ function UrDevEditorPage() {
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
                 <span className="text-xs font-semibold text-slate-100">Explorer</span>
               </div>
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-slate-400">
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-200 transition-colors"
+                onClick={() => setShowSearchBar(!showSearchBar)}
+              >
                 <path fillRule="evenodd" clipRule="evenodd" d="M1 5C1 3.34315 2.34315 2 4 2H8.43845C9.81505 2 11.015 2.93689 11.3489 4.27239L11.7808 6H13.5H20C21.6569 6 23 7.34315 23 9V11C23 11.5523 22.5523 12 22 12C21.4477 12 21 11.5523 21 11V9C21 8.44772 20.5523 8 20 8H13.5H11.7808H4C3.44772 8 3 8.44772 3 9V10V19C3 19.5523 3.44772 20 4 20H9C9.55228 20 10 20.4477 10 21C10 21.5523 9.55228 22 9 22H4C2.34315 22 1 20.6569 1 19V10V9V5ZM3 6.17071C3.31278 6.06015 3.64936 6 4 6H9.71922L9.40859 4.75746C9.2973 4.3123 8.89732 4 8.43845 4H4C3.44772 4 3 4.44772 3 5V6.17071ZM20.1716 18.7574C20.6951 17.967 21 17.0191 21 16C21 13.2386 18.7614 11 16 11C13.2386 11 11 13.2386 11 16C11 18.7614 13.2386 21 16 21C17.0191 21 17.967 20.6951 18.7574 20.1716L21.2929 22.7071C21.6834 23.0976 22.3166 23.0976 22.7071 22.7071C23.0976 22.3166 23.0976 21.6834 22.7071 21.2929L20.1716 18.7574ZM13 16C13 14.3431 14.3431 13 16 13C17.6569 13 19 14.3431 19 16C19 17.6569 17.6569 19 16 19C14.3431 19 13 17.6569 13 16Z" fill="currentColor"/>
               </svg>
             </div>
-            <div className="mt-3 flex items-center gap-2 rounded-md bg-slate-900 px-2 py-1 text-[11px] text-slate-300 border border-slate-700/80">
-              <Search className="h-3 w-3 text-slate-500" />
-              <input
-                className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
-                placeholder="Search files..."
-              />
-            </div>
+            {showSearchBar && (
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-slate-900 px-2 py-1 text-[11px] text-slate-300 border border-slate-700/80">
+                <Search className="h-3 w-3 text-slate-500" />
+                <input
+                  className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
+                  placeholder="Search files..."
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto px-2 py-3 text-[11px] text-slate-300">
