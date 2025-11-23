@@ -155,7 +155,7 @@ function UrDevEditorPage() {
       setShowEditNotification(true);
       const timer = setTimeout(() => {
         setShowEditNotification(false);
-      }, 3000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [isEditingEnabled]);
