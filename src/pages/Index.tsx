@@ -287,9 +287,9 @@ function UrDevEditorPage() {
                 </svg>
               </button>
             </div>
-            <button className="mt-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-slate-900 border border-slate-700/80 hover:bg-slate-800">
+            <div className="mt-3 flex items-center justify-center rounded-md bg-slate-900 px-2 py-1.5 text-[11px] text-slate-300 border border-slate-700/80">
               <Search className="h-3 w-3 text-slate-500" />
-            </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto px-2 py-3 text-[11px] text-slate-300">
