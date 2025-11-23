@@ -709,9 +709,10 @@ function UrDevEditorPage() {
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
               </div>
-              <span className="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-200">
-                Online
-              </span>
+              <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition-colors">
+                <span className="text-xs">▶</span>
+                <span>Run checks</span>
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
