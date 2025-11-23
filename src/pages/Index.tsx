@@ -802,7 +802,7 @@ function UrDevEditorPage() {
                   <input
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
-                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none py-4"
+                    className="flex-1 bg-transparent text-[11px] text-slate-100 placeholder:text-slate-500 outline-none py-6"
                     placeholder="Ask UR-DEV to analyse or rewrite this file in an academic tone…"
                   />
                   <svg 
