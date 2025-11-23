@@ -443,8 +443,8 @@ function UrDevEditorPage() {
                       <span className="text-xs">⧉</span>
                       <span>Copy file</span>
                     </button>
-                    <span className="hidden sm:inline rounded-full bg-emerald-500/20 px-2 py-0.5 text-emerald-200">
-                      {hasFileChanges ? "Unsaved changes" : "Saved"}
+                    <span className="hidden sm:inline rounded-full bg-sky-500/20 px-2 py-0.5 text-sky-200">
+                      {hasFileChanges ? "Save" : "Saved"}
                     </span>
                   </div>
                 </div>
