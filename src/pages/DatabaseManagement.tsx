@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table as TableComponent,
   TableBody,
@@ -44,6 +47,8 @@ const DatabaseManagement = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchColumn, setSearchColumn] = useState<string>("all");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newRowData, setNewRowData] = useState<Record<string, any>>({});
 
   const menuItems = [
     { title: "Overview", icon: LayoutDashboard },
@@ -314,6 +319,55 @@ const DatabaseManagement = () => {
     return String(value);
   };
 
+  const handleOpenAddDialog = () => {
+    if (!selectedTable) {
+      toast({
+        title: "No Table Selected",
+        description: "Please select a table first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setNewRowData({});
+    setShowAddDialog(true);
+  };
+
+  const handleAddRow = async () => {
+    if (!selectedTable) return;
+
+    try {
+      const { error } = await supabase
+        .from(selectedTable as any)
+        .insert([newRowData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Row added successfully",
+      });
+
+      setShowAddDialog(false);
+      setNewRowData({});
+      
+      // Refresh table data
+      const { data, error: fetchError } = await supabase
+        .from(selectedTable as any)
+        .select('*')
+        .limit(50);
+
+      if (!fetchError && data) {
+        setTableData(data);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add row",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -447,7 +501,7 @@ const DatabaseManagement = () => {
                         >
                           <span>Filter</span>
                         </Button>
-                        <Button size="sm" variant="outline" className="gap-2">
+                        <Button size="sm" variant="outline" className="gap-2" onClick={handleOpenAddDialog}>
                           <Plus className="w-4 h-4" />
                           Add Row
                         </Button>
@@ -629,6 +683,49 @@ const DatabaseManagement = () => {
           </div>
         </main>
       </div>
+
+      {/* Add Row Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Row to {selectedTable}</DialogTitle>
+            <DialogDescription>
+              Fill in the fields below to add a new row. Leave fields empty for default values.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            {selectedTable && getCurrentTableColumns()
+              .filter(col => col !== 'id' && col !== 'created_at' && col !== 'updated_at')
+              .map((column) => (
+                <div key={column} className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor={column} className="text-right text-sm">
+                    {column}
+                  </Label>
+                  <Input
+                    id={column}
+                    value={newRowData[column] || ''}
+                    onChange={(e) => setNewRowData(prev => ({
+                      ...prev,
+                      [column]: e.target.value
+                    }))}
+                    className="col-span-3 bg-background border-border"
+                    placeholder={`Enter ${column}`}
+                  />
+                </div>
+              ))}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddRow}>
+              Add Row
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
