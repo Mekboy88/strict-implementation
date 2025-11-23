@@ -1,8 +1,23 @@
+import { Package } from "lucide-react";
+import ComingSoonFeature from "@/components/ComingSoonFeature";
+
 const BuildTools = () => {
   return (
-    <div className="min-h-screen bg-background p-6">
-      <h1 className="text-3xl font-bold">Build Tools</h1>
-    </div>
+    <ComingSoonFeature
+      icon={Package}
+      title="Project Packaging & Build"
+      description="Professional build pipelines and deployment tools"
+      color="bg-purple-950/40 border-2 border-purple-500/30"
+      features={[
+        "Automated build pipeline configuration",
+        "Docker container generation",
+        "Production optimization and minification",
+        "Environment-specific builds",
+        "Custom build scripts and hooks",
+        "Asset bundling and compression",
+        "CI/CD integration ready",
+      ]}
+    />
   );
 };
 

@@ -1,8 +1,635 @@
+import { Database, Settings, Shield, HardDrive, ArrowLeft, LayoutDashboard, Users, Zap, Brain, Key, ScrollText, Table, Plus, FileDown, Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Table as TableComponent,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface TableData {
+  name: string;
+  records: number;
+  icon: any;
+}
+
 const DatabaseManagement = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [activeSection, setActiveSection] = useState("Database");
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [tables, setTables] = useState<TableData[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchColumn, setSearchColumn] = useState<string>("all");
+
+  const menuItems = [
+    { title: "Overview", icon: LayoutDashboard },
+    { title: "Database", icon: Database },
+    { title: "Users", icon: Users },
+    { title: "Storage", icon: HardDrive },
+    { title: "Edge Functions", icon: Zap },
+    { title: "AI", icon: Brain },
+    { title: "Secrets", icon: Key },
+    { title: "Logs", icon: ScrollText },
+  ];
+
+  // Table schemas with correct column definitions for all 45 tables
+  const tableSchemas: Record<string, string[]> = {
+    // Authentication Tables (5)
+    auth_users: ['id', 'email', 'encrypted_password', 'email_confirmed_at', 'phone', 'phone_confirmed_at', 'last_sign_in_at', 'is_super_admin', 'raw_user_meta_data', 'created_at', 'updated_at'],
+    auth_sessions: ['id', 'user_id', 'token', 'ip_address', 'user_agent', 'last_active_at', 'expires_at', 'created_at'],
+    auth_providers: ['id', 'user_id', 'provider', 'provider_user_id', 'access_token', 'refresh_token', 'expires_at', 'created_at', 'updated_at'],
+    auth_mfa: ['id', 'user_id', 'secret', 'is_enabled', 'recovery_codes', 'last_used_at', 'created_at'],
+    auth_verification_codes: ['id', 'user_id', 'code', 'type', 'expires_at', 'used_at', 'created_at'],
+    
+    // User Profile System (4)
+    user_profiles: ['id', 'username', 'full_name', 'avatar_url', 'bio', 'website', 'country', 'created_at', 'updated_at'],
+    user_settings: ['id', 'user_id', 'theme', 'language', 'editor_font_size', 'preferences', 'created_at', 'updated_at'],
+    user_connections: ['id', 'user_id', 'provider', 'provider_user_id', 'access_token', 'refresh_token', 'expires_at', 'connected_at', 'updated_at'],
+    user_roles: ['id', 'user_id', 'role', 'created_at', 'updated_at'],
+    
+    // Project Management (6)
+    projects: ['id', 'user_id', 'name', 'description', 'status', 'github_repo_url', 'github_repo_id', 'created_at', 'updated_at'],
+    project_files: ['id', 'project_id', 'file_path', 'file_type', 'file_content', 'created_at', 'updated_at'],
+    project_snapshots: ['id', 'project_id', 'snapshot_name', 'snapshot_data', 'created_at'],
+    project_env_vars: ['id', 'project_id', 'key', 'value', 'is_secret', 'created_at', 'updated_at'],
+    project_members: ['id', 'project_id', 'user_id', 'role', 'invited_by', 'joined_at'],
+    project_deployments: ['id', 'project_id', 'status', 'deployment_url', 'build_log', 'deployed_at', 'created_at'],
+    
+    // Platform Settings (4)
+    platform_settings: ['id', 'setting_key', 'setting_value', 'updated_by', 'updated_at'],
+    platform_logs: ['id', 'level', 'message', 'metadata', 'user_id', 'created_at'],
+    platform_errors: ['id', 'error_message', 'error_code', 'stack_trace', 'user_id', 'project_id', 'created_at'],
+    platform_limits: ['id', 'limit_type', 'limit_value', 'description', 'updated_at'],
+    
+    // Storage System (4)
+    storage_buckets: ['id', 'name', 'owner_id', 'public', 'file_size_limit', 'allowed_mime_types', 'created_at', 'updated_at'],
+    storage_objects: ['id', 'bucket_id', 'name', 'owner_id', 'path', 'size', 'mime_type', 'metadata', 'created_at', 'updated_at'],
+    storage_permissions: ['id', 'bucket_id', 'user_id', 'permission', 'created_at'],
+    storage_usage: ['id', 'user_id', 'project_id', 'bytes_used', 'file_count', 'calculated_at'],
+    
+    // AI Configuration (3)
+    ai_config: ['id', 'user_id', 'model_id', 'temperature', 'max_tokens', 'rate_limit', 'created_at', 'updated_at'],
+    ai_usage: ['id', 'user_id', 'project_id', 'model_id', 'tokens_used', 'request_cost', 'created_at'],
+    ai_logs: ['id', 'user_id', 'project_id', 'model_id', 'prompt', 'response', 'tokens_used', 'duration_ms', 'created_at'],
+    
+    // Edge Functions (3)
+    edge_functions: ['id', 'user_id', 'project_id', 'function_name', 'function_path', 'is_active', 'created_at', 'updated_at'],
+    edge_logs: ['id', 'function_id', 'request_body', 'response_body', 'status_code', 'duration_ms', 'created_at'],
+    edge_errors: ['id', 'function_id', 'error_message', 'stack_trace', 'created_at'],
+    
+    // Billing & Payments (4)
+    billing_accounts: ['id', 'user_id', 'stripe_customer_id', 'payment_method_id', 'billing_email', 'created_at', 'updated_at'],
+    billing_invoices: ['id', 'billing_account_id', 'invoice_number', 'amount', 'status', 'invoice_url', 'due_date', 'paid_at', 'created_at'],
+    billing_usage: ['id', 'user_id', 'usage_type', 'quantity', 'unit_cost', 'total_cost', 'billing_period_start', 'billing_period_end', 'created_at'],
+    billing_plans: ['id', 'plan_name', 'price_monthly', 'price_yearly', 'features', 'limits', 'is_active', 'created_at'],
+    
+    // Notifications (3)
+    notifications: ['id', 'user_id', 'type', 'title', 'message', 'action_url', 'is_read', 'created_at'],
+    notification_preferences: ['id', 'user_id', 'email_enabled', 'push_enabled', 'project_updates', 'billing_alerts', 'security_alerts', 'updated_at'],
+    admin_alerts: ['id', 'alert_type', 'severity', 'message', 'metadata', 'is_resolved', 'resolved_by', 'resolved_at', 'created_at'],
+    
+    // Security System (3)
+    security_events: ['id', 'user_id', 'event_type', 'ip_address', 'user_agent', 'metadata', 'created_at'],
+    security_blocks: ['id', 'user_id', 'ip_address', 'block_type', 'reason', 'expires_at', 'created_at'],
+    security_audit: ['id', 'user_id', 'action', 'resource_type', 'resource_id', 'changes', 'ip_address', 'created_at'],
+    
+    // API Access (3)
+    api_keys: ['id', 'user_id', 'key_name', 'key_prefix', 'key_hash', 'is_active', 'expires_at', 'last_used_at', 'created_at'],
+    api_access: ['id', 'api_key_id', 'permission', 'resource_type', 'created_at'],
+    api_requests: ['id', 'api_key_id', 'endpoint', 'method', 'status_code', 'duration_ms', 'ip_address', 'created_at'],
+    
+    // Integrations (3)
+    integrations_supabase: ['id', 'user_id', 'project_id', 'supabase_url', 'supabase_anon_key', 'is_active', 'connected_at'],
+    integrations_github: ['id', 'user_id', 'project_id', 'github_username', 'github_token', 'is_active', 'connected_at', 'updated_at'],
+    integrations_stripe: ['id', 'user_id', 'stripe_publishable_key', 'stripe_secret_key', 'webhook_secret', 'is_active', 'connected_at'],
+  };
+
+  const tableIconMap: Record<string, any> = {
+    auth_users: Users,
+    auth_sessions: Shield,
+    auth_providers: Database,
+    auth_mfa: Shield,
+    auth_verification_codes: Key,
+    user_profiles: Users,
+    user_settings: Settings,
+    user_connections: Database,
+    user_roles: Shield,
+    projects: Database,
+    project_files: Table,
+    project_snapshots: Database,
+    project_env_vars: Key,
+    project_members: Users,
+    project_deployments: Zap,
+    platform_settings: Settings,
+    platform_logs: ScrollText,
+    platform_errors: Shield,
+    platform_limits: Settings,
+    storage_buckets: HardDrive,
+    storage_objects: HardDrive,
+    storage_permissions: Key,
+    storage_usage: HardDrive,
+    ai_config: Brain,
+    ai_usage: Brain,
+    ai_logs: ScrollText,
+    edge_functions: Zap,
+    edge_logs: ScrollText,
+    edge_errors: Shield,
+    billing_accounts: Database,
+    billing_invoices: Table,
+    billing_usage: Database,
+    billing_plans: Settings,
+    notifications: Database,
+    notification_preferences: Settings,
+    admin_alerts: Shield,
+    security_events: Shield,
+    security_blocks: Shield,
+    security_audit: ScrollText,
+    api_keys: Key,
+    api_access: Key,
+    api_requests: ScrollText,
+    integrations_supabase: Database,
+    integrations_github: Database,
+    integrations_stripe: Database,
+  };
+
+  const getCurrentTableColumns = () => {
+    if (!selectedTable) return [];
+    return tableSchemas[selectedTable] || ['id', 'created_at', 'updated_at'];
+  };
+
+  // Check admin authentication
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access database management",
+          variant: "destructive",
+        });
+        navigate("/admin/login");
+        return;
+      }
+
+      // Check if user has admin role
+      const { data: roleData, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['owner', 'admin'])
+        .maybeSingle();
+
+      if (error || !roleData) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access this page",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      setIsAdmin(true);
+    };
+
+    checkAdminStatus();
+  }, [navigate, toast]);
+
+  // Fetch row counts for all tables
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchTableCounts = async () => {
+      setLoading(true);
+      const tableList = Object.keys(tableSchemas);
+      const countsPromises = tableList.map(async (tableName) => {
+        try {
+          const { count, error } = await supabase
+            .from(tableName as any)
+            .select('*', { count: 'exact', head: true });
+          
+          return {
+            name: tableName,
+            records: count || 0,
+            icon: tableIconMap[tableName] || Database,
+          };
+        } catch (err) {
+          return {
+            name: tableName,
+            records: 0,
+            icon: tableIconMap[tableName] || Database,
+          };
+        }
+      });
+
+      const results = await Promise.all(countsPromises);
+      setTables(results);
+      setLoading(false);
+    };
+
+    fetchTableCounts();
+  }, [isAdmin]);
+
+  // Fetch table data when a table is selected
+  useEffect(() => {
+    if (!selectedTable || !isAdmin) return;
+
+    const fetchTableData = async () => {
+      setDataLoading(true);
+      try {
+        let query = supabase
+          .from(selectedTable as any)
+          .select('*');
+
+        // Apply search filter if search query exists
+        if (searchQuery.trim()) {
+          const columns = getCurrentTableColumns();
+          
+          if (searchColumn === "all") {
+            // Search across all text-based columns using OR logic
+            const textColumns = columns.filter(col => 
+              !col.includes('_at') && !col.includes('password') && !col.includes('token')
+            );
+            
+            if (textColumns.length > 0) {
+              // Use ilike for case-insensitive search on first column
+              query = query.or(
+                textColumns.map(col => `${col}.ilike.%${searchQuery}%`).join(',')
+              );
+            }
+          } else {
+            // Search specific column
+            query = query.ilike(searchColumn, `%${searchQuery}%`);
+          }
+        }
+
+        const { data, error } = await query.limit(50);
+
+        if (error) throw error;
+        setTableData(data || []);
+      } catch (err: any) {
+        toast({
+          title: "Error Loading Data",
+          description: err.message || "Failed to load table data",
+          variant: "destructive",
+        });
+        setTableData([]);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchTableData();
+  }, [selectedTable, isAdmin, toast, searchQuery, searchColumn]);
+
+  const formatCellValue = (value: any): string => {
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'object') return JSON.stringify(value);
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
+    return String(value);
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      <h1 className="text-3xl font-bold">Database Management</h1>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Left Sidebar */}
+        <Sidebar className="border-r border-border">
+          <SidebarContent className="p-4">
+            {/* Go Back Button */}
+            <button
+              onClick={() => navigate("/ide")}
+              className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center mb-8 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-primary" />
+            </button>
+
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-3 mt-8">
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        className={`rounded-full h-12 px-4 hover:bg-primary/10 ${
+                          activeSection === item.title ? 'bg-primary/20' : ''
+                        }`}
+                        onClick={() => setActiveSection(item.title)}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                          <item.icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+
+        {/* Right Content Area */}
+        <main className="flex-1 overflow-auto p-8 min-h-screen">
+          <div className="max-w-7xl mx-auto min-h-[calc(100vh-4rem)]">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-semibold text-foreground mb-2">{activeSection}</h1>
+              <p className="text-muted-foreground">
+                {activeSection === "Database" && "Manage your database tables and schemas"}
+                {activeSection === "Overview" && "Database statistics and health overview"}
+                {activeSection === "Users" && "Manage database users and permissions"}
+                {activeSection === "Storage" && "Manage file storage and media"}
+                {activeSection === "Edge Functions" && "Serverless functions for backend logic"}
+                {activeSection === "AI" && "AI model configuration and usage"}
+                {activeSection === "Secrets" && "Manage API keys and environment variables"}
+                {activeSection === "Logs" && "View system logs and audit trails"}
+              </p>
+            </div>
+
+            {/* Database Section Content */}
+            {activeSection === "Database" && (
+              <div className="space-y-6">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : !selectedTable ? (
+                  /* Tables Grid - Initial View */
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    {tables.map((table) => (
+                      <Card 
+                        key={table.name} 
+                        className="bg-card border-border p-6 hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => setSelectedTable(table.name)}
+                      >
+                        <div className="flex flex-col items-center text-center gap-3">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <table.icon className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-foreground mb-1">{table.name}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {table.records} {table.records === 1 ? 'row' : 'rows'}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  /* Table View */
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        <span>‹</span>
+                        <button 
+                          onClick={() => setSelectedTable(null)}
+                          className="hover:text-foreground"
+                        >
+                          Database
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-2xl font-semibold text-foreground">
+                          Viewing table {selectedTable}
+                        </h2>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Shield className="w-4 h-4" />
+                          RLS Policies
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Viewing records in the {selectedTable} table.
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setShowFilter(!showFilter)}
+                          className={showFilter ? "bg-primary/10" : ""}
+                        >
+                          <span>Filter</span>
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Plus className="w-4 h-4" />
+                          Add Row
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <FileDown className="w-4 h-4" />
+                          Export CSV
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="gap-2"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setSearchColumn("all");
+                            setSelectedTable(selectedTable);
+                          }}
+                        >
+                          <ArrowLeft className="w-4 h-4 rotate-90" />
+                          Refresh
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Filter Panel */}
+                    {showFilter && (
+                      <Card className="bg-card border-border p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="text-sm text-muted-foreground mb-2 block">Search in:</label>
+                            <select 
+                              value={searchColumn}
+                              onChange={(e) => setSearchColumn(e.target.value)}
+                              className="w-full border border-border bg-background rounded px-3 py-2 text-sm"
+                            >
+                              <option value="all">All Columns</option>
+                              {getCurrentTableColumns().map(col => (
+                                <option key={col} value={col}>{col}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex-[2]">
+                            <label className="text-sm text-muted-foreground mb-2 block">Search query:</label>
+                            <input
+                              type="text"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              placeholder="Enter search term..."
+                              className="w-full border border-border bg-background rounded px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div className="flex gap-2 items-end">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSearchQuery("");
+                                setSearchColumn("all");
+                              }}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Table */}
+                    <Card className="bg-card border-border">
+                      {dataLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <TableComponent>
+                          <TableHeader className="bg-muted/30">
+                            <TableRow className="border-b border-border hover:bg-transparent">
+                              <TableHead className="w-12 border-r border-border/40">
+                                <input type="checkbox" className="rounded" />
+                              </TableHead>
+                              {getCurrentTableColumns().map((column, index) => (
+                                <TableHead key={column} className={index < getCurrentTableColumns().length - 1 ? "border-r border-border/40" : ""}>
+                                  <div className="flex items-center gap-1">
+                                    {column}
+                                    <ArrowLeft className="w-3 h-3 -rotate-90 text-muted-foreground" />
+                                  </div>
+                                </TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {tableData.length === 0 ? (
+                              <TableRow className="hover:bg-transparent">
+                                <TableCell colSpan={getCurrentTableColumns().length + 1} className="h-96 text-center">
+                                  <div className="flex flex-col items-center justify-center">
+                                    <p className="text-muted-foreground">No results</p>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              tableData.map((row, rowIndex) => (
+                                <TableRow key={rowIndex} className="border-b border-border hover:bg-muted/50 cursor-pointer">
+                                  <TableCell className="border-r border-border/40">
+                                    <input type="checkbox" className="rounded" />
+                                  </TableCell>
+                                  {getCurrentTableColumns().map((column, idx) => (
+                                    <TableCell 
+                                      key={column} 
+                                      className={cn(
+                                        idx === 0 ? "font-mono text-xs" : "text-sm", 
+                                        idx < getCurrentTableColumns().length - 1 ? "border-r border-border/40" : ""
+                                      )}
+                                    >
+                                      {formatCellValue(row[column])}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </TableComponent>
+                      )}
+                    </Card>
+
+                    {/* Pagination Footer */}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Rows per page</span>
+                        <select className="border border-border bg-background rounded px-2 py-1">
+                          <option>50</option>
+                          <option>100</option>
+                          <option>200</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <span className="text-muted-foreground">
+                          {tableData.length} records found
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" disabled className="h-8">
+                            <ArrowLeft className="w-4 h-4" />
+                          </Button>
+                          <span className="text-muted-foreground">Page 1</span>
+                          <Button size="sm" variant="outline" disabled className="h-8">
+                            <ArrowLeft className="w-4 h-4 rotate-180" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Placeholder for other sections */}
+            {activeSection !== "Database" && (
+              <Card className="bg-card border-border p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    {menuItems.find(item => item.title === activeSection)?.icon && (
+                      <div className="w-6 h-6 text-primary">
+                        {(() => {
+                          const Icon = menuItems.find(item => item.title === activeSection)?.icon;
+                          return Icon ? <Icon className="w-6 h-6" /> : null;
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{activeSection} Management</h3>
+                    <p className="text-sm text-muted-foreground">
+                      This section is coming soon. Stay tuned for {activeSection.toLowerCase()} management features.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 
