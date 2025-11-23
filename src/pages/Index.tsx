@@ -440,10 +440,10 @@ function UrDevEditorPage() {
                 </div>
 
                 {/* Editor surface */}
-                <div className="flex-1 overflow-hidden">
-                  <div className="relative h-full rounded-none border-0 bg-transparent shadow-none">
-                    <div className="flex h-full min-h-[720px] text-[13px] font-mono leading-relaxed overflow-hidden">
-                      <div className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-hidden text-[13px] leading-relaxed">
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
+                    <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
+                      <div className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
                         {currentLines.map((line, index) => (
                           <div
                             key={index}
@@ -461,7 +461,7 @@ function UrDevEditorPage() {
                         value={currentContent}
                         onChange={(e) => handleChangeContent(e.target.value)}
                         spellCheck={false}
-                        className="flex-1 h-full resize-none bg-slate-950 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed"
+                        className="flex-1 resize-none bg-slate-950 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed"
                       />
                     </div>
                   </div>
