@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 const personas = [
   {
@@ -184,6 +184,7 @@ const UrDevLandingPage: React.FC = () => {
   const [activePersonaId, setActivePersonaId] = useState("solo");
   const [selectedIdeaCategoryId, setSelectedIdeaCategoryId] = useState("saas");
   const [activeGalleryFilter, setActiveGalleryFilter] = useState("featured");
+  const promptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const activePersona = personas.find((p) => p.id === activePersonaId)!;
   const selectedCategory = ideaCategories.find((c) => c.id === selectedIdeaCategoryId)!;
@@ -207,6 +208,23 @@ const UrDevLandingPage: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const el = promptTextareaRef.current;
+    if (!el) return;
+
+    const computed = window.getComputedStyle(el);
+    const lineHeight = parseFloat(computed.lineHeight || "20");
+    const minRows = 4;
+    const maxRows = 8;
+    const minHeight = lineHeight * minRows;
+    const maxHeight = lineHeight * maxRows;
+
+    el.style.height = "auto";
+    const nextHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [prompt]);
 
   const handleUseSamplePrompt = () => {
     if (promptMode === "website") {
@@ -362,7 +380,8 @@ const UrDevLandingPage: React.FC = () => {
                   <div className="relative rounded-[22px] border border-white/12 bg-black/95 px-4 pt-6 pb-16 sm:px-5 sm:pt-8 sm:pb-20">
                   <div className="flex items-start gap-3 pb-12 pt-2">
                     <textarea
-                      rows={1}
+                      ref={promptTextareaRef}
+                      rows={4}
                       value={prompt}
                       onChange={(e) => {
                         setPrompt(e.target.value);
