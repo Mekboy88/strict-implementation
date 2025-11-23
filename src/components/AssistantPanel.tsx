@@ -166,7 +166,7 @@ const AssistantPanel = ({
         )}
 
         {activeView === 'snippets' && <SnippetsLibrary />}
-        {activeView === 'history' && <PreviewHistoryPanel />}
+        {activeView === 'history' && <PreviewHistoryPanel onClose={() => setActiveView('chat')} />}
       </div>
 
       {/* Input */}
