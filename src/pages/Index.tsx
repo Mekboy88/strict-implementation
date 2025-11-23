@@ -145,9 +145,20 @@ function UrDevEditorPage() {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isEditingEnabled, setIsEditingEnabled] = useState(false);
+  const [showEditNotification, setShowEditNotification] = useState(false);
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (isEditingEnabled) {
+      setShowEditNotification(true);
+      const timer = setTimeout(() => {
+        setShowEditNotification(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isEditingEnabled]);
 
   const activeFile = initialFiles.find((file) => file.id === activeFileId) || initialFiles[0];
   const currentContent = fileContents[activeFileId] || activeFile.content.join(`
@@ -492,6 +503,13 @@ function UrDevEditorPage() {
                 {/* Editor surface */}
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
+                    {showEditNotification && (
+                      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+                        <div className="bg-sky-500/90 text-white px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm">
+                          <span className="font-semibold">Edit Mode</span>
+                        </div>
+                      </div>
+                    )}
                     <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
                       <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
                         {currentLines.map((line, index) => (
