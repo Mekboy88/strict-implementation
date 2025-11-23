@@ -291,7 +291,6 @@ function UrDevEditorPage() {
               <Search className="h-3 w-3 text-slate-500" />
               <input
                 className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
-                placeholder="Search files..."
               />
             </div>
           </div>
