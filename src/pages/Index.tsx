@@ -442,18 +442,6 @@ function UrDevEditorPage() {
                 {/* Editor surface */}
                 <div className="flex-1 overflow-hidden">
                   <div className="relative h-full rounded-none border-0 bg-transparent shadow-none">
-                    <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-[11px] text-slate-400 bg-black/80">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-rose-500" />
-                        <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
-                        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                        <span className="ml-3 font-medium text-slate-300">{activeFile.path}</span>
-                      </div>
-                      <span className="hidden sm:inline text-[10px] text-slate-500">
-                        Editing in UR-DEV. Changes are highlighted in the gutter.
-                      </span>
-                    </div>
-
                     <div className="flex h-full min-h-[720px] text-[13px] font-mono leading-relaxed overflow-hidden">
                       <div className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-hidden text-[13px] leading-relaxed">
                         {currentLines.map((line, index) => (
