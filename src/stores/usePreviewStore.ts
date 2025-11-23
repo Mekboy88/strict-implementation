@@ -9,6 +9,8 @@ interface PreviewStore {
   setIsLoading: (loading: boolean) => void;
   setMobilePreviewHtml: (html: string | null) => void;
   setDesktopPreviewHtml: (html: string | null) => void;
+  setMobilePreview: (html: string | null) => void;
+  setDesktopPreview: (html: string | null) => void;
 }
 
 export const usePreviewStore = create<PreviewStore>((set) => ({
@@ -20,4 +22,6 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   setMobilePreviewHtml: (mobilePreviewHtml) => set({ mobilePreviewHtml }),
   setDesktopPreviewHtml: (desktopPreviewHtml) => set({ desktopPreviewHtml }),
+  setMobilePreview: (html) => set({ mobilePreviewHtml: html }),
+  setDesktopPreview: (html) => set({ desktopPreviewHtml: html }),
 }));
