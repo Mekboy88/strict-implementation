@@ -502,59 +502,6 @@ const LandingPage = () => {
               `}</style>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between pt-4 border-t border-[#ffffff10]">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setPromptValue('');
-                        setDetectedType('web');
-                        setPreviewText('');
-                      }}
-                      className="text-[#8FA3B7] hover:text-[#D6E4F0] hover:bg-[#ffffff08]"
-                    >
-                      Clear
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[#8FA3B7] hover:text-[#D6E4F0] hover:bg-[#ffffff08]"
-                    >
-                      Update
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[#8FA3B7] hover:text-[#D6E4F0] hover:bg-[#ffffff08] relative"
-                    >
-                      Plan
-                      {/* Animated Type Indicator */}
-                      {promptValue.trim() && (
-                        <div 
-                          key={displayedType}
-                          className="absolute -right-40 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B111A] border border-[#ffffff15] z-50 transition-all duration-500 ease-in-out"
-                          style={{
-                            boxShadow: displayedType === 'mobile' 
-                              ? '0 0 12px rgba(76, 179, 255, 0.3)' 
-                              : '0 0 8px rgba(76, 179, 255, 0.15)',
-                            transition: 'all 0.5s ease-in-out'
-                          }}
-                        >
-                          {displayedType === 'mobile' ? (
-                            <>
-                              <Smartphone className="w-4 h-4 text-[#4CB3FF] transition-all duration-500" />
-                              <span className="text-xs text-[#4CB3FF] font-medium transition-all duration-500">Mobile</span>
-                            </>
-                          ) : (
-                            <>
-                              <Monitor className="w-4 h-4 text-[#87C7FF] transition-all duration-500" />
-                              <span className="text-xs text-[#87C7FF] font-medium transition-all duration-500">Desktop</span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </Button>
-                  </div>
                   <Button
                     size="sm"
                     onClick={() => {
