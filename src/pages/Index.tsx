@@ -137,6 +137,9 @@ function UrDevEditorPage() {
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
     buildInitialContents()
   );
+  const [savedContents, setSavedContents] = useState<Record<string, string>>(() =>
+    buildInitialContents()
+  );
   const [showReasoning, setShowReasoning] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
@@ -167,9 +170,8 @@ function UrDevEditorPage() {
   }
 
   function handleSaveFile() {
-    // In a real implementation, this would save to a backend
-    // For now, we'll just reset the file contents to match the original
-    setFileContents((prev) => ({ ...prev, [activeFileId]: currentContent }));
+    // Mark current content as saved
+    setSavedContents((prev) => ({ ...prev, [activeFileId]: currentContent }));
   }
 
   function isLineChanged(index: number, line: string) {
@@ -182,8 +184,8 @@ function UrDevEditorPage() {
     }
   }
 
-  const hasFileChanges = currentContent !== activeFile.content.join(`
-`);
+  const hasFileChanges = currentContent !== (savedContents[activeFileId] || activeFile.content.join(`
+`));
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col">
@@ -453,7 +455,7 @@ function UrDevEditorPage() {
                       type="button"
                       onClick={handleSaveFile}
                       disabled={!hasFileChanges}
-                      className={`hidden sm:inline rounded-full px-2 py-0.5 transition-all ${
+                      className={`hidden sm:inline rounded-full px-4 py-1.5 text-xs transition-all ${
                         hasFileChanges
                           ? "bg-sky-500/20 text-sky-200 cursor-pointer hover:bg-sky-500/30"
                           : "bg-sky-500/10 text-sky-300/60 cursor-default"
