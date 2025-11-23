@@ -585,7 +585,7 @@ function UrDevEditorPage() {
             ) : (
               <>
                 {/* File tabs + copy */}
-                <div className="flex items-center justify-between border-b border-white/10 bg-black/70 px-4 py-3 text-[11px]">
+                <div className="flex items-center justify-between border-b border-white/10 bg-black/70 px-4 py-2.5 text-[11px]">
                   <div className="flex items-center gap-2 overflow-x-auto">
                     {initialFiles.map((file) => {
                       const isActive = file.id === activeFileId;
