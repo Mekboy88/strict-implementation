@@ -361,15 +361,15 @@ const UrDevLandingPage: React.FC = () => {
                 <div className="relative rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.35),_transparent_65%),_radial-gradient(circle_at_bottom,_rgba(129,140,248,0.4),_transparent_70%)] p-[1px] shadow-[0_0_45px_rgba(15,23,42,0.9)]">
                   <div className="relative rounded-[22px] border border-white/12 bg-black/95 px-4 py-16 sm:px-5 sm:py-20">
                   <div className="flex items-start gap-3 pb-12 pt-2">
-                    <input
-                      type="text"
+                    <textarea
+                      rows={1}
                       value={prompt}
                       onChange={(e) => {
                         setPrompt(e.target.value);
                         setPromptStatus("Draft");
                       }}
                       placeholder={promptPlaceholder}
-                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 leading-none align-top"
+                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 resize-none leading-tight align-top"
                     />
                   </div>
                   <button
