@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table as TableComponent,
   TableBody,
@@ -319,6 +320,57 @@ const DatabaseManagement = () => {
     return String(value);
   };
 
+  const getColumnType = (tableName: string, columnName: string): string => {
+    const colLower = columnName.toLowerCase();
+    
+    // UUID fields
+    if (colLower.includes('_id') || colLower === 'id') return 'uuid';
+    
+    // Boolean fields
+    if (colLower.startsWith('is_') || colLower.startsWith('has_') || colLower.includes('enabled')) return 'boolean';
+    
+    // JSON fields
+    if (colLower.includes('metadata') || colLower.includes('settings') || colLower.includes('preferences') || 
+        colLower.includes('features') || colLower.includes('limits') || colLower.includes('changes')) return 'json';
+    
+    // Timestamp fields
+    if (colLower.includes('_at') || colLower.includes('date')) return 'datetime';
+    
+    // Numeric fields
+    if (colLower.includes('count') || colLower.includes('size') || colLower.includes('limit') || 
+        colLower.includes('tokens') || colLower.includes('duration') || colLower.includes('cost') ||
+        colLower.includes('amount') || colLower.includes('price') || colLower.includes('quantity') ||
+        colLower.includes('bytes')) return 'number';
+    
+    // Email fields
+    if (colLower.includes('email')) return 'email';
+    
+    // URL fields
+    if (colLower.includes('url')) return 'url';
+    
+    // Long text fields
+    if (colLower.includes('description') || colLower.includes('bio') || colLower.includes('message') ||
+        colLower.includes('content') || colLower.includes('prompt') || colLower.includes('response') ||
+        colLower.includes('log') || colLower.includes('trace')) return 'textarea';
+    
+    return 'text';
+  };
+
+  const isColumnNullable = (tableName: string, columnName: string): boolean => {
+    // Auto-generated fields are typically not user-fillable
+    if (columnName === 'id' || columnName === 'created_at' || columnName === 'updated_at') return true;
+    
+    // Most foreign keys and status fields are required
+    if (columnName.endsWith('_id') || columnName === 'status') return false;
+    
+    // Email and name fields in user tables are typically required
+    if ((tableName.includes('user') || tableName.includes('auth')) && 
+        (columnName === 'email' || columnName === 'username')) return false;
+    
+    // Default to nullable for flexibility
+    return true;
+  };
+
   const handleOpenAddDialog = () => {
     if (!selectedTable) {
       toast({
@@ -336,9 +388,37 @@ const DatabaseManagement = () => {
     if (!selectedTable) return;
 
     try {
+      // Process the data based on types
+      const processedData: Record<string, any> = {};
+      
+      for (const [key, value] of Object.entries(newRowData)) {
+        if (value === '' || value === null || value === undefined) {
+          if (isColumnNullable(selectedTable, key)) {
+            processedData[key] = null;
+          }
+          continue;
+        }
+        
+        const colType = getColumnType(selectedTable, key);
+        
+        if (colType === 'number') {
+          processedData[key] = Number(value);
+        } else if (colType === 'boolean') {
+          processedData[key] = value === 'true' || value === true;
+        } else if (colType === 'json') {
+          try {
+            processedData[key] = JSON.parse(value as string);
+          } catch {
+            processedData[key] = value;
+          }
+        } else {
+          processedData[key] = value;
+        }
+      }
+
       const { error } = await supabase
         .from(selectedTable as any)
-        .insert([newRowData]);
+        .insert([processedData]);
 
       if (error) throw error;
 
@@ -697,23 +777,59 @@ const DatabaseManagement = () => {
           <div className="grid gap-4 py-4">
             {selectedTable && getCurrentTableColumns()
               .filter(col => col !== 'id' && col !== 'created_at' && col !== 'updated_at')
-              .map((column) => (
-                <div key={column} className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor={column} className="text-right text-sm">
-                    {column}
-                  </Label>
-                  <Input
-                    id={column}
-                    value={newRowData[column] || ''}
-                    onChange={(e) => setNewRowData(prev => ({
-                      ...prev,
-                      [column]: e.target.value
-                    }))}
-                    className="col-span-3 bg-background border-border"
-                    placeholder={`Enter ${column}`}
-                  />
-                </div>
-              ))}
+              .map((column) => {
+                const colType = getColumnType(selectedTable, column);
+                const nullable = isColumnNullable(selectedTable, column);
+                
+                return (
+                  <div key={column} className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor={column} className="text-right text-sm">
+                      {column}
+                      {!nullable && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                    <div className="col-span-3">
+                      {colType === 'boolean' ? (
+                        <select
+                          id={column}
+                          value={newRowData[column] || ''}
+                          onChange={(e) => setNewRowData(prev => ({
+                            ...prev,
+                            [column]: e.target.value
+                          }))}
+                          className="w-full h-10 px-3 rounded-md bg-background border border-border text-foreground"
+                        >
+                          <option value="">Select...</option>
+                          <option value="true">true</option>
+                          <option value="false">false</option>
+                        </select>
+                      ) : colType === 'json' ? (
+                        <textarea
+                          id={column}
+                          value={newRowData[column] || ''}
+                          onChange={(e) => setNewRowData(prev => ({
+                            ...prev,
+                            [column]: e.target.value
+                          }))}
+                          className="w-full min-h-[80px] px-3 py-2 rounded-md bg-background border border-border text-foreground resize-y"
+                          placeholder={`{"key": "value"}`}
+                        />
+                      ) : (
+                        <Input
+                          id={column}
+                          type={colType === 'number' ? 'number' : colType === 'email' ? 'email' : colType === 'url' ? 'url' : colType === 'datetime' ? 'datetime-local' : 'text'}
+                          value={newRowData[column] || ''}
+                          onChange={(e) => setNewRowData(prev => ({
+                            ...prev,
+                            [column]: e.target.value
+                          }))}
+                          className="bg-background border-border"
+                          placeholder={colType === 'uuid' ? 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' : `Enter ${column}`}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
           <DialogFooter>
