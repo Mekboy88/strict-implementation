@@ -53,6 +53,14 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --ide-panel: 0 0% 98%;
+    --ide-sidebar: 0 0% 96%;
+    --ide-editor: 0 0% 100%;
+    --ide-terminal: 0 0% 95%;
+    --ide-border: 220 13% 91%;
+    --ide-hover: 220 13% 88%;
+    --ide-active: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -91,6 +99,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --ide-panel: 222.2 84% 4.9%;
+    --ide-sidebar: 217.2 32.6% 17.5%;
+    --ide-editor: 222.2 84% 4.9%;
+    --ide-terminal: 217.2 32.6% 17.5%;
+    --ide-border: 217.2 32.6% 17.5%;
+    --ide-hover: 217.2 32.6% 20%;
+    --ide-active: 217.2 91.2% 59.8%;
   }
 }
 
