@@ -229,7 +229,10 @@ function UrDevEditorPage() {
               UR
             </button>
             <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
-              <Folder className="h-4 w-4" />
+              <svg viewBox="0 0 36 36" className="h-4 w-4" fill="currentColor">
+                <path fill="#269" d="M0 29a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4h-9c-3.562 0-3-5-8.438-5H4a4 4 0 0 0-4 4v22z"></path>
+                <path fill="#55ACEE" d="M30 10h-6.562C18 10 18.562 15 15 15H6a4 4 0 0 0-4 4v10a1 1 0 1 1-2 0a4 4 0 0 0 4 4h26a4 4 0 0 0 4-4V14a4 4 0 0 0-4-4z"></path>
+              </svg>
             </button>
             <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
               <FileCode2 className="h-4 w-4" />
