@@ -414,13 +414,14 @@ function UrDevEditorPage() {
                           key={file.id}
                           type="button"
                           onClick={() => setActiveFileId(file.id)}
-                          className={`inline-flex items-center gap-2 rounded-t-md border-b-2 px-3 py-1 ${
+                          className={`inline-flex items-center gap-2 rounded-t-md px-3 py-1 ${
                             isActive
-                              ? "border-sky-400 bg-black text-sky-100"
-                              : "border-transparent text-slate-400 hover:text-slate-100"
+                              ? "bg-black text-sky-100"
+                              : "text-slate-400 hover:text-slate-100"
                           }`}
                         >
                           <span>{file.name}</span>
+                          <span className="text-slate-500">|</span>
                           <span className="text-[9px] uppercase text-slate-500">
                             {file.language}
                           </span>
