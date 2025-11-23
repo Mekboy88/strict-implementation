@@ -141,6 +141,9 @@ function UrDevEditorPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
+  
+  const lineNumbersRef = React.useRef<HTMLDivElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const activeFile = initialFiles.find((file) => file.id === activeFileId) || initialFiles[0];
   const currentContent = fileContents[activeFileId] || activeFile.content.join(`
@@ -165,6 +168,12 @@ function UrDevEditorPage() {
 
   function isLineChanged(index: number, line: string) {
     return line !== (originalLines[index] || "");
+  }
+  
+  function handleScroll() {
+    if (textareaRef.current && lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
   }
 
   const hasFileChanges = currentContent !== activeFile.content.join(`
@@ -443,7 +452,7 @@ function UrDevEditorPage() {
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
                     <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
-                      <div className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
+                      <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-slate-950/90 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
                         {currentLines.map((line, index) => (
                           <div
                             key={index}
@@ -458,8 +467,10 @@ function UrDevEditorPage() {
                         ))}
                       </div>
                       <textarea
+                        ref={textareaRef}
                         value={currentContent}
                         onChange={(e) => handleChangeContent(e.target.value)}
+                        onScroll={handleScroll}
                         spellCheck={false}
                         className="flex-1 resize-none bg-slate-950 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed"
                       />
