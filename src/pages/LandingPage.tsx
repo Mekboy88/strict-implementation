@@ -384,9 +384,19 @@ const UrDevLandingPage: React.FC = () => {
                       }}
                       placeholder={promptPlaceholder}
                       spellCheck={true}
-                      className="w-full bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 resize-none leading-tight align-top p-0 selection:bg-sky-500/40 selection:text-white mb-4"
+                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 resize-none leading-tight align-top p-0 selection:bg-sky-500/40 selection:text-white"
                     />
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-300">
+                  <button
+                    type="button"
+                    onClick={handleBuildClick}
+                    className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400"
+                  >
+                    <span>Build with UR-DEV</span>
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
+                      →
+                    </span>
+                  </button>
+                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 flex flex-wrap items-center gap-2 text-[11px] text-gray-300">
                       <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
                         <span className="text-xs">＋</span>
                         <span>Attach</span>
@@ -404,16 +414,6 @@ const UrDevLandingPage: React.FC = () => {
                         <span>Supabase</span>
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleBuildClick}
-                      className="mt-3 inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400"
-                    >
-                      <span>Build with UR-DEV</span>
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
-                        →
-                      </span>
-                    </button>
                   </div>
                 </div>
                 <div className="mt-2 text-[11px] text-gray-500">
