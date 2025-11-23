@@ -360,28 +360,28 @@ const UrDevLandingPage: React.FC = () => {
               <div className="mt-4 text-left w-full">
                 <div className="relative rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.35),_transparent_65%),_radial-gradient(circle_at_bottom,_rgba(129,140,248,0.4),_transparent_70%)] p-[1px] shadow-[0_0_45px_rgba(15,23,42,0.9)]">
                   <div className="relative rounded-[22px] border border-white/12 bg-black/95 px-4 py-16 sm:px-5 sm:py-20">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        value={prompt}
-                        onChange={(e) => {
-                          setPrompt(e.target.value);
-                          setPromptStatus("Draft");
-                        }}
-                        placeholder={promptPlaceholder}
-                        className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleBuildClick}
-                        className="inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400"
-                      >
-                        <span>Build with UR-DEV</span>
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
-                          →
-                        </span>
-                      </button>
+                  <div className="flex items-center gap-3 pb-12">
+                    <input
+                      type="text"
+                      value={prompt}
+                      onChange={(e) => {
+                        setPrompt(e.target.value);
+                        setPromptStatus("Draft");
+                      }}
+                      placeholder={promptPlaceholder}
+                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500"
+                    />
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleBuildClick}
+                    className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400"
+                  >
+                    <span>Build with UR-DEV</span>
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
+                      →
+                    </span>
+                  </button>
                   <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 flex flex-wrap items-center gap-2 text-[11px] text-gray-300">
                       <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100">
                         <span className="text-xs">＋</span>
