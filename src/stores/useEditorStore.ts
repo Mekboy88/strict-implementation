@@ -1,23 +1,31 @@
 import { create } from 'zustand';
 
-interface EditorStore {
-  content: string;
-  language: string;
+interface EditorState {
   activeFile: string | null;
   fileContent: string;
-  setContent: (content: string) => void;
-  setLanguage: (language: string) => void;
-  setActiveFile: (file: string, content?: string) => void;
-  updateFileContent: (file: string, content: string) => void;
+  setActiveFile: (filePath: string, content: string) => void;
+  updateFileContent: (filePath: string, content: string) => void;
+  clearEditor: () => void;
 }
 
-export const useEditorStore = create<EditorStore>((set) => ({
-  content: '',
-  language: 'typescript',
+export const useEditorStore = create<EditorState>((set) => ({
   activeFile: null,
   fileContent: '',
-  setContent: (content) => set({ content }),
-  setLanguage: (language) => set({ language }),
-  setActiveFile: (file, content = '') => set({ activeFile: file, fileContent: content }),
-  updateFileContent: (file, content) => set({ fileContent: content }),
+  
+  setActiveFile: (filePath: string, content: string) => {
+    set({ activeFile: filePath, fileContent: content });
+  },
+  
+  updateFileContent: (filePath: string, content: string) => {
+    set((state) => {
+      if (state.activeFile === filePath) {
+        return { fileContent: content };
+      }
+      return state;
+    });
+  },
+  
+  clearEditor: () => {
+    set({ activeFile: null, fileContent: '' });
+  },
 }));
