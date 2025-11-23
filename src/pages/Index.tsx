@@ -190,6 +190,13 @@ function UrDevEditorPage() {
     }
   }
 
+  function autoResizeAssistantInput(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    el.style.height = "auto";
+    const maxHeight = 420; // approx 20 lines
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + "px";
+  }
+
   const hasFileChanges = currentContent !== (savedContents[activeFileId] || activeFile.content.join(`
 `));
 
@@ -798,12 +805,10 @@ function UrDevEditorPage() {
                     value={assistantInput}
                     onChange={(e) => {
                       setAssistantInput(e.target.value);
-                      if (assistantInputRef.current) {
-                        const el = assistantInputRef.current;
-                        el.style.height = "auto";
-                        const maxHeight = 420; // approx 20 lines
-                        el.style.height = Math.min(el.scrollHeight, maxHeight) + "px";
-                      }
+                      autoResizeAssistantInput(e.target);
+                    }}
+                    onFocus={(e) => {
+                      autoResizeAssistantInput(e.target);
                     }}
                     spellCheck={true}
                     className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none resize-none min-h-[40px] px-0 py-1 transition-all duration-300 selection:bg-blue-500/60 selection:text-white overflow-y-auto"
