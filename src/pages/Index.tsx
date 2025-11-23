@@ -138,6 +138,7 @@ function UrDevEditorPage() {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showFileExplorer, setShowFileExplorer] = useState(false);
   const [assistantInput, setAssistantInput] = useState("");
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -690,14 +691,17 @@ function UrDevEditorPage() {
           </section>
 
           {/* RIGHT ASSISTANT PANEL */}
-          <aside className="hidden xl:flex w-80 min-w-[260px] max-w-[520px] resize-x overflow-hidden flex-col border-l border-white/10 bg-black/95">
+          <aside className={`hidden xl:flex ${isAssistantExpanded ? 'w-[600px]' : 'w-80'} min-w-[260px] flex-col border-l border-white/10 bg-black/95 transition-all duration-300`}>
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
               </div>
-              <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition-colors">
-                <span className="text-xs">▶</span>
-                <span>Run checks</span>
+              <button 
+                onClick={() => setIsAssistantExpanded(!isAssistantExpanded)}
+                className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition-colors"
+              >
+                <span className="text-xs">{isAssistantExpanded ? '←' : '→'}</span>
+                <span>{isAssistantExpanded ? 'Collapse' : 'Expand'}</span>
               </button>
             </div>
 
