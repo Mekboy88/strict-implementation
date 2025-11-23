@@ -17,6 +17,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -664,35 +671,44 @@ const DatabaseManagement = () => {
                           {/* Filter Builder */}
                           <div className="grid grid-cols-12 gap-2 items-end">
                             <div className="col-span-4">
-                              <select 
-                                value={filterColumn}
-                                onChange={(e) => setFilterColumn(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none"
+                              <Select
+                                value={filterColumn || undefined}
+                                onValueChange={(value) => setFilterColumn(value)}
                               >
-                                <option value="">Select column</option>
-                                {getCurrentTableColumns().map(col => (
-                                  <option key={col} value={col}>{col}</option>
-                                ))}
-                              </select>
+                                <SelectTrigger className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none hover-scale">
+                                  <SelectValue placeholder="Select column" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border border-border z-50 animate-scale-in">
+                                  {getCurrentTableColumns().map((col) => (
+                                    <SelectItem key={col} value={col} className="text-sm">
+                                      {col}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="col-span-3">
-                              <select 
+                              <Select
                                 value={filterOperator}
-                                onChange={(e) => setFilterOperator(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none"
+                                onValueChange={(value) => setFilterOperator(value)}
                               >
-                                <option value="=">equals</option>
-                                <option value="!=">not equals</option>
-                                <option value=">">greater than</option>
-                                <option value="<">less than</option>
-                                <option value=">=">greater or equal</option>
-                                <option value="<=">less or equal</option>
-                                <option value="contains">contains</option>
-                                <option value="starts_with">starts with</option>
-                                <option value="ends_with">ends with</option>
-                                <option value="is_null">is null</option>
-                                <option value="is_not_null">is not null</option>
-                              </select>
+                                <SelectTrigger className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none hover-scale">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border border-border z-50 animate-scale-in">
+                                  <SelectItem value="=" className="text-sm">equals</SelectItem>
+                                  <SelectItem value="!=" className="text-sm">not equals</SelectItem>
+                                  <SelectItem value=">" className="text-sm">greater than</SelectItem>
+                                  <SelectItem value="<" className="text-sm">less than</SelectItem>
+                                  <SelectItem value=">=" className="text-sm">greater or equal</SelectItem>
+                                  <SelectItem value="<=" className="text-sm">less or equal</SelectItem>
+                                  <SelectItem value="contains" className="text-sm">contains</SelectItem>
+                                  <SelectItem value="starts_with" className="text-sm">starts with</SelectItem>
+                                  <SelectItem value="ends_with" className="text-sm">ends with</SelectItem>
+                                  <SelectItem value="is_null" className="text-sm">is null</SelectItem>
+                                  <SelectItem value="is_not_null" className="text-sm">is not null</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div className="col-span-3">
                               <Input
@@ -708,7 +724,7 @@ const DatabaseManagement = () => {
                               <Button 
                                 size="sm" 
                                 onClick={handleAddFilter}
-                                className="w-full h-9"
+                                className="w-full h-9 hover-scale"
                               >
                                 Add Filter
                               </Button>
