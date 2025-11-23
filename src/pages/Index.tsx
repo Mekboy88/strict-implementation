@@ -279,10 +279,7 @@ function UrDevEditorPage() {
           <div className="px-3 py-3 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-900 border border-slate-700">
-                  <Folder className="h-3 w-3 text-slate-300" />
-                </span>
-                <span>Explorer</span>
+                <span className="text-xs font-semibold text-slate-100">Explorer</span>
               </div>
               <button className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-900 text-slate-400 border border-slate-700">
                 <Settings2 className="h-3 w-3" />
