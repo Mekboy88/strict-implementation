@@ -667,7 +667,7 @@ const DatabaseManagement = () => {
                               <select 
                                 value={filterColumn}
                                 onChange={(e) => setFilterColumn(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none"
                               >
                                 <option value="">Select column</option>
                                 {getCurrentTableColumns().map(col => (
@@ -679,7 +679,7 @@ const DatabaseManagement = () => {
                               <select 
                                 value={filterOperator}
                                 onChange={(e) => setFilterOperator(e.target.value)}
-                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="w-full h-9 px-3 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none"
                               >
                                 <option value="=">equals</option>
                                 <option value="!=">not equals</option>
@@ -700,7 +700,7 @@ const DatabaseManagement = () => {
                                 value={filterValue}
                                 onChange={(e) => setFilterValue(e.target.value)}
                                 placeholder="Enter value..."
-                                className="h-9 bg-background border-border"
+                                className="h-9 bg-background border-border focus:outline-none focus:ring-0 focus:border-border"
                                 disabled={filterOperator === 'is_null' || filterOperator === 'is_not_null'}
                               />
                             </div>
