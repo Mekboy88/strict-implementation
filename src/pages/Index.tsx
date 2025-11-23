@@ -327,80 +327,80 @@ function UrDevEditorPage() {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 py-3 text-[11px] text-slate-300">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 text-[11px] text-slate-300">
             <div className="mb-2 px-2 text-slate-500 uppercase tracking-[0.16em] text-[10px]">
               PROJECT
             </div>
             <div className="space-y-1">
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5">
-                <Folder className="h-3 w-3" />
-                <span>node_modules</span>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">node_modules</span>
               </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5">
-                <Folder className="h-3 w-3" />
-                <span>public</span>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">public</span>
               </button>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5">
-                <Folder className="h-3 w-3" />
-                <span>src</span>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">src</span>
               </button>
 
-              <div className="ml-5 space-y-1">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5">
-                  <Folder className="h-3 w-3" />
-                  <span>components</span>
+              <div className="ml-5 space-y-1 min-w-0">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">components</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveFileId("banner")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
                     activeFileId === "banner"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <FileCode2 className="h-3 w-3" />
-                    <span>banner.tsx</span>
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">banner.tsx</span>
                   </span>
-                  <span className="text-[9px] text-slate-400">TSX</span>
+                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
                 </button>
               </div>
 
-              <div className="ml-5 space-y-1">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5">
-                  <Folder className="h-3 w-3" />
-                  <span>app</span>
+              <div className="ml-5 space-y-1 min-w-0">
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">app</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveFileId("layout")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
                     activeFileId === "layout"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <FileCode2 className="h-3 w-3" />
-                    <span>layout.tsx</span>
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">layout.tsx</span>
                   </span>
-                  <span className="text-[9px] text-slate-400">TSX</span>
+                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveFileId("page")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left ${
+                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
                     activeFileId === "page"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <FileCode2 className="h-3 w-3" />
-                    <span>page.tsx</span>
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">page.tsx</span>
                   </span>
-                  <span className="text-[9px] text-slate-400">TSX</span>
+                  <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
                 </button>
               </div>
             </div>
