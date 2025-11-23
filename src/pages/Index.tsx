@@ -142,6 +142,7 @@ function UrDevEditorPage() {
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const assistantInputRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useEffect(() => {
     if (isEditingEnabled) {
@@ -188,6 +189,14 @@ function UrDevEditorPage() {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
     }
   }
+
+  React.useEffect(() => {
+    if (!assistantInputRef.current) return;
+    const el = assistantInputRef.current;
+    el.style.height = "auto";
+    const maxHeight = 420; // approx 20 lines
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + "px";
+  }, [assistantInput]);
 
   const hasFileChanges = currentContent !== (savedContents[activeFileId] || activeFile.content.join(`
 `));
@@ -793,6 +802,7 @@ function UrDevEditorPage() {
                 )}
                 <div className="flex flex-col gap-2 rounded-xl bg-black/80 px-3 py-3">
                   <textarea
+                    ref={assistantInputRef}
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
                     spellCheck={true}
