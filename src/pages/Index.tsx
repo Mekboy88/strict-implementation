@@ -504,9 +504,9 @@ function UrDevEditorPage() {
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
                     {showEditNotification && (
-                      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-                        <div className="bg-sky-500/90 text-white px-6 py-3 rounded-lg shadow-lg backdrop-blur-sm">
-                          <span className="font-semibold">Edit Mode</span>
+                      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 animate-fade-in">
+                        <div className="text-6xl font-bold text-white">
+                          Edit Mode
                         </div>
                       </div>
                     )}
