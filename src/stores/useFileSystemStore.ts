@@ -11,6 +11,7 @@ interface FileNode {
 interface FileSystemStore {
   files: FileNode[];
   expandedFolders: Set<string>;
+  currentProjectId: string | null;
   addFile: (file: FileNode) => void;
   updateFile: (path: string, content: string) => void;
   deleteFile: (path: string) => void;
@@ -20,11 +21,13 @@ interface FileSystemStore {
   getFilesByPath: (path: string) => FileNode[];
   initializeProject: () => void;
   getAllFiles: () => FileNode[];
+  setCurrentProject: (projectId: string) => Promise<void>;
 }
 
 export const useFileSystemStore = create<FileSystemStore>((set, get) => ({
   files: [],
   expandedFolders: new Set<string>(),
+  currentProjectId: null,
   
   addFile: (file) => set((state) => ({ files: [...state.files, file] })),
   
@@ -80,5 +83,9 @@ export const useFileSystemStore = create<FileSystemStore>((set, get) => ({
   
   getAllFiles: () => {
     return get().files;
+  },
+
+  setCurrentProject: async (projectId: string) => {
+    set({ currentProjectId: projectId });
   },
 }));
