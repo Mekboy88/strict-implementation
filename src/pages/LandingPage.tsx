@@ -359,7 +359,7 @@ const UrDevLandingPage: React.FC = () => {
               </div>
               <div className="mt-4 text-left w-full">
                 <div className="relative rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.35),_transparent_65%),_radial-gradient(circle_at_bottom,_rgba(129,140,248,0.4),_transparent_70%)] p-[1px] shadow-[0_0_45px_rgba(15,23,42,0.9)]">
-                  <div className="relative rounded-[22px] border border-white/12 bg-black/95 px-4 py-6 sm:px-5 sm:py-7">
+                  <div className="relative rounded-[22px] border border-white/12 bg-black/95 px-4 py-10 sm:px-5 sm:py-12">
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
