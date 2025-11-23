@@ -353,7 +353,7 @@ function UrDevEditorPage() {
                 <button
                   type="button"
                   onClick={() => setActiveFileId("banner")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
+                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
                     activeFileId === "banner"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
@@ -375,7 +375,7 @@ function UrDevEditorPage() {
                 <button
                   type="button"
                   onClick={() => setActiveFileId("layout")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
+                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
                     activeFileId === "layout"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
@@ -390,7 +390,7 @@ function UrDevEditorPage() {
                 <button
                   type="button"
                   onClick={() => setActiveFileId("page")}
-                  className={`ml-4 flex w-full items-center justify-between rounded-md px-2 py-1 text-left min-w-0 ${
+                  className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
                     activeFileId === "page"
                       ? "bg-sky-500/25 text-sky-100"
                       : "hover:bg-white/5 hover:text-sky-100"
