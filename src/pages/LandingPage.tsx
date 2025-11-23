@@ -388,7 +388,7 @@ const UrDevLandingPage: React.FC = () => {
                         setPromptStatus("Draft");
                       }}
                       placeholder={promptPlaceholder}
-                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 resize-none leading-tight align-top p-0 focus:bg-white/5 rounded transition-colors selection:bg-sky-500/40 selection:text-white"
+                      className="flex-1 bg-transparent border-none outline-none text-sm text-gray-100 placeholder:text-gray-500 resize-none leading-tight align-top p-0 selection:bg-sky-500/40 selection:text-white"
                     />
                   </div>
                   <button
