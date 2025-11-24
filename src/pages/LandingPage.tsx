@@ -439,7 +439,7 @@ const UrDevLandingPage: React.FC = () => {
                 </div>
 
                 {/* Mobile Frame - Overlaying on the right side */}
-                <div className="absolute -bottom-12 right-6 w-32 sm:-bottom-16 sm:right-12 sm:w-48 md:bottom-16 md:right-16 md:w-56 z-10">
+                <div className="absolute -bottom-12 right-8 w-32 sm:-bottom-16 sm:right-14 sm:w-48 md:bottom-16 md:right-18 md:w-56 z-10">
                   <div className="relative rounded-[1.5rem] sm:rounded-[2rem] border-[3px] sm:border-4 border-foreground/10 bg-background shadow-[0_15px_40px_rgba(0,0,0,0.8)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
                     {/* Phone notch */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-24 h-4 sm:h-5 bg-background rounded-b-xl sm:rounded-b-2xl z-20"></div>
