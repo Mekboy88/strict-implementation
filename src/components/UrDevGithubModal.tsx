@@ -19,9 +19,10 @@ interface UrDevGithubModalProps {
   onClose: () => void;
   connectedAccount?: GithubAccount;
   connectedRepo?: GithubRepo;
+  onConnect?: () => void;
 }
 
-function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo }: UrDevGithubModalProps) {
+function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, onConnect }: UrDevGithubModalProps) {
   const [state, setState] = useState<GithubState>(
     connectedAccount ? "connected" : "idle"
   );
@@ -34,6 +35,14 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo }: 
 
   function handleConnect() {
     if (state === "connected") return;
+
+    // If a real GitHub connect handler is provided, delegate to it
+    if (onConnect) {
+      onConnect();
+      return;
+    }
+
+    // Fallback demo behavior (used only when no handler is passed)
     setState("connecting");
 
     setTimeout(() => {
@@ -72,10 +81,15 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo }: 
     );
   }
 
-  const showAccount =
-    state === "connected" && activeAccount ? activeAccount : null;
+  const isConnected = state === "connected" || !!connectedAccount;
 
-  const repo = state === "connected" && connectedRepo ? connectedRepo : null;
+  const showAccount = connectedAccount
+    ? connectedAccount
+    : state === "connected" && activeAccount
+      ? activeAccount
+      : null;
+
+  const repo = isConnected && connectedRepo ? connectedRepo : null;
 
   function handleOpenProjectOnGithub() {
     if (!repo) return;
@@ -117,7 +131,7 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo }: 
         </div>
 
         <div className="relative px-6 py-5">
-          {state === "idle" && (
+          {state === "idle" && !connectedAccount && (
             <>
               <p className="text-sm text-slate-200">
                 Connect GitHub to sync branches, open pull requests, and keep
