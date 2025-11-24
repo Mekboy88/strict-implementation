@@ -21,8 +21,8 @@ export const GitHubCallback = () => {
         setStatus("Exchanging authorization code...");
 
         // Call edge function to exchange code for token
-        const { data, error } = await supabase.functions.invoke("github", {
-          body: { action: "oauth_callback", code },
+        const { data, error } = await supabase.functions.invoke("github-oauth-callback", {
+          body: { code },
         });
 
         if (error) throw error;
@@ -44,7 +44,7 @@ export const GitHubCallback = () => {
           } else {
             // If not a popup, navigate normally
             toast.success(`Connected to GitHub as ${data.username}`);
-            navigate("/ide");
+            navigate("/editor");
           }
         } else {
           throw new Error("Failed to connect to GitHub");
@@ -58,7 +58,7 @@ export const GitHubCallback = () => {
             window.close();
           }, 2000);
         } else {
-          navigate("/ide");
+          navigate("/editor");
         }
       }
     };
