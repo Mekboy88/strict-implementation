@@ -422,17 +422,38 @@ const UrDevLandingPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="aspect-video rounded-lg bg-gradient-to-br from-ide-editor via-background to-ide-panel border border-ide-border overflow-hidden">
-                    <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                      <div className="h-6 sm:h-8 w-32 sm:w-48 bg-primary/20 rounded animate-pulse"></div>
-                      <div className="space-y-2">
-                        <div className="h-3 sm:h-4 w-full bg-muted rounded animate-pulse"></div>
-                        <div className="h-3 sm:h-4 w-3/4 bg-muted rounded animate-pulse"></div>
+                  <div className="aspect-video rounded-lg bg-[#020617] border border-ide-border overflow-hidden">
+                    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 flex flex-col items-center text-center">
+                      {/* Mini Header */}
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded bg-cyan-500/20 border border-cyan-400/60 text-[8px] sm:text-[9px] font-semibold text-cyan-200">
+                          UR
+                        </div>
+                        <span className="text-[9px] sm:text-[10px] font-semibold text-white">UR-DEV</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6">
-                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
-                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
-                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
+                      
+                      {/* Mini Headline */}
+                      <div className="space-y-1">
+                        <h2 className="text-[10px] sm:text-xs font-semibold text-white leading-tight">
+                          Build web & mobile apps with <span className="text-cyan-400">real databases</span>
+                        </h2>
+                        <p className="text-[7px] sm:text-[8px] text-gray-400 leading-tight">
+                          Visual editor with AI agents
+                        </p>
+                      </div>
+                      
+                      {/* Mini Input Box */}
+                      <div className="w-full rounded-lg bg-black/60 border border-white/10 p-2 sm:p-2.5">
+                        <div className="h-8 sm:h-12 bg-transparent border border-white/5 rounded text-[7px] sm:text-[8px] text-gray-500 flex items-center px-2">
+                          Describe your app...
+                        </div>
+                      </div>
+                      
+                      {/* Mini Cards */}
+                      <div className="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-1 sm:mt-2">
+                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
                       </div>
                     </div>
                   </div>
@@ -445,17 +466,38 @@ const UrDevLandingPage: React.FC = () => {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-24 h-4 sm:h-5 bg-background rounded-b-xl sm:rounded-b-2xl z-20"></div>
                     
                     {/* Screen */}
-                    <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-gradient-to-br from-ide-panel via-ide-editor to-background border border-ide-border overflow-hidden">
-                      <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
-                        <div className="h-4 sm:h-6 w-20 sm:w-32 bg-primary/20 rounded animate-pulse"></div>
-                        <div className="space-y-1 sm:space-y-1.5">
-                          <div className="h-2 sm:h-3 w-full bg-muted rounded animate-pulse"></div>
-                          <div className="h-2 sm:h-3 w-2/3 bg-muted rounded animate-pulse"></div>
+                    <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-[#020617] border border-ide-border overflow-hidden">
+                      <div className="p-2 sm:p-3 space-y-2 sm:space-y-2.5 flex flex-col">
+                        {/* Mobile Header */}
+                        <div className="flex items-center justify-center gap-1">
+                          <div className="flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded bg-cyan-500/20 border border-cyan-400/60 text-[6px] sm:text-[7px] font-semibold text-cyan-200">
+                            UR
+                          </div>
+                          <span className="text-[7px] sm:text-[8px] font-semibold text-white">UR-DEV</span>
                         </div>
-                        <div className="space-y-1.5 sm:space-y-2 mt-3 sm:mt-4">
-                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
-                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
-                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
+                        
+                        {/* Mobile Content */}
+                        <div className="space-y-1 text-center">
+                          <h3 className="text-[8px] sm:text-[9px] font-semibold text-white leading-tight">
+                            Build apps with <span className="text-cyan-400">AI</span>
+                          </h3>
+                          <p className="text-[6px] sm:text-[7px] text-gray-400">
+                            Web & mobile editor
+                          </p>
+                        </div>
+                        
+                        {/* Mobile Input */}
+                        <div className="rounded bg-black/60 border border-white/10 p-1.5 sm:p-2">
+                          <div className="h-6 sm:h-8 bg-transparent border border-white/5 rounded text-[6px] sm:text-[7px] text-gray-500 flex items-center px-1.5">
+                            Your app idea...
+                          </div>
+                        </div>
+                        
+                        {/* Mobile List */}
+                        <div className="space-y-1 sm:space-y-1.5 flex-1">
+                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
                         </div>
                       </div>
                     </div>
