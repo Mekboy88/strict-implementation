@@ -62,8 +62,7 @@ serve(async (req) => {
     // Get authorization header from request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header present in request');
-      throw new Error('No authorization header - user must be logged in');
+      throw new Error('No authorization header');
     }
 
     // Create Supabase client with user's auth token
@@ -80,17 +79,9 @@ serve(async (req) => {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (userError) {
-      console.error('Error getting user:', userError);
-      throw new Error(`Authentication failed: ${userError.message}`);
+    if (userError || !user) {
+      throw new Error('User not authenticated');
     }
-    
-    if (!user) {
-      console.error('No user found despite valid auth header');
-      throw new Error('User not authenticated - invalid session');
-    }
-
-    console.log('Successfully authenticated user:', user.id);
 
     // Store GitHub connection in database
     const { error: dbError } = await supabase
