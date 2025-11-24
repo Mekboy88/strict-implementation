@@ -309,9 +309,6 @@ function UrDevEditorPage() {
             <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
               <FileCode2 className="h-4 w-4" />
             </button>
-            <button className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-200 hover:bg-white/10">
-              <span className="text-[11px]">▶</span>
-            </button>
             <svg height="16px" width="16px" version="1.1" viewBox="0 0 56 56" fill="currentColor">
               <g>
                 <g>
