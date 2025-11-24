@@ -948,8 +948,8 @@ function UrDevEditorPage() {
             <button 
               className="w-full flex items-center justify-center gap-3 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-sky-500/50"
               onClick={() => {
-                // Database connection logic will go here
-                console.log('Connecting to UR-DEV Database...');
+                setShowDatabasePopup(false);
+                navigate('/database');
               }}
             >
               <svg height="24px" width="24px" version="1.1" viewBox="0 0 56 56" fill="currentColor">
