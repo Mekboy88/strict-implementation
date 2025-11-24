@@ -12,6 +12,7 @@ interface GitHubIntegrationProps {
 export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) => {
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,33 +41,54 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
     }
   };
 
-  const handleConnect = () => {
-    const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/auth/callback/github`;
-    const scope = "repo user";
-    
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=${scope}`;
-    
-    const popup = window.open(githubAuthUrl, 'github-oauth', 'width=600,height=700,left=200,top=100');
-    
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'github-oauth-success') {
-        console.log('GitHub OAuth completed successfully');
-        setConnected(true);
-        setUsername(event.data.username);
-        window.removeEventListener('message', handleMessage);
-        toast.success(`Connected to GitHub as ${event.data.username}`);
+  const handleConnect = async () => {
+    setLoading(true);
+    try {
+      const redirectUri = `${window.location.origin}/auth/callback/github`;
+      const scope = "repo user";
+      
+      // Call edge function to get GitHub client ID
+      const { data: configData, error: configError } = await supabase.functions.invoke('github-config');
+      
+      if (configError) {
+        toast.error("Failed to initialize GitHub connection");
+        setLoading(false);
+        return;
       }
-    };
-    
-    window.addEventListener('message', handleMessage);
-    
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
-      }
-    }, 1000);
+      
+      const clientId = configData.clientId;
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+      
+      const popup = window.open(githubAuthUrl, 'github-oauth', 'width=600,height=700,left=200,top=100');
+      
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'github-oauth-success') {
+          console.log('GitHub OAuth completed successfully');
+          setConnected(true);
+          setUsername(event.data.username);
+          window.removeEventListener('message', handleMessage);
+          toast.success(`Connected to GitHub as ${event.data.username}`);
+          setLoading(false);
+        } else if (event.data.type === 'github-oauth-error') {
+          toast.error(event.data.message || "Failed to connect to GitHub");
+          setLoading(false);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      
+      const checkClosed = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkClosed);
+          window.removeEventListener('message', handleMessage);
+          setLoading(false);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Error connecting to GitHub:", error);
+      toast.error("Failed to connect to GitHub");
+      setLoading(false);
+    }
   };
 
   const handleDisconnect = async () => {
