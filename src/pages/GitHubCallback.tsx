@@ -18,58 +18,49 @@ export const GitHubCallback = () => {
           throw new Error("No authorization code received");
         }
 
-        setStatus("Exchanging authorization code...");
+        // If we were opened as a popup, delegate the token exchange to the main window
+        if (window.opener) {
+          setStatus("Passing authorization code to main window...");
 
-        // Get the current session to ensure we have auth token
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          throw new Error("No active session. Please log in first.");
+          window.opener.postMessage(
+            {
+              type: "github-oauth-code",
+              code,
+            },
+            window.location.origin
+          );
+
+          // Close popup shortly after sending the code
+          setTimeout(() => {
+            window.close();
+          }, 1000);
+
+          return;
         }
 
-        // Call edge function to exchange code for token with explicit auth
-        const { data, error } = await supabase.functions.invoke("github-oauth-callback", {
-          body: { code },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
+        // Fallback: if opened directly (no opener), do the exchange here
+        setStatus("Exchanging authorization code...");
+
+        const { data, error } = await supabase.functions.invoke(
+          "github-oauth-callback",
+          {
+            body: { code },
           }
-        });
+        );
 
         if (error) throw error;
 
         if (data.success) {
           setStatus("Connected successfully!");
-          
-          // Send message to parent window if this is a popup
-          if (window.opener) {
-            window.opener.postMessage({
-              type: 'github-oauth-success',
-              username: data.username
-            }, window.location.origin);
-            
-            // Close popup after short delay
-            setTimeout(() => {
-              window.close();
-            }, 1000);
-          } else {
-            // If not a popup, navigate normally
-            toast.success(`Connected to GitHub as ${data.username}`);
-            navigate("/editor");
-          }
+          toast.success(`Connected to GitHub as ${data.username}`);
+          navigate("/editor");
         } else {
           throw new Error("Failed to connect to GitHub");
         }
       } catch (error) {
         console.error("GitHub callback error:", error);
         toast.error("Failed to connect to GitHub");
-        
-        if (window.opener) {
-          setTimeout(() => {
-            window.close();
-          }, 2000);
-        } else {
-          navigate("/editor");
-        }
+        navigate("/editor");
       }
     };
 
