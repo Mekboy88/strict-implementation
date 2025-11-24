@@ -1,4 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Mail, Github } from "lucide-react";
 
 const personas = [
   {
@@ -185,6 +195,27 @@ const UrDevLandingPage: React.FC = () => {
   const [selectedIdeaCategoryId, setSelectedIdeaCategoryId] = useState("saas");
   const [activeGalleryFilter, setActiveGalleryFilter] = useState("featured");
   const promptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleOAuthLogin = async (provider: "google" | "github") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || `Failed to login with ${provider}`,
+        variant: "destructive",
+      });
+    }
+  };
 
   const activePersona = personas.find((p) => p.id === activePersonaId)!;
   const selectedCategory = ideaCategories.find((c) => c.id === selectedIdeaCategoryId)!;
@@ -289,18 +320,44 @@ const UrDevLandingPage: React.FC = () => {
             </a>
           </nav>
           <div className="flex items-center gap-2 text-xs">
-            <a
-              href="/login"
-              className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100"
-            >
-              Sign In
-            </a>
-            <a
-              href="/register"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition">
+                  Sign In
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48 bg-neutral-900 border-neutral-700 z-50">
+                <DropdownMenuItem 
+                  onClick={() => handleOAuthLogin("google")}
+                  className="cursor-pointer hover:bg-neutral-800 focus:bg-neutral-800"
+                >
+                  <svg className="h-4 w-4 mr-2" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                    <path d="M263.821537,7247.00386 L254.211298,7247.00386 C254.211298,7248.0033 254.211298,7250.00218 254.205172,7251.00161 L259.774046,7251.00161 C259.560644,7252.00105 258.804036,7253.40026 257.734984,7254.10487 C257.733963,7254.10387 257.732942,7254.11086 257.7309,7254.10986 C256.309581,7255.04834 254.43389,7255.26122 253.041161,7254.98137 C250.85813,7254.54762 249.130492,7252.96451 248.429023,7250.95364 C248.433107,7250.95064 248.43617,7250.92266 248.439233,7250.92066 C248.000176,7249.67336 248.000176,7248.0033 248.439233,7247.00386 L248.438212,7247.00386 C249.003881,7245.1669 250.783592,7243.49084 252.969687,7243.0321 C254.727956,7242.65931 256.71188,7243.06308 258.170978,7244.42831 C258.36498,7244.23842 260.856372,7241.80579 261.043226,7241.6079 C256.0584,7237.09344 248.076756,7238.68155 245.090149,7244.51127 L245.089128,7244.51127 C245.089128,7244.51127 245.090149,7244.51127 245.084023,7244.52226 L245.084023,7244.52226 C243.606545,7247.38565 243.667809,7250.75975 245.094233,7253.48622 C245.090149,7253.48921 245.087086,7253.49121 245.084023,7253.49421 C246.376687,7256.0028 248.729215,7257.92672 251.563684,7258.6593 C254.574796,7259.44886 258.406843,7258.90916 260.973794,7256.58747 C260.974815,7256.58847 260.975836,7256.58947 260.976857,7256.59047 C263.15172,7254.63157 264.505648,7251.29445 263.821537,7247.00386" transform="translate(-244.000000, -7239.000000)"/>
+                  </svg>
+                  Sign in with Google
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleOAuthLogin("github")}
+                  className="cursor-pointer hover:bg-neutral-800 focus:bg-neutral-800"
+                >
+                  <Github className="h-4 w-4 mr-2" />
+                  Sign in with GitHub
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate("/login")}
+                  className="cursor-pointer hover:bg-neutral-800 focus:bg-neutral-800"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Sign in with Email
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Link
+              to="/register"
               className="rounded-full bg-cyan-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:bg-cyan-400"
             >
               Launch IDE
-            </a>
+            </Link>
           </div>
         </div>
       </header>
