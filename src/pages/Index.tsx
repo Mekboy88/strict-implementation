@@ -906,32 +906,61 @@ function UrDevEditorPage() {
 
       {/* Database Popup Dialog */}
       <Dialog open={showDatabasePopup} onOpenChange={setShowDatabasePopup}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-slate-100 max-w-2xl">
+        <DialogContent className="bg-slate-900 border-slate-700 text-slate-100 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Database Management</DialogTitle>
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <svg height="20px" width="20px" version="1.1" viewBox="0 0 56 56" fill="currentColor">
+                <g>
+                  <g>
+                    <path style={{fill: '#545E73'}} d="M49.455,8L49.455,8C48.724,3.538,38.281,0,25.5,0S2.276,3.538,1.545,8l0,0H1.5v0.5V20v0.5V21v11 v0.5V33v12h0.045c0.731,4.461,11.175,8,23.955,8s23.224-3.539,23.955-8H49.5V33v-0.5V32V21v-0.5V20V8.5V8H49.455z"></path>
+                    <g>
+                      <path style={{fill: '#38454F'}} d="M25.5,41c-13.255,0-24-3.806-24-8.5V45h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V32.5C49.5,37.194,38.755,41,25.5,41z"></path>
+                      <path style={{fill: '#38454F'}} d="M1.5,32v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path>
+                      <path style={{fill: '#38454F'}} d="M49.455,32c0.027,0.166,0.045,0.332,0.045,0.5V32H49.455z"></path>
+                    </g>
+                    <g>
+                      <path style={{fill: '#556080'}} d="M25.5,29c-13.255,0-24-3.806-24-8.5V33h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V20.5C49.5,25.194,38.755,29,25.5,29z"></path>
+                      <path style={{fill: '#556080'}} d="M1.5,20v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path>
+                      <path style={{fill: '#556080'}} d="M49.455,20c0.027,0.166,0.045,0.332,0.045,0.5V20H49.455z"></path>
+                    </g>
+                    <ellipse style={{fill: '#91BAE1'}} cx="25.5" cy="8.5" rx="24" ry="8.5"></ellipse>
+                    <g>
+                      <path style={{fill: '#8697CB'}} d="M25.5,17c-13.255,0-24-3.806-24-8.5V21h0.045c0.731,4.461,11.175,8,23.955,8 s23.224-3.539,23.955-8H49.5V8.5C49.5,13.194,38.755,17,25.5,17z"></path>
+                      <path style={{fill: '#8697CB'}} d="M1.5,8v0.5c0-0.168,0.018-0.334,0.045-0.5H1.5z"></path>
+                      <path style={{fill: '#8697CB'}} d="M49.455,8C49.482,8.166,49.5,8.332,49.5,8.5V8H49.455z"></path>
+                    </g>
+                  </g>
+                  <g>
+                    <g>
+                      <path style={{fill: '#48A0DC'}} d="M49.545,45.111C49.494,41.175,46.382,38,42.546,38c-2.568,0-4.806,1.426-6.025,3.546 c-0.421-0.141-0.87-0.22-1.337-0.22c-2.063,0-3.785,1.492-4.208,3.484C29.221,45.675,28,47.516,28,49.641 C28,52.589,30.343,55,33.208,55h10.775c0.061,0,0.119-0.007,0.18-0.009c0.06,0.002,0.119,0.009,0.18,0.009h4.31 c2.667,0,4.849-2.245,4.849-4.989C53.5,47.581,51.788,45.546,49.545,45.111z"></path>
+                      <path style={{fill: '#B1D3EF'}} d="M48.651,56h-4.31c-0.063,0-0.126-0.004-0.188-0.008C44.106,55.996,44.045,56,43.982,56H33.208 C29.785,56,27,53.147,27,49.642c0-2.262,1.209-4.372,3.116-5.503c0.686-2.235,2.746-3.813,5.066-3.813 c0.296,0,0.592,0.025,0.884,0.076C37.562,38.286,39.98,37,42.546,37c4.102,0,7.524,3.225,7.954,7.332 c2.358,0.806,4,3.079,4,5.679C54.5,53.313,51.876,56,48.651,56z M44.114,53.991l0.186,0.006L48.651,54 c2.122,0,3.849-1.79,3.849-3.989c0-1.917-1.323-3.564-3.146-3.919l-0.799-0.155l-0.011-0.813C48.501,41.747,45.811,39,42.546,39 c-2.135,0-4.063,1.139-5.158,3.045l-0.409,0.711l-0.777-0.261c-0.332-0.112-0.675-0.169-1.019-0.169 c-1.54,0-2.898,1.133-3.229,2.692l-0.102,0.475l-0.435,0.214C29.948,46.432,29,47.976,29,49.642C29,52.045,30.888,54,33.208,54 L44.114,53.991z"></path>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+              UR-DEV Database
+            </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Manage your database tables, queries, and configurations
+              Create a stable database connection for your mobile and web applications
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
-                <h3 className="font-semibold text-sky-400 mb-2">Tables</h3>
-                <p className="text-sm text-slate-400">View and manage database tables</p>
-              </div>
-              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
-                <h3 className="font-semibold text-sky-400 mb-2">Queries</h3>
-                <p className="text-sm text-slate-400">Execute SQL queries</p>
-              </div>
-              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
-                <h3 className="font-semibold text-sky-400 mb-2">Migrations</h3>
-                <p className="text-sm text-slate-400">Database schema migrations</p>
-              </div>
-              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
-                <h3 className="font-semibold text-sky-400 mb-2">Backup</h3>
-                <p className="text-sm text-slate-400">Backup and restore data</p>
-              </div>
-            </div>
+          <div className="mt-6">
+            <button 
+              className="w-full flex items-center justify-center gap-3 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-sky-500/50"
+              onClick={() => {
+                // Database connection logic will go here
+                console.log('Connecting to UR-DEV Database...');
+              }}
+            >
+              <svg height="24px" width="24px" version="1.1" viewBox="0 0 56 56" fill="currentColor">
+                <path style={{fill: 'white'}} d="M49.455,8L49.455,8C48.724,3.538,38.281,0,25.5,0S2.276,3.538,1.545,8l0,0H1.5v0.5V20v0.5V21v11 v0.5V33v12h0.045c0.731,4.461,11.175,8,23.955,8s23.224-3.539,23.955-8H49.5V33v-0.5V32V21v-0.5V20V8.5V8H49.455z"></path>
+                <ellipse style={{fill: '#E8F5FF'}} cx="25.5" cy="8.5" rx="24" ry="8.5"></ellipse>
+              </svg>
+              Connect to Database
+            </button>
+            <p className="text-xs text-slate-500 text-center mt-4">
+              This will establish a secure connection between your mobile app and website
+            </p>
           </div>
         </DialogContent>
       </Dialog>
