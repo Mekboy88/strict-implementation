@@ -96,10 +96,10 @@ function buildInitialContents() {
 
 function UrDevPreviewFrame() {
   return (
-    <div className="h-full w-full rounded-2xl border border-border bg-background overflow-hidden shadow-2xl">
-      <div className="h-full overflow-auto bg-gradient-to-b from-background via-card to-muted">
+    <div className="h-full w-full rounded-2xl border border-neutral-700 bg-neutral-900 overflow-hidden shadow-2xl">
+      <div className="h-full overflow-auto bg-neutral-900">
         <main className="min-h-[540px] px-10 py-10">
-          <section className="mx-auto max-w-4xl rounded-2xl border border-border/80 bg-card/80 px-10 py-10 shadow-xl">
+          <section className="mx-auto max-w-4xl rounded-2xl border border-neutral-700 bg-neutral-800 px-10 py-10 shadow-xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
               UR-DEV · LIVE PREVIEW
             </p>
@@ -112,7 +112,7 @@ function UrDevPreviewFrame() {
               <span className="font-semibold text-foreground">Code</span>, you can continue editing the
               component line by line.
             </p>
-            <div className="mt-8 rounded-xl border border-border bg-muted/70 px-7 py-6">
+            <div className="mt-8 rounded-xl border border-neutral-700 bg-neutral-800 px-7 py-6">
               <h2 className="text-xl font-semibold text-foreground">UR-DEV Banner</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 This is a demo banner component rendered inside the editor preview. You can adapt the
@@ -257,7 +257,7 @@ function UrDevEditorPage() {
 `));
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-foreground flex flex-col">
+    <div className="min-h-screen bg-neutral-900 text-neutral-100 flex flex-col">
       {/* TOP BAR */}
       <header className="flex items-center justify-between border-b border-white/10 bg-neutral-900 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
         <div className="flex items-center gap-2">
