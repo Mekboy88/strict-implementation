@@ -464,7 +464,7 @@ const UrDevLandingPage: React.FC = () => {
                     
                     {/* Screen */}
                     <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-background border border-ide-border overflow-hidden">
-                      <div className="p-2 sm:p-3 space-y-2 sm:space-y-2.5 flex flex-col">
+                      <div className="p-2 sm:p-3 pt-8 sm:pt-12 space-y-2 sm:space-y-2.5 flex flex-col">
                         {/* Mobile Header */}
                         <div className="flex items-center justify-center gap-1">
                           <div className="flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded bg-primary/15 border border-primary/50 text-[6px] sm:text-[7px] font-semibold text-primary-foreground">
