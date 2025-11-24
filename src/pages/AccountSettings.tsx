@@ -191,16 +191,15 @@ const ProjectSettingsPage: React.FC = () => {
                 </div>
                 <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <div className="text-[12px] text-neutral-400">Display name</div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm text-neutral-100">{projectName}</span>
+                    <div className="flex items-center gap-2 text-[12px] text-neutral-400">
+                      Display name
                       <button
                         type="button"
                         onClick={openRenameModal}
-                        className="inline-flex items-center justify-center rounded-full border border-neutral-700 bg-neutral-950 p-1.5 hover:bg-neutral-800 hover:border-neutral-500 text-neutral-300"
+                        className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-neutral-300"
                         aria-label="Rename project"
                       >
-                        <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 503.322 503.322" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 503.322 503.322" xmlns="http://www.w3.org/2000/svg">
                           <path d="M130.169,483.029h-17.356c-4.799,0-8.678,3.879-8.678,8.678c0,4.799,3.879,8.678,8.678,8.678h17.356 c4.799,0,8.678-3.879,8.678-8.678C138.847,486.908,134.968,483.029,130.169,483.029z"></path>
                           <path d="M182.237,483.029h-17.356c-4.799,0-8.678,3.879-8.678,8.678c0,4.799,3.879,8.678,8.678,8.678h17.356 c4.799,0,8.678-3.879,8.678-8.678C190.915,486.908,187.036,483.029,182.237,483.029z"></path>
                           <path d="M78.102,483.029H60.746c-4.799,0-8.678,3.879-8.678,8.678c0,4.799,3.879,8.678,8.678,8.678h17.356 c4.799,0,8.678-3.879,8.678-8.678C86.78,486.908,82.901,483.029,78.102,483.029z"></path>
@@ -217,6 +216,7 @@ const ProjectSettingsPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
+                    <div className="text-sm text-neutral-100">{projectName}</div>
                   </div>
 
                   <div className="space-y-1">
