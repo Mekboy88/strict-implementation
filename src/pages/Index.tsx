@@ -707,7 +707,7 @@ function UrDevEditorPage() {
                     <button
                       type="button"
                       onClick={handleCopyFile}
-                      className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-1.5 hover:border-sky-400/70 hover:text-sky-100 transition-all"
+                      className="inline-flex items-center justify-center hover:text-sky-400 transition-colors"
                     >
                       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor">
                         <g>
@@ -720,10 +720,10 @@ function UrDevEditorPage() {
                     <button
                       type="button"
                       onClick={() => setIsEditingEnabled(!isEditingEnabled)}
-                      className={`inline-flex items-center justify-center rounded-full border p-1.5 transition-all ${
+                      className={`inline-flex items-center justify-center transition-colors ${
                         isEditingEnabled
-                          ? "border-sky-400/70 bg-sky-500/20 text-sky-200"
-                          : "border-white/15 bg-white/5 text-slate-400 hover:border-sky-400/70 hover:text-sky-100"
+                          ? "text-sky-400"
+                          : "text-slate-400 hover:text-sky-400"
                       }`}
                     >
                       <svg fill="currentColor" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
