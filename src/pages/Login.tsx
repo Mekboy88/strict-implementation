@@ -54,16 +54,6 @@ const Login = () => {
             style={{ background: "radial-gradient(circle, #4CB3FF, transparent)" }}
           ></div>
         </div>
-        <div className="relative z-10 flex items-center justify-center h-full animate-fade-in">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-4" style={{ color: "#D6E4F0" }}>
-              UR-DEV
-            </h1>
-            <p className="text-lg" style={{ color: "#8FA3B7" }}>
-              Build powerful apps with AI
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Right Panel - Login Form */}
