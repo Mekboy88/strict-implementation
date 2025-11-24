@@ -868,7 +868,10 @@ function UrDevEditorPage() {
                         <Paperclip className="h-4 w-4" />
                         <span>Attach File</span>
                       </button>
-                      <button className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10">
+                      <button 
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="flex flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 hover:bg-white/10"
+                      >
                         <Settings2 className="h-4 w-4" />
                         <span>Settings</span>
                       </button>
