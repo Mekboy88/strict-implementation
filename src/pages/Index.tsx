@@ -160,6 +160,22 @@ function UrDevEditorPage() {
   const [showFileExplorer, setShowFileExplorer] = useState(false);
   const [assistantInput, setAssistantInput] = useState("");
   const [showDatabasePopup, setShowDatabasePopup] = useState(false);
+  const [dbState, setDbState] = useState<"idle" | "creating">("idle");
+
+  const handleConnectDatabase = () => {
+    setDbState("creating");
+    // Simulate database creation process
+    setTimeout(() => {
+      setShowDatabasePopup(false);
+      setDbState("idle");
+      navigate('/database');
+    }, 4500); // Navigate after 4.5 seconds of animation
+  };
+
+  const handleCloseDatabasePopup = () => {
+    setShowDatabasePopup(false);
+    setDbState("idle");
+  };
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -925,7 +941,7 @@ function UrDevEditorPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setShowDatabasePopup(false)}
+                onClick={handleCloseDatabasePopup}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-slate-300 hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
@@ -934,31 +950,82 @@ function UrDevEditorPage() {
 
             {/* Body */}
             <div className="px-6 py-5">
-              <p className="text-sm text-slate-200">
-                UR-DEV will provision a dedicated database workspace, wire it into your project,
-                and prepare migrations so you keep full control over your schema.
-              </p>
-              <ul className="mt-4 space-y-1 text-[12px] text-slate-300">
-                <li>• Creates or connects a Supabase Postgres instance.</li>
-                <li>• Stores credentials securely inside UR-DEV secrets.</li>
-                <li>• Prepares default tables for auth, profiles, and projects.</li>
-              </ul>
+              {dbState === "idle" && (
+                <>
+                  <p className="text-sm text-slate-200">
+                    UR-DEV will provision a dedicated database workspace, wire it into your project,
+                    and prepare migrations so you keep full control over your schema.
+                  </p>
+                  <ul className="mt-4 space-y-1 text-[12px] text-slate-300">
+                    <li>• Creates or connects a Supabase Postgres instance.</li>
+                    <li>• Stores credentials securely inside UR-DEV secrets.</li>
+                    <li>• Prepares default tables for auth, profiles, and projects.</li>
+                  </ul>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDatabasePopup(false);
-                  navigate('/database');
-                }}
-                className="mt-6 flex w-full items-center justify-center rounded-lg bg-sky-500 px-4 py-3 text-sm font-semibold text-black shadow-[0_0_26px_rgba(56,189,248,0.9)] hover:bg-sky-400"
-              >
-                Connect to Database
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleConnectDatabase}
+                    className="mt-6 flex w-full items-center justify-center rounded-lg bg-sky-500 px-4 py-3 text-sm font-semibold text-black shadow-[0_0_26px_rgba(56,189,248,0.9)] hover:bg-sky-400"
+                  >
+                    Connect to Database
+                  </button>
 
-              <p className="mt-3 text-[11px] text-slate-500">
-                This will establish a secure connection between your UR-DEV workspace and the
-                underlying database. No changes are applied until you confirm migrations.
-              </p>
+                  <p className="mt-3 text-[11px] text-slate-500">
+                    This will establish a secure connection between your UR-DEV workspace and the
+                    underlying database. No changes are applied until you confirm migrations.
+                  </p>
+                </>
+              )}
+
+              {dbState === "creating" && (
+                <>
+                  <div className="rounded-xl border border-sky-500/40 bg-sky-950/40 px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm text-sky-100">
+                      <span className="relative inline-flex h-3 w-3">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400/70 opacity-75" />
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-sky-400" />
+                      </span>
+                      <span>Creating UR-DEV database…</span>
+                    </div>
+                    <p className="mt-2 text-[11px] text-sky-100/80">
+                      Provisioning Postgres instance, applying base schema, and syncing credentials
+                      with your workspace.
+                    </p>
+
+                    <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-900">
+                      <div className="h-full w-1/3 animate-pulse bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-300" />
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-300">
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-bounce" />
+                      <span>Step 1 · Reserving database workspace…</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-sky-400/50" />
+                      <span>Step 2 · Preparing auth &amp; profile tables…</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-slate-500/60" />
+                      <span>Step 3 · Wiring UR-DEV editor to schema…</span>
+                    </div>
+                  </div>
+
+                  <p className="mt-4 text-[11px] text-slate-500">
+                    You can keep working in the editor while UR-DEV finishes this step. Once ready,
+                    database tables will appear in your workspace sidebar.
+                  </p>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleCloseDatabasePopup}
+                      className="rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-[11px] text-slate-100 hover:bg-white/10"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
