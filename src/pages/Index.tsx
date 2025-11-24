@@ -903,9 +903,9 @@ function UrDevEditorPage() {
                       autoResizeAssistantInput(e.target);
                     }}
                     spellCheck={true}
-                    className="flex-1 bg-transparent text-base text-slate-100 placeholder:text-slate-500 outline-none resize-none px-0 py-1 transition-all duration-200 selection:bg-blue-500/60 selection:text-white overflow-y-auto"
+                    className="w-full bg-transparent text-base text-slate-100 placeholder:text-slate-500 outline-none resize-none px-0 py-1 selection:bg-blue-500/60 selection:text-white overflow-hidden"
                     placeholder="Type your message here..."
-                    rows={1}
+                    style={{ height: 'auto', minHeight: '24px' }}
                   />
                   <div className="flex items-center gap-2 justify-between">
                   <button
