@@ -468,7 +468,7 @@ const ProjectSettingsPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[13px]">
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-emerald-400" />
                       <div>
@@ -479,7 +479,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">Manage</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Github className="h-4 w-4 text-neutral-100" />
                       <div>
@@ -490,7 +490,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">View repo</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Cloud className="h-4 w-4 text-sky-400" />
                       <div>
