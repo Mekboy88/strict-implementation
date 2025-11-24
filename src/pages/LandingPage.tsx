@@ -353,7 +353,10 @@ const UrDevLandingPage: React.FC = () => {
 
                     <DropdownMenuItem 
                       className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
-                      onSelect={() => navigate("/login")}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setTimeout(() => navigate("/login"), 0);
+                      }}
                     >
                       <Mail className="h-5 w-5" />
                       Sign in with Email
