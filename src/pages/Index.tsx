@@ -946,7 +946,7 @@ function UrDevEditorPage() {
           </DialogHeader>
           <div className="mt-6">
             <button 
-              className="w-full flex items-center justify-center gap-3 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-sky-500/50"
+              className="w-full flex items-center justify-center gap-3 bg-sky-500 hover:bg-sky-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-sky-500/50 border-0 outline-none focus:outline-none"
               onClick={() => {
                 setShowDatabasePopup(false);
                 navigate('/database');
