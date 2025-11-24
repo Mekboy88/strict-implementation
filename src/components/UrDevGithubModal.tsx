@@ -120,6 +120,7 @@ function UrDevGithubModal({
   }
 
   function handleClose() {
+    // hook this up to parent to hide the modal
     if (onClose) {
       onClose();
     }
@@ -135,12 +136,14 @@ function UrDevGithubModal({
   }
 
   function handleConnectAnotherAccount() {
+    // new flow for "Use another GitHub account"
     setShowAccountSwitcher(false);
     setState("idle");
     setActiveAccount(undefined);
     setLocalRepo(undefined);
     setRepoFullNameInput("");
     setRepoUrlInput("");
+    // here you would also trigger the real GitHub OAuth flow
   }
 
   function handleManageOnGithub() {
@@ -240,7 +243,7 @@ function UrDevGithubModal({
                     </div>
                   </div>
 
-                  {/* MAIN BUTTON VISIBLE IN FIRST WINDOW */}
+                  {/* MAIN BUTTON + ALT ACCOUNT BUTTON IN FIRST WINDOW */}
                   <button
                     type="button"
                     onClick={handleConnect}
@@ -256,6 +259,15 @@ function UrDevGithubModal({
                     {state === "connecting" && (
                       <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-900" />
                     )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleConnectAnotherAccount}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-transparent px-4 py-2 text-[11px] font-semibold text-slate-100 hover:bg-white/5"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    <span>Use another GitHub account</span>
                   </button>
                 </div>
               )}
@@ -290,12 +302,6 @@ function UrDevGithubModal({
                   )}
                 </button>
               )}
-
-              <p className="mt-3 text-[11px] text-slate-500">
-                When an account is already connected, UR-DEV shows a short
-                circle animation in this button. Once done, the modal switches
-                to a green "GitHub connected" state with a check mark.
-              </p>
             </>
           )}
 
