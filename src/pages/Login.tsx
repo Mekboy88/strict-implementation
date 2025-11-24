@@ -15,27 +15,29 @@ const LoginPage: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("=== LOGIN PAGE MOUNTED ===");
     const checkSession = async () => {
+      console.log("Checking session...");
       try {
-        // First, try to get the current user which validates the token
         const { data: { user }, error } = await supabase.auth.getUser();
+        console.log("User check result:", { user: user?.email, error });
         
-        // If there's an error or no user, clear any stale session
         if (error || !user) {
+          console.log("No valid user, clearing session");
           await supabase.auth.signOut({ scope: 'local' });
           setCheckingAuth(false);
           return;
         }
         
-        // Only redirect if we have a valid user
         if (user) {
+          console.log("Valid user found, redirecting to /");
           navigate("/");
         }
       } catch (error) {
         console.error("Session check error:", error);
-        // Clear stale session on error
         await supabase.auth.signOut({ scope: 'local' });
       } finally {
+        console.log("Setting checkingAuth to false");
         setCheckingAuth(false);
       }
     };
