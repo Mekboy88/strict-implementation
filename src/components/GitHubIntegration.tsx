@@ -169,16 +169,18 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
   };
 
   return (
-    <UrDevGithubModal
-      isOpen={isOpen}
-      onClose={onClose}
-      connectedAccount={
-        connected && username
-          ? { username, avatarUrl }
-          : undefined
-      }
-      connectedRepo={undefined}
-      onConnect={handleConnect}
-    />
+    <>
+      {isOpen && (
+        <UrDevGithubModal
+          connectedAccount={
+            connected && username
+              ? { username, avatarUrl }
+              : undefined
+          }
+          connectedRepo={undefined}
+          onClose={onClose}
+        />
+      )}
+    </>
   );
 };

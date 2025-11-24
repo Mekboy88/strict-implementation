@@ -23,19 +23,15 @@ interface GithubRepo {
 }
 
 interface UrDevGithubModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   connectedAccount?: GithubAccount;
   connectedRepo?: GithubRepo;
-  onConnect?: () => void;
+  onClose?: () => void;
 }
 
 function UrDevGithubModal({
-  isOpen,
-  onClose,
   connectedAccount,
   connectedRepo,
-  onConnect,
+  onClose,
 }: UrDevGithubModalProps) {
   const [state, setState] = useState<GithubState>(
     connectedAccount ? "connected" : "idle"
@@ -56,24 +52,22 @@ function UrDevGithubModal({
     connectedRepo?.url ?? ""
   );
 
-  // Update state when connectedAccount prop changes
   useEffect(() => {
-    if (connectedAccount) {
-      setState("connected");
+    // keep local state in sync if props change from outside
+    if (connectedAccount && !activeAccount) {
       setActiveAccount(connectedAccount);
+      setState("connected");
     }
-  }, [connectedAccount]);
+    if (connectedRepo && !localRepo) {
+      setLocalRepo(connectedRepo);
+      setRepoFullNameInput(connectedRepo.fullName);
+      setRepoUrlInput(connectedRepo.url);
+    }
+  }, [connectedAccount, connectedRepo]);
 
   function handleConnect() {
     if (state === "connected") return;
 
-    // If a real GitHub connect handler is provided, delegate to it
-    if (onConnect) {
-      onConnect();
-      return;
-    }
-
-    // Fallback demo behavior
     setState("connecting");
 
     setTimeout(() => {
@@ -92,13 +86,14 @@ function UrDevGithubModal({
 
       setActiveAccount(newAccount);
       setLocalRepo((prev) => prev || newRepo);
+      setRepoFullNameInput((prev) => prev || newRepo.fullName);
+      setRepoUrlInput((prev) => prev || newRepo.url);
       setState("connected");
-
-      // Only open the switcher the very first time
-      if (!connectedAccount) {
-        setShowAccountSwitcher(true);
-      }
     }, 1200);
+  }
+
+  function handleClose() {
+    onClose?.();
   }
 
   function handleOpenAccountSwitcher() {
@@ -143,16 +138,15 @@ function UrDevGithubModal({
     window.open(vsCodeUrl, "_blank", "noopener,noreferrer");
   }
 
-  function handleSaveRepoLink() {
-    if (!repoFullNameInput.trim()) return;
+  function handleAutoSaveRepo() {
     const fullName = repoFullNameInput.trim();
+    if (!fullName) return;
+
     const url = repoUrlInput.trim() || `https://github.com/${fullName}`;
     const name = fullName.split("/").slice(-1)[0];
-    setLocalRepo({ name, fullName, url });
-    setShowAccountSwitcher(false);
-  }
 
-  if (!isOpen) return null;
+    setLocalRepo({ name, fullName, url });
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -174,7 +168,7 @@ function UrDevGithubModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-slate-300 hover:bg-white/10"
           >
             <X className="h-4 w-4" />
@@ -255,12 +249,12 @@ function UrDevGithubModal({
             </>
           )}
 
-          {/* CONNECTED */}
+          {/* CONNECTED – MAIN WINDOW WITH ALL DETAILS */}
           {state === "connected" && (
             <>
               <div className="flex items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-900/20 px-4 py-3">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" />
-                <div>
+                <div className="flex-1">
                   <div className="text-sm font-semibold text-emerald-100">
                     GitHub connected
                   </div>
@@ -290,29 +284,66 @@ function UrDevGithubModal({
                       </span>
                     </div>
                   )}
-
-                  {repo && (
-                    <div className="mt-4 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-100">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                            Linked project
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleOpenProjectOnGithub}
-                            className="mt-1 inline-flex items-center gap-1 text-[11px] text-sky-200 hover:text-sky-100"
-                          >
-                            <span>{repo.fullName}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
+              {/* LINKED PROJECT + INPUTS + VS CODE */}
+              <div className="mt-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-[11px] text-slate-100">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
+                      Linked project
+                    </span>
+                    {repo && (
+                      <button
+                        type="button"
+                        onClick={handleOpenProjectOnGithub}
+                        className="mt-1 inline-flex items-center gap-1 text-[11px] text-sky-200 hover:text-sky-100"
+                      >
+                        <span>{repo.fullName}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                  {repo && (
+                    <button
+                      type="button"
+                      onClick={handleOpenInVsCode}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/70 bg-sky-500/15 px-3 py-1.5 text-[11px] text-sky-100 hover:bg-sky-500/25"
+                    >
+                      <FileCode2 className="h-3 w-3" />
+                      <span>Edit in VS Code</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-3">
+                  <label className="block text-[10px] text-slate-300">
+                    Repository (owner/name)
+                  </label>
+                  <input
+                    value={repoFullNameInput}
+                    onChange={(e) => setRepoFullNameInput(e.target.value)}
+                    onBlur={handleAutoSaveRepo}
+                    placeholder="AlbQuantum/ur-dev-web"
+                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                  />
+                </div>
+                <div className="mt-2">
+                  <label className="block text-[10px] text-slate-300">
+                    GitHub URL (optional)
+                  </label>
+                  <input
+                    value={repoUrlInput}
+                    onChange={(e) => setRepoUrlInput(e.target.value)}
+                    onBlur={handleAutoSaveRepo}
+                    placeholder="https://github.com/AlbQuantum/ur-dev-web"
+                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                  />
+                </div>
+              </div>
+
+              {/* ACTIONS */}
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -324,43 +355,31 @@ function UrDevGithubModal({
                 </button>
                 <button
                   type="button"
-                  onClick={handleConnectAnotherAccount}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-[11px] text-slate-100 hover:bg-white/5"
-                >
-                  <User className="h-3 w-3" />
-                  <span>Add another account</span>
-                </button>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
                   onClick={handleManageOnGithub}
                   className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[11px] font-semibold text-slate-900 hover:bg-slate-100"
                 >
                   <Github className="h-3 w-3" />
                   <span>Manage on GitHub</span>
                 </button>
-                {repo && (
-                  <button
-                    type="button"
-                    onClick={handleOpenInVsCode}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/70 bg-sky-500/15 px-3 py-1.5 text-[11px] text-sky-100 hover:bg-sky-500/25"
-                  >
-                    <FileCode2 className="h-3 w-3" />
-                    <span>Edit in VS Code</span>
-                  </button>
-                )}
               </div>
 
-              <p className="mt-3 text-[11px] text-slate-500">
-                You can pick which repositories UR-DEV is allowed to use from
-                your GitHub settings at any time.
-              </p>
+              <div className="mt-3 border-t border-white/10 pt-3">
+                <button
+                  type="button"
+                  onClick={handleConnectAnotherAccount}
+                  className="w-full rounded-lg border border-white/20 bg-transparent px-3 py-2 text-[11px] font-semibold text-slate-100 hover:bg-white/5"
+                >
+                  Connect another GitHub account
+                </button>
+                <p className="mt-2 text-[11px] text-slate-500">
+                  This will reopen the GitHub authorization flow so you can link
+                  a different user or organization.
+                </p>
+              </div>
             </>
           )}
 
-          {/* ACCOUNT SWITCHER OVERLAY */}
+          {/* ACCOUNT SWITCHER OVERLAY – ONLY FOR SWITCHING ACCOUNT */}
           {state === "connected" && showAccountSwitcher && (
             <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#020617]/95">
               <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/95 px-4 py-4 shadow-xl">
@@ -409,37 +428,6 @@ function UrDevGithubModal({
                     </button>
                   </div>
                 )}
-
-                <div className="mt-4 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-3">
-                  <div className="text-[11px] font-medium text-slate-100">
-                    Link a project repository
-                  </div>
-                  <label className="mt-2 block text-[10px] text-slate-400">
-                    Repository (owner/name)
-                  </label>
-                  <input
-                    value={repoFullNameInput}
-                    onChange={(e) => setRepoFullNameInput(e.target.value)}
-                    placeholder="AlbQuantum/ur-dev-web"
-                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
-                  />
-                  <label className="mt-2 block text-[10px] text-slate-400">
-                    GitHub URL (optional)
-                  </label>
-                  <input
-                    value={repoUrlInput}
-                    onChange={(e) => setRepoUrlInput(e.target.value)}
-                    placeholder="https://github.com/AlbQuantum/ur-dev-web"
-                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSaveRepoLink}
-                    className="mt-3 w-full rounded-lg bg-sky-500 px-3 py-2 text-[11px] font-semibold text-slate-950 hover:bg-sky-400"
-                  >
-                    Save project link
-                  </button>
-                </div>
 
                 <div className="mt-4 border-t border-white/10 pt-3">
                   <button
