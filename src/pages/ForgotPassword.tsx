@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const ForgotPasswordPage: React.FC = () => {
   return (
@@ -33,9 +34,9 @@ const ForgotPasswordPage: React.FC = () => {
           <span>Send reset link</span>
         </button>
 
-        <a href="#" className="text-neutral-400 hover:text-neutral-200 text-xs mt-6 max-w-sm block hover:underline">
+        <Link to="/login" className="text-neutral-400 hover:text-neutral-200 text-xs mt-6 max-w-sm block hover:underline">
           Back to Sign In
-        </a>
+        </Link>
       </div>
 
       {/* Right side – Promo */}
