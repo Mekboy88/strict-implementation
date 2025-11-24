@@ -1,5 +1,6 @@
 import React from "react";
 import { Github, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const RegistrationPage: React.FC = () => {
   return (
@@ -89,9 +90,9 @@ const RegistrationPage: React.FC = () => {
           <span>Sign Up</span>
         </button>
 
-        <a href="#" className="text-neutral-400 hover:text-neutral-200 text-xs mt-6 max-w-sm block hover:underline">
+        <Link to="/login" className="text-neutral-400 hover:text-neutral-200 text-xs mt-6 max-w-sm block hover:underline">
           Have an account? Sign in.
-        </a>
+        </Link>
 
         <p className="text-neutral-500 text-xs mt-5 max-w-sm">
           By signing up, you agree to the
