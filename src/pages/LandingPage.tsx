@@ -308,10 +308,6 @@ const UrDevLandingPage: React.FC = () => {
       <main className="flex-1">
         <section className="px-4 pt-10 pb-16 sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-5xl flex-col items-center text-center gap-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-100">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              UR-DEV – Build web + mobile with real databases and AI agents
-            </div>
 
             <div className="space-y-3">
               <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
