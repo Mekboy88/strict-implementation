@@ -10,16 +10,33 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
+    // Check if user is already logged in with valid session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // Only redirect if there's a valid session without errors
+        if (session && !error) {
+          // Verify the session is actually valid by checking the user
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            navigate("/");
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+      } finally {
+        setCheckingAuth(false);
       }
-    });
+    };
+
+    checkSession();
   }, [navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -68,6 +85,15 @@ const LoginPage: React.FC = () => {
       });
     }
   };
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-neutral-900">
+        <div className="text-neutral-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex bg-neutral-900 text-neutral-100 overflow-hidden">
