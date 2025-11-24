@@ -234,8 +234,8 @@ function UrDevEditorPage() {
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col">
       {/* TOP BAR */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-black/90 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between border-b border-white/10 bg-black/90 pl-2 pr-4 py-3 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-8">
+        <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-400/70 text-xs font-semibold text-cyan-200">
             UR
           </div>
