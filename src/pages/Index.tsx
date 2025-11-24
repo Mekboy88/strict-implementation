@@ -38,9 +38,9 @@ const initialFiles = [
       "",
       "export function Banner() {",
       "  return (",
-      '    <section className="px-8 py-10 bg-slate-900/60 border-b border-slate-800">',
-      '      <h1 className="text-2xl font-semibold text-sky-200">UR-DEV Banner</h1>',
-      '      <p className="mt-2 text-sm text-slate-300 max-w-xl">',
+      '    <section className="px-8 py-10 bg-card/60 border-b border-border">',
+      '      <h1 className="text-2xl font-semibold text-foreground">UR-DEV Banner</h1>',
+      '      <p className="mt-2 text-sm text-muted-foreground max-w-xl">',
       "        This is a demo banner component rendered inside the editor preview.",
       "      </p>",
       "    </section>",
@@ -59,7 +59,7 @@ const initialFiles = [
       "export default function RootLayout({ children }) {",
       "  return (",
       '    <html lang="en">',
-      '      <body className="bg-slate-950 text-slate-100">{children}</body>',
+      '      <body className="bg-background text-foreground">{children}</body>',
       "    </html>",
       "  )",
       "}",
@@ -76,7 +76,7 @@ const initialFiles = [
       "",
       "export default function Page() {",
       "  return (",
-      '    <main className="min-h-screen bg-slate-950">',
+      '    <main className="min-h-screen bg-background">',
       "      <Banner />",
       "    </main>",
       "  )",
@@ -96,36 +96,36 @@ function buildInitialContents() {
 
 function UrDevPreviewFrame() {
   return (
-    <div className="h-full w-full rounded-2xl border border-white/10 bg-slate-950 overflow-hidden shadow-[0_0_55px_rgba(15,23,42,0.9)]">
-      <div className="h-full overflow-auto bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+    <div className="h-full w-full rounded-2xl border border-border bg-background overflow-hidden shadow-2xl">
+      <div className="h-full overflow-auto bg-gradient-to-b from-background via-card to-muted">
         <main className="min-h-[540px] px-10 py-10">
-          <section className="mx-auto max-w-4xl rounded-2xl border border-slate-800/80 bg-slate-950/80 px-10 py-10 shadow-[0_0_45px_rgba(8,47,73,0.75)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-400">
+          <section className="mx-auto max-w-4xl rounded-2xl border border-border/80 bg-card/80 px-10 py-10 shadow-xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
               UR-DEV · LIVE PREVIEW
             </p>
-            <h1 className="mt-4 text-3xl font-semibold text-sky-100 sm:text-4xl">
+            <h1 className="mt-4 text-3xl font-semibold text-foreground sm:text-4xl">
               UR-DEV Banner preview
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-slate-300">
-              This area simulates how your <span className="font-mono text-cyan-300">banner.tsx</span>{" "}
+            <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+              This area simulates how your <span className="font-mono text-primary">banner.tsx</span>{" "}
               component will render inside the app shell. When you switch back to{" "}
-              <span className="font-semibold text-sky-200">Code</span>, you can continue editing the
+              <span className="font-semibold text-foreground">Code</span>, you can continue editing the
               component line by line.
             </p>
-            <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900/70 px-7 py-6">
-              <h2 className="text-xl font-semibold text-sky-100">UR-DEV Banner</h2>
-              <p className="mt-2 text-sm text-slate-300">
+            <div className="mt-8 rounded-xl border border-border bg-muted/70 px-7 py-6">
+              <h2 className="text-xl font-semibold text-foreground">UR-DEV Banner</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
                 This is a demo banner component rendered inside the editor preview. You can adapt the
                 structure to match your real project once the full compiler integration is wired in.
               </p>
               <div className="mt-6 flex flex-wrap gap-3 text-[11px]">
-                <span className="inline-flex items-center rounded-full bg-sky-500/15 px-3 py-1 text-sky-200">
+                <span className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-primary">
                   • React component
                 </span>
-                <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-1 text-emerald-200">
+                <span className="inline-flex items-center rounded-full bg-success/15 px-3 py-1 text-success">
                   • Tailwind styles
                 </span>
-                <span className="inline-flex items-center rounded-full bg-violet-500/15 px-3 py-1 text-violet-200">
+                <span className="inline-flex items-center rounded-full bg-accent/15 px-3 py-1 text-accent">
                   • UR-DEV layout frame
                 </span>
               </div>
@@ -257,7 +257,7 @@ function UrDevEditorPage() {
 `));
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* TOP BAR */}
       <header className="flex items-center justify-between border-b border-white/10 bg-black/90 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
         <div className="flex items-center gap-2">
