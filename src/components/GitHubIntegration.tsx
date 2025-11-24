@@ -103,6 +103,9 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
               setConnected(true);
               setUsername(data.username);
               toast.success(`Connected to GitHub as ${data.username}`);
+              
+              // Refresh connection data to get avatar
+              await checkConnection();
             } else {
               toast.error("Failed to connect to GitHub");
             }
@@ -120,6 +123,9 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
           window.removeEventListener("message", handleMessage);
           toast.success(`Connected to GitHub as ${event.data.username}`);
           setLoading(false);
+          
+          // Refresh connection data
+          await checkConnection();
         } else if (event.data.type === "github-oauth-error") {
           toast.error(event.data.message || "Failed to connect to GitHub");
           window.removeEventListener("message", handleMessage);

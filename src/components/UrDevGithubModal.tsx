@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Github,
   X,
@@ -55,6 +55,14 @@ function UrDevGithubModal({
   const [repoUrlInput, setRepoUrlInput] = useState<string>(
     connectedRepo?.url ?? ""
   );
+
+  // Update state when connectedAccount prop changes
+  useEffect(() => {
+    if (connectedAccount) {
+      setState("connected");
+      setActiveAccount(connectedAccount);
+    }
+  }, [connectedAccount]);
 
   function handleConnect() {
     if (state === "connected") return;
