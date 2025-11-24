@@ -138,9 +138,9 @@ const ProjectSettingsPage: React.FC = () => {
 
   return (
     <>
-    <div className="w-full h-full rounded-2xl border border-neutral-700 bg-neutral-950 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
+    <div className="w-full h-full rounded-2xl border border-neutral-700 bg-neutral-900 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
           {/* Left sidebar */}
-          <aside className="w-72 border-r border-neutral-800 bg-neutral-950/95">
+          <aside className="w-72 border-r border-neutral-800 bg-neutral-900">
             <nav className="py-3 text-[14px] overflow-y-auto h-full">
               {NAV_GROUPS.map((group) => (
                 <div key={group.label} className="mt-2">
@@ -181,7 +181,7 @@ const ProjectSettingsPage: React.FC = () => {
           </aside>
 
           {/* Right content */}
-          <main className="flex-1 bg-neutral-950 px-8 py-6 overflow-y-auto">
+          <main className="flex-1 bg-neutral-900 px-8 py-6 overflow-y-auto">
             {/* Top header */}
             <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-4">
               <div>
@@ -308,7 +308,7 @@ const ProjectSettingsPage: React.FC = () => {
                   {/* Visibility options */}
                   <div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -321,7 +321,7 @@ const ProjectSettingsPage: React.FC = () => {
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -334,7 +334,7 @@ const ProjectSettingsPage: React.FC = () => {
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -358,7 +358,7 @@ const ProjectSettingsPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="space-y-1">
                       <div className="text-[12px] text-neutral-400">Workspace</div>
-                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-[13px] text-neutral-100">
+                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-[13px] text-neutral-100">
                         <span>Andi&apos;s UR-DEV workspace</span>
                         <ChevronRight className="h-3 w-3 text-neutral-500" />
                       </button>
@@ -366,7 +366,7 @@ const ProjectSettingsPage: React.FC = () => {
 
                     <div className="space-y-1">
                       <div className="text-[12px] text-neutral-400">Project category</div>
-                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-950 px-3 py-2 text-[13px] text-neutral-100">
+                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-[13px] text-neutral-100">
                         <span>Select category</span>
                         <ChevronRight className="h-3 w-3 text-neutral-500" />
                       </button>
@@ -413,7 +413,7 @@ const ProjectSettingsPage: React.FC = () => {
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.web
                           ? "border-sky-500 bg-neutral-900 text-sky-100"
-                          : "border-neutral-700 bg-neutral-950 text-neutral-300"
+                          : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
                       <Monitor className="h-3.5 w-3.5" />
@@ -425,7 +425,7 @@ const ProjectSettingsPage: React.FC = () => {
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.ios
                           ? "border-sky-500 bg-neutral-900 text-sky-100"
-                          : "border-neutral-700 bg-neutral-950 text-neutral-300"
+                          : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
                       <Smartphone className="h-3.5 w-3.5" />
@@ -437,7 +437,7 @@ const ProjectSettingsPage: React.FC = () => {
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.android
                           ? "border-sky-500 bg-neutral-900 text-sky-100"
-                          : "border-neutral-700 bg-neutral-950 text-neutral-300"
+                          : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
                       <Smartphone className="h-3.5 w-3.5 rotate-180" />
@@ -449,7 +449,7 @@ const ProjectSettingsPage: React.FC = () => {
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.desktop
                           ? "border-sky-500 bg-neutral-900 text-sky-100"
-                          : "border-neutral-700 bg-neutral-950 text-neutral-300"
+                          : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
                       <Layers className="h-3.5 w-3.5" />
@@ -468,7 +468,7 @@ const ProjectSettingsPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[13px]">
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-emerald-400" />
                       <div>
@@ -479,7 +479,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">Manage</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Github className="h-4 w-4 text-neutral-100" />
                       <div>
@@ -490,7 +490,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">View repo</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-800 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Cloud className="h-4 w-4 text-sky-400" />
                       <div>
@@ -597,7 +597,7 @@ const ProjectSettingsPage: React.FC = () => {
       {/* Rename project modal */}
       {isRenameOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-950 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-neutral-50">Rename project</h2>
@@ -656,7 +656,7 @@ const ProjectSettingsPage: React.FC = () => {
       {/* Edit subdomain modal */}
       {isSubdomainEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-950 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-neutral-50">Modify URL subdomain</h2>
