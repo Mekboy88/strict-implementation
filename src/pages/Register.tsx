@@ -280,15 +280,6 @@ const Register = () => {
                 Already have an account? <span className="underline">Sign in</span>
               </button>
             </div>
-
-            {/* Privacy Text */}
-            <div className="mt-4 text-center">
-              <p className="text-xs" style={{ color: "#8FA3B760" }}>
-                By creating an account you agree to UR-DEV's{" "}
-                <a href="#" className="underline hover:text-[#4CB3FF]">Terms</a> and{" "}
-                <a href="#" className="underline hover:text-[#4CB3FF]">Privacy Policy</a>.
-              </p>
-            </div>
           </div>
         </div>
       </div>
