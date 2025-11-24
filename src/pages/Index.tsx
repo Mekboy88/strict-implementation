@@ -153,6 +153,7 @@ function UrDevEditorPage() {
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const assistantInputRef = React.useRef<HTMLTextAreaElement>(null);
+  const editorContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (isEditingEnabled) {
@@ -161,6 +162,25 @@ function UrDevEditorPage() {
         setShowEditNotification(false);
       }, 500);
       return () => clearTimeout(timer);
+    }
+  }, [isEditingEnabled]);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        isEditingEnabled &&
+        editorContainerRef.current &&
+        !editorContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsEditingEnabled(false);
+      }
+    }
+
+    if (isEditingEnabled) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
     }
   }, [isEditingEnabled]);
 
@@ -682,7 +702,7 @@ function UrDevEditorPage() {
                 </div>
 
                 {/* Editor surface */}
-                <div className="flex-1 overflow-hidden flex flex-col">
+                <div ref={editorContainerRef} className="flex-1 overflow-hidden flex flex-col">
                   <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
                     {showEditNotification && (
                       <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 animate-fade-in">
