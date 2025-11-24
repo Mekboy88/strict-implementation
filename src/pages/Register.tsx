@@ -134,9 +134,9 @@ const RegistrationPage: React.FC = () => {
             </li>
 
             <li className="flex items-start gap-4">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-600">
-                🔗
-              </span>
+              <svg className="h-10 w-10 mt-0.5" viewBox="13 15 15 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                <path d="M23.013,27.6a2.505,2.505,0,0,0-.713-1.944c2.339-.26,4.794-1.148,4.794-5.181a4.051,4.051,0,0,0-1.079-2.818,3.772,3.772,0,0,0-.105-2.779s-.88-.282-2.884,1.077a9.939,9.939,0,0,0-5.258,0c-2.005-1.359-2.887-1.077-2.887-1.077a3.778,3.778,0,0,0-.1,2.779A4.057,4.057,0,0,0,13.7,20.47c0,4.023,2.451,4.924,4.783,5.189a2.248,2.248,0,0,0-.667,1.4,2.234,2.234,0,0,1-3.055-.873,2.209,2.209,0,0,0-1.609-1.082s-1.025-.013-.072.639a2.778,2.778,0,0,1,1.166,1.535s.616,2.043,3.537,1.408c0,.876.014,1.537.014,1.786a.606.606,0,0,1-.032.177a10.178,10.178,0,0,0,5.27,0A.606.606,0,0,1,23,30.476C23,30.132,23.013,29,23.013,27.6Z" fillRule="evenodd"></path>
+              </svg>
               <div>
                 <strong className="text-white">Bring your code.</strong>
                 <p className="text-neutral-400">Already started on GitHub? Plug it in and keep going.</p>
