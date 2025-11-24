@@ -30,6 +30,7 @@ import DatabaseManagement from "./pages/DatabaseManagement";
 import RemoteSync from "./pages/RemoteSync";
 import TeamChat from "./pages/TeamChat";
 import CloudSandbox from "./pages/CloudSandbox";
+import AccountSettings from "./pages/AccountSettings";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/remote-sync" element={<RemoteSync />} />
           <Route path="/team-chat" element={<TeamChat />} />
           <Route path="/cloud-sandbox" element={<CloudSandbox />} />
+          <Route path="/settings" element={<AccountSettings />} />
           <Route path="/auth/callback/github" element={<GitHubCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
