@@ -191,8 +191,9 @@ const ProjectSettingsPage: React.FC = () => {
                 </div>
                 <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-[12px] text-neutral-400">
-                      Display name
+                    <div className="text-[12px] text-neutral-400">Display name</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-neutral-100">{projectName}</span>
                       <button
                         type="button"
                         onClick={openRenameModal}
@@ -216,7 +217,6 @@ const ProjectSettingsPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
-                    <div className="text-sm text-neutral-100">{projectName}</div>
                   </div>
 
                   <div className="space-y-1">
