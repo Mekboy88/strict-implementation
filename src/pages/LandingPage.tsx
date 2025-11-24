@@ -407,61 +407,61 @@ const UrDevLandingPage: React.FC = () => {
               </div>
 
               {/* Visual Showcase: Website + Mobile Frame */}
-              <div className="mt-8 relative">
+              <div className="mt-8 relative pb-24 sm:pb-16">
                 {/* Desktop/Website Frame */}
-                <div className="relative rounded-2xl border border-white/10 bg-card p-4 shadow-[0_0_80px_rgba(15,23,42,0.85)]">
-                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                <div className="relative rounded-2xl border border-white/10 bg-card p-3 sm:p-4 shadow-[0_0_80px_rgba(15,23,42,0.85)]">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3 pb-2 border-b border-border">
                     <div className="flex gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-destructive/80"></div>
-                      <div className="h-2.5 w-2.5 rounded-full bg-warning/80"></div>
-                      <div className="h-2.5 w-2.5 rounded-full bg-success/80"></div>
+                      <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-destructive/80"></div>
+                      <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-warning/80"></div>
+                      <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-success/80"></div>
                     </div>
                     <div className="flex-1 flex justify-center">
-                      <div className="rounded-full bg-muted px-4 py-1 text-[10px] text-muted-foreground">
+                      <div className="rounded-full bg-muted px-3 sm:px-4 py-1 text-[9px] sm:text-[10px] text-muted-foreground">
                         your-app.urdev.app
                       </div>
                     </div>
                   </div>
                   <div className="aspect-video rounded-lg bg-gradient-to-br from-ide-editor via-background to-ide-panel border border-ide-border overflow-hidden">
-                    <div className="p-6 space-y-4">
-                      <div className="h-8 w-48 bg-primary/20 rounded animate-pulse"></div>
+                    <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                      <div className="h-6 sm:h-8 w-32 sm:w-48 bg-primary/20 rounded animate-pulse"></div>
                       <div className="space-y-2">
-                        <div className="h-4 w-full bg-muted rounded animate-pulse"></div>
-                        <div className="h-4 w-3/4 bg-muted rounded animate-pulse"></div>
+                        <div className="h-3 sm:h-4 w-full bg-muted rounded animate-pulse"></div>
+                        <div className="h-3 sm:h-4 w-3/4 bg-muted rounded animate-pulse"></div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 mt-6">
-                        <div className="h-24 bg-card rounded-lg animate-pulse"></div>
-                        <div className="h-24 bg-card rounded-lg animate-pulse"></div>
-                        <div className="h-24 bg-card rounded-lg animate-pulse"></div>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6">
+                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
+                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
+                        <div className="h-16 sm:h-24 bg-card rounded-lg animate-pulse"></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Mobile Frame - Overlaying on the right side */}
-                <div className="absolute -bottom-8 -right-4 sm:bottom-8 sm:right-8 w-48 sm:w-56 z-10">
-                  <div className="relative rounded-[2rem] border-4 border-foreground/10 bg-background shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+                <div className="absolute -bottom-4 right-2 w-32 sm:-bottom-8 sm:right-4 sm:w-48 md:bottom-8 md:right-8 md:w-56 z-10">
+                  <div className="relative rounded-[1.5rem] sm:rounded-[2rem] border-[3px] sm:border-4 border-foreground/10 bg-background shadow-[0_15px_40px_rgba(0,0,0,0.8)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
                     {/* Phone notch */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-background rounded-b-2xl z-20"></div>
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-24 h-4 sm:h-5 bg-background rounded-b-xl sm:rounded-b-2xl z-20"></div>
                     
                     {/* Screen */}
-                    <div className="aspect-[9/19.5] rounded-[1.7rem] bg-gradient-to-br from-ide-panel via-ide-editor to-background border border-ide-border overflow-hidden">
-                      <div className="p-4 space-y-3">
-                        <div className="h-6 w-32 bg-primary/20 rounded animate-pulse"></div>
-                        <div className="space-y-1.5">
-                          <div className="h-3 w-full bg-muted rounded animate-pulse"></div>
-                          <div className="h-3 w-2/3 bg-muted rounded animate-pulse"></div>
+                    <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-gradient-to-br from-ide-panel via-ide-editor to-background border border-ide-border overflow-hidden">
+                      <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
+                        <div className="h-4 sm:h-6 w-20 sm:w-32 bg-primary/20 rounded animate-pulse"></div>
+                        <div className="space-y-1 sm:space-y-1.5">
+                          <div className="h-2 sm:h-3 w-full bg-muted rounded animate-pulse"></div>
+                          <div className="h-2 sm:h-3 w-2/3 bg-muted rounded animate-pulse"></div>
                         </div>
-                        <div className="space-y-2 mt-4">
-                          <div className="h-16 bg-card rounded-lg animate-pulse"></div>
-                          <div className="h-16 bg-card rounded-lg animate-pulse"></div>
-                          <div className="h-16 bg-card rounded-lg animate-pulse"></div>
+                        <div className="space-y-1.5 sm:space-y-2 mt-3 sm:mt-4">
+                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
+                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
+                          <div className="h-12 sm:h-16 bg-card rounded-lg animate-pulse"></div>
                         </div>
                       </div>
                     </div>
                     
                     {/* Home indicator */}
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-20 h-1 bg-foreground/20 rounded-full"></div>
+                    <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-foreground/20 rounded-full"></div>
                   </div>
                 </div>
               </div>
