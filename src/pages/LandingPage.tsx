@@ -422,38 +422,35 @@ const UrDevLandingPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="aspect-video rounded-lg bg-[#020617] border border-ide-border overflow-hidden">
-                    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 flex flex-col items-center text-center">
-                      {/* Mini Header */}
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded bg-cyan-500/20 border border-cyan-400/60 text-[8px] sm:text-[9px] font-semibold text-cyan-200">
-                          UR
+                  <div className="aspect-video rounded-lg bg-background border border-ide-border overflow-hidden">
+                    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 flex flex-col md:flex-row gap-3 md:gap-4">
+                      {/* Left: Hero text */}
+                      <div className="flex-1 space-y-2 sm:space-y-3">
+                        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[8px] sm:text-[9px] text-primary-foreground/80">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                          <span>UR-DEV · Web & mobile editor</span>
                         </div>
-                        <span className="text-[9px] sm:text-[10px] font-semibold text-white">UR-DEV</span>
-                      </div>
-                      
-                      {/* Mini Headline */}
-                      <div className="space-y-1">
-                        <h2 className="text-[10px] sm:text-xs font-semibold text-white leading-tight">
-                          Build web & mobile apps with <span className="text-cyan-400">real databases</span>
+                        <h2 className="text-xs sm:text-sm font-semibold text-foreground leading-snug">
+                          Build web & mobile apps with <span className="text-primary">real databases</span> and AI agents.
                         </h2>
-                        <p className="text-[7px] sm:text-[8px] text-gray-400 leading-tight">
-                          Visual editor with AI agents
+                        <p className="text-[8px] sm:text-[9px] text-muted-foreground max-w-xs">
+                          Visual editor, Supabase, GitHub, and AI agents in one workspace.
                         </p>
-                      </div>
-                      
-                      {/* Mini Input Box */}
-                      <div className="w-full rounded-lg bg-black/60 border border-white/10 p-2 sm:p-2.5">
-                        <div className="h-8 sm:h-12 bg-transparent border border-white/5 rounded text-[7px] sm:text-[8px] text-gray-500 flex items-center px-2">
-                          Describe your app...
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <div className="h-5 sm:h-6 flex-1 rounded-md border border-border bg-background/60 text-[8px] sm:text-[9px] text-muted-foreground flex items-center px-2">
+                            Describe the app you want to build…
+                          </div>
+                          <button className="rounded-full bg-primary px-2.5 py-1 text-[8px] sm:text-[9px] font-semibold text-primary-foreground shadow-sm">
+                            Build with UR-DEV
+                          </button>
                         </div>
                       </div>
-                      
-                      {/* Mini Cards */}
-                      <div className="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-1 sm:mt-2">
-                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
-                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
-                        <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+
+                      {/* Right: Mini cards */}
+                      <div className="flex-1 grid grid-cols-2 gap-2 sm:gap-3 self-stretch">
+                        <div className="col-span-2 h-10 sm:h-12 rounded-lg border border-border bg-card" />
+                        <div className="h-10 sm:h-12 rounded-lg border border-border bg-card" />
+                        <div className="h-10 sm:h-12 rounded-lg border border-border bg-card" />
                       </div>
                     </div>
                   </div>
@@ -466,38 +463,38 @@ const UrDevLandingPage: React.FC = () => {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 sm:w-24 h-4 sm:h-5 bg-background rounded-b-xl sm:rounded-b-2xl z-20"></div>
                     
                     {/* Screen */}
-                    <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-[#020617] border border-ide-border overflow-hidden">
+                    <div className="aspect-[9/19.5] rounded-[1.2rem] sm:rounded-[1.7rem] bg-background border border-ide-border overflow-hidden">
                       <div className="p-2 sm:p-3 space-y-2 sm:space-y-2.5 flex flex-col">
                         {/* Mobile Header */}
                         <div className="flex items-center justify-center gap-1">
-                          <div className="flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded bg-cyan-500/20 border border-cyan-400/60 text-[6px] sm:text-[7px] font-semibold text-cyan-200">
+                          <div className="flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded bg-primary/15 border border-primary/50 text-[6px] sm:text-[7px] font-semibold text-primary-foreground">
                             UR
                           </div>
-                          <span className="text-[7px] sm:text-[8px] font-semibold text-white">UR-DEV</span>
+                          <span className="text-[7px] sm:text-[8px] font-semibold text-foreground">UR-DEV</span>
                         </div>
                         
                         {/* Mobile Content */}
-                        <div className="space-y-1 text-center">
-                          <h3 className="text-[8px] sm:text-[9px] font-semibold text-white leading-tight">
-                            Build apps with <span className="text-cyan-400">AI</span>
+                        <div className="space-y-0.5 text-center">
+                          <h3 className="text-[8px] sm:text-[9px] font-semibold text-foreground leading-tight">
+                            Build apps with <span className="text-primary">AI agents</span>
                           </h3>
-                          <p className="text-[6px] sm:text-[7px] text-gray-400">
+                          <p className="text-[6px] sm:text-[7px] text-muted-foreground">
                             Web & mobile editor
                           </p>
                         </div>
                         
                         {/* Mobile Input */}
-                        <div className="rounded bg-black/60 border border-white/10 p-1.5 sm:p-2">
-                          <div className="h-6 sm:h-8 bg-transparent border border-white/5 rounded text-[6px] sm:text-[7px] text-gray-500 flex items-center px-1.5">
-                            Your app idea...
+                        <div className="rounded bg-background/60 border border-border p-1.5 sm:p-2">
+                          <div className="h-6 sm:h-8 bg-transparent border border-border rounded text-[6px] sm:text-[7px] text-muted-foreground flex items-center px-1.5">
+                            Describe your app idea…
                           </div>
                         </div>
                         
                         {/* Mobile List */}
                         <div className="space-y-1 sm:space-y-1.5 flex-1">
-                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
-                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
-                          <div className="h-8 sm:h-10 bg-slate-900/80 rounded border border-white/5"></div>
+                          <div className="h-7 sm:h-8 bg-card rounded border border-border" />
+                          <div className="h-7 sm:h-8 bg-card rounded border border-border" />
+                          <div className="h-7 sm:h-8 bg-card rounded border border-border" />
                         </div>
                       </div>
                     </div>
