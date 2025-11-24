@@ -47,6 +47,8 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
         ide: {
           panel: "hsl(var(--ide-panel))",
           sidebar: "hsl(var(--ide-sidebar))",
@@ -56,11 +58,19 @@ export default {
           hover: "hsl(var(--ide-hover))",
           active: "hsl(var(--ide-active))",
         },
+        text: {
+          secondary: "hsl(var(--text-secondary))",
+          dim: "hsl(var(--text-dim))",
+        },
+        "border-medium": "hsl(var(--border-medium))",
+        "border-highlight": "hsl(var(--border-highlight))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",        /* 16px for cards */
+        "2xl": "1.5rem",   /* 24px for main popup */
       },
       keyframes: {
         "accordion-down": {
