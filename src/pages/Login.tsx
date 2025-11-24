@@ -10,40 +10,10 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log("=== LOGIN PAGE MOUNTED ===");
-    const checkSession = async () => {
-      console.log("Checking session...");
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        console.log("User check result:", { user: user?.email, error });
-        
-        if (error || !user) {
-          console.log("No valid user, clearing session");
-          await supabase.auth.signOut({ scope: 'local' });
-          setCheckingAuth(false);
-          return;
-        }
-        
-        if (user) {
-          console.log("Valid user found, redirecting to /");
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Session check error:", error);
-        await supabase.auth.signOut({ scope: 'local' });
-      } finally {
-        console.log("Setting checkingAuth to false");
-        setCheckingAuth(false);
-      }
-    };
-
-    checkSession();
-  }, [navigate]);
+  // REMOVED: Session check that was causing instant redirect
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,15 +61,6 @@ const LoginPage: React.FC = () => {
       });
     }
   };
-
-  // Show loading while checking authentication
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-neutral-900">
-        <div className="text-neutral-400">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full flex bg-neutral-900 text-neutral-100 overflow-hidden">
