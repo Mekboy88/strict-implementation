@@ -428,17 +428,17 @@ const UrDevLandingPage: React.FC = () => {
                       <div className="flex-1 space-y-2 sm:space-y-3">
                         <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[8px] sm:text-[9px] text-primary-foreground/80">
                           <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                          <span>UR-DEV · Web & mobile editor</span>
+                          <span>UR-DEV – Build web &amp; mobile apps with real databases and AI agents</span>
                         </div>
                         <h2 className="text-xs sm:text-sm font-semibold text-foreground leading-snug">
-                          Build web & mobile apps with <span className="text-primary">real databases</span> and AI agents.
+                          UR-DEV – Build web &amp; mobile apps with <span className="text-primary">real databases</span> and <span className="text-primary">AI agents</span>.
                         </h2>
                         <p className="text-[8px] sm:text-[9px] text-muted-foreground max-w-xs">
-                          Visual editor, Supabase, GitHub, and AI agents in one workspace.
+                          Visual editor for web and mobile screens, native Supabase &amp; GitHub integration, plus AI agents that understand your schema, your files, and your deployments.
                         </p>
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <div className="h-5 sm:h-6 flex-1 rounded-md border border-border bg-background/60 text-[8px] sm:text-[9px] text-muted-foreground flex items-center px-2">
-                            Describe the app you want to build…
+                            Describe the website you want to build with UR-DEV…
                           </div>
                           <button className="rounded-full bg-primary px-2.5 py-1 text-[8px] sm:text-[9px] font-semibold text-primary-foreground shadow-sm">
                             Build with UR-DEV
@@ -476,17 +476,17 @@ const UrDevLandingPage: React.FC = () => {
                         {/* Mobile Content */}
                         <div className="space-y-0.5 text-center">
                           <h3 className="text-[8px] sm:text-[9px] font-semibold text-foreground leading-tight">
-                            Build apps with <span className="text-primary">AI agents</span>
+                            Build app with <span className="text-primary">AI agents</span>
                           </h3>
                           <p className="text-[6px] sm:text-[7px] text-muted-foreground">
-                            Web & mobile editor
+                            UR-DEV – Web &amp; mobile editor
                           </p>
                         </div>
                         
                         {/* Mobile Input */}
                         <div className="rounded bg-background/60 border border-border p-1.5 sm:p-2">
                           <div className="h-6 sm:h-8 bg-transparent border border-border rounded text-[6px] sm:text-[7px] text-muted-foreground flex items-center px-1.5">
-                            Describe your app idea…
+                            Describe the app you want to build…
                           </div>
                         </div>
                         
