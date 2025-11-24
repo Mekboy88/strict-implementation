@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Folder,
   FileCode2,
@@ -131,6 +132,7 @@ function UrDevPreviewFrame() {
 }
 
 function UrDevEditorPage() {
+  const navigate = useNavigate();
   const [activeFileId, setActiveFileId] = useState("banner");
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
     buildInitialContents()
@@ -226,7 +228,10 @@ function UrDevEditorPage() {
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48 bg-slate-900 border-slate-700">
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-slate-800 focus:text-white">
+                <DropdownMenuItem 
+                  onClick={() => navigate("/")}
+                  className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-slate-800 focus:text-white"
+                >
                   <ArrowLeft className="h-4 w-4" />
                   Go Back
                 </DropdownMenuItem>
