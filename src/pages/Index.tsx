@@ -20,6 +20,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 
 const initialFiles = [
@@ -150,6 +157,7 @@ function UrDevEditorPage() {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showFileExplorer, setShowFileExplorer] = useState(false);
   const [assistantInput, setAssistantInput] = useState("");
+  const [showDatabasePopup, setShowDatabasePopup] = useState(false);
   
   const lineNumbersRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -306,7 +314,15 @@ function UrDevEditorPage() {
                 <path fill="#55ACEE" d="M30 10h-6.562C18 10 18.562 15 15 15H6a4 4 0 0 0-4 4v10a1 1 0 1 1-2 0a4 4 0 0 0 4 4h26a4 4 0 0 0 4-4V14a4 4 0 0 0-4-4z"></path>
               </svg>
             </button>
-            <svg height="16px" width="16px" version="1.1" viewBox="0 0 56 56" fill="currentColor" className="transition-transform hover:scale-110 cursor-pointer">
+            <svg 
+              height="16px" 
+              width="16px" 
+              version="1.1" 
+              viewBox="0 0 56 56" 
+              fill="currentColor" 
+              className="transition-transform hover:scale-110 cursor-pointer"
+              onClick={() => setShowDatabasePopup(true)}
+            >
               <g>
                 <g>
                   <path style={{fill: '#545E73'}} d="M49.455,8L49.455,8C48.724,3.538,38.281,0,25.5,0S2.276,3.538,1.545,8l0,0H1.5v0.5V20v0.5V21v11 v0.5V33v12h0.045c0.731,4.461,11.175,8,23.955,8s23.224-3.539,23.955-8H49.5V33v-0.5V32V21v-0.5V20V8.5V8H49.455z"></path>
@@ -887,6 +903,38 @@ function UrDevEditorPage() {
           </ResizablePanelGroup>
         </main>
       </div>
+
+      {/* Database Popup Dialog */}
+      <Dialog open={showDatabasePopup} onOpenChange={setShowDatabasePopup}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-slate-100 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Database Management</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Manage your database tables, queries, and configurations
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-sky-400 mb-2">Tables</h3>
+                <p className="text-sm text-slate-400">View and manage database tables</p>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-sky-400 mb-2">Queries</h3>
+                <p className="text-sm text-slate-400">Execute SQL queries</p>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-sky-400 mb-2">Migrations</h3>
+                <p className="text-sm text-slate-400">Database schema migrations</p>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors cursor-pointer">
+                <h3 className="font-semibold text-sky-400 mb-2">Backup</h3>
+                <p className="text-sm text-slate-400">Backup and restore data</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
