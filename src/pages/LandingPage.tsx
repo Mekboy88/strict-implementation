@@ -406,25 +406,6 @@ const UrDevLandingPage: React.FC = () => {
                 </div>
               </div>
             </section>
-
-            <ul className="grid gap-2 text-sm sm:grid-cols-2 mt-4" id="features-bullets">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-cyan-300">◆</span>
-                <span>Visual editor for web and mobile layouts.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-cyan-300">◆</span>
-                <span>Native Supabase & GitHub integration.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-cyan-300">◆</span>
-                <span>Built-in AI agents for UI, schema, and code.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 text-cyan-300">◆</span>
-                <span>Real database, full control over your data.</span>
-              </li>
-            </ul>
           </div>
         </section>
 
