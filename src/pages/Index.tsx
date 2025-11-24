@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 
 const initialFiles = [
   {
@@ -340,6 +341,7 @@ function UrDevEditorPage() {
                 </g>
               </g>
             </svg>
+            <img src={SupabaseIcon} alt="" className="h-4 w-4" />
           </div>
           <div className="flex flex-col items-center gap-1">
             <button
