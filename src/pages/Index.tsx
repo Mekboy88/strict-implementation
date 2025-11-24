@@ -257,9 +257,9 @@ function UrDevEditorPage() {
 `));
 
   return (
-    <div className="min-h-screen bg-neutral-800 text-foreground flex flex-col">
+    <div className="min-h-screen bg-neutral-900 text-foreground flex flex-col">
       {/* TOP BAR */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-neutral-800 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
+      <header className="flex items-center justify-between border-b border-white/10 bg-neutral-900 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-400/70 text-xs font-semibold text-cyan-200">
             UR
@@ -273,7 +273,7 @@ function UrDevEditorPage() {
                 </div>
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-neutral-800 border-neutral-700">
+              <DropdownMenuContent align="start" className="w-48 bg-neutral-900 border-neutral-700">
                 <DropdownMenuItem 
                   onClick={() => navigate("/")}
                   className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-neutral-800 focus:text-white"
@@ -320,7 +320,7 @@ function UrDevEditorPage() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* FAR LEFT ACTIVITY RAIL */}
-        <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-neutral-800 py-3">
+        <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-neutral-900 py-3">
           <div className="flex flex-col items-center gap-3">
             <button 
               onClick={() => setShowFileExplorer(!showFileExplorer)}
@@ -451,7 +451,7 @@ function UrDevEditorPage() {
 
         {/* LEFT SIDEBAR (EXPLORER) */}
         {showFileExplorer && (
-          <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-neutral-800">
+          <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-neutral-900">
           <div className="px-3 py-3 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
@@ -520,7 +520,7 @@ function UrDevEditorPage() {
               </svg>
             </div>
             {showSearchBar && (
-              <div className="mt-3 flex items-center gap-2 rounded-md bg-neutral-800 px-2 py-1 text-[11px] text-slate-300 border border-neutral-700">
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-neutral-900 px-2 py-1 text-[11px] text-slate-300 border border-neutral-700">
                 <Search className="h-3 w-3 text-slate-500" />
                 <input
                   className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
@@ -760,7 +760,7 @@ function UrDevEditorPage() {
                       </div>
                     )}
                     <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
-                      <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-neutral-800 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
+                      <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-neutral-900 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
                         {currentLines.map((line, index) => (
                           <div
                             key={index}
@@ -781,7 +781,7 @@ function UrDevEditorPage() {
                         onScroll={handleScroll}
                         spellCheck={false}
                         readOnly={!isEditingEnabled}
-                        className={`flex-1 resize-none bg-neutral-800 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
+                        className={`flex-1 resize-none bg-neutral-900 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
                           !isEditingEnabled ? "cursor-default" : ""
                         }`}
                       />
@@ -796,7 +796,7 @@ function UrDevEditorPage() {
             <ResizableHandle withHandle className="hidden xl:flex" />
 
             <ResizablePanel defaultSize={30} minSize={20} maxSize={40} className="hidden xl:block">
-              <aside className="flex h-full flex-col border-l border-white/10 bg-neutral-800">
+              <aside className="flex h-full flex-col border-l border-white/10 bg-neutral-900">
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
@@ -808,7 +808,7 @@ function UrDevEditorPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
-              <div className="rounded-2xl border border-white/10 bg-neutral-800 p-3">
+              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3">
                 <button
                   type="button"
                   onClick={() => setShowReasoning((v) => !v)}
@@ -847,7 +847,7 @@ function UrDevEditorPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-neutral-800 p-3">
+              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3">
                 <div className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
                   Recent analysis
                 </div>
@@ -860,7 +860,7 @@ function UrDevEditorPage() {
             </div>
 
             <div className="border-t border-white/10 px-4 py-3">
-              <div className="rounded-2xl border border-white/10 bg-neutral-800 p-3 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 space-y-3">
                 {showQuickActions && (
                   <div className="rounded-2xl bg-neutral-800 px-3 py-3">
                     <div className="grid grid-cols-3 gap-3 text-[11px] text-slate-100">
@@ -940,7 +940,7 @@ function UrDevEditorPage() {
       {/* Database Setup Popup */}
       {showDatabasePopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-800 shadow-xl">
+          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-900 shadow-xl">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div className="flex items-center gap-3">
