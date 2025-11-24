@@ -126,9 +126,9 @@ const RegistrationPage: React.FC = () => {
             </li>
 
             <li className="flex items-start gap-4">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-600">
-                ⚙️
-              </span>
+              <svg className="h-10 w-10 mt-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+              </svg>
               <div>
                 <strong className="text-white">Remix & tweak.</strong>
                 <p className="text-neutral-400">Don’t like something? Ask AI to rewrite, restyle, or rebuild.</p>
