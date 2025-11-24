@@ -520,7 +520,7 @@ const DatabaseManagement = () => {
           <SidebarContent className="p-4">
             {/* Go Back Button */}
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/editor")}
               className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center mb-8 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-primary" />
