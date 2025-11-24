@@ -903,7 +903,7 @@ function UrDevEditorPage() {
                       autoResizeAssistantInput(e.target);
                     }}
                     spellCheck={true}
-                    className="w-full bg-transparent text-base text-slate-300 placeholder:text-slate-400 outline-none resize-none px-0 py-1 selection:bg-blue-500/60 selection:text-white overflow-y-auto scrollbar-white"
+                    className="w-full bg-transparent text-base text-white/80 placeholder:text-white/50 outline-none resize-none px-0 py-1 selection:bg-blue-500/60 selection:text-white overflow-y-auto scrollbar-white"
                     placeholder="Hey UR-Dev, let's go!"
                     style={{ height: 'auto', minHeight: '24px' }}
                   />
