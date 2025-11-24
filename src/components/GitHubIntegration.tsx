@@ -138,6 +138,7 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
           : undefined
       }
       connectedRepo={undefined}
+      onConnect={handleConnect}
     />
   );
 };
