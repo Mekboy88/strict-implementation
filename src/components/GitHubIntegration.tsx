@@ -12,6 +12,7 @@ interface GitHubIntegrationProps {
 export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) => {
   const [connected, setConnected] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,13 +29,30 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
 
       const { data } = await supabase
         .from("github_connections")
-        .select("github_username")
+        .select("github_username, github_token")
         .eq("user_id", user.id)
         .single();
 
       if (data) {
         setConnected(true);
         setUsername(data.github_username);
+        
+        // Fetch GitHub user details for avatar
+        try {
+          const response = await fetch(`https://api.github.com/user`, {
+            headers: {
+              Authorization: `Bearer ${data.github_token}`,
+              Accept: 'application/vnd.github.v3+json',
+            },
+          });
+          
+          if (response.ok) {
+            const githubUser = await response.json();
+            setAvatarUrl(githubUser.avatar_url);
+          }
+        } catch (err) {
+          console.error("Error fetching GitHub user details:", err);
+        }
       }
     } catch (error) {
       console.error("Error checking GitHub connection:", error);
@@ -116,7 +134,7 @@ export const GitHubIntegration = ({ isOpen, onClose }: GitHubIntegrationProps) =
       onClose={onClose}
       connectedAccount={
         connected && username
-          ? { username, avatarUrl: undefined }
+          ? { username, avatarUrl }
           : undefined
       }
       connectedRepo={undefined}
