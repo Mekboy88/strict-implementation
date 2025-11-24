@@ -425,24 +425,6 @@ const UrDevLandingPage: React.FC = () => {
                 <span>Real database, full control over your data.</span>
               </li>
             </ul>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-              <a
-                href="/register"
-                className="rounded-full bg-cyan-500 px-5 py-2 text-sm font-semibold text-black shadow-[0_0_26px_rgba(34,211,238,0.7)] hover:bg-cyan-400"
-              >
-                Start Building
-              </a>
-              <a
-                href="/login"
-                className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-gray-100 hover:border-cyan-400/80 hover:text-cyan-100"
-              >
-                Log In
-              </a>
-              <div className="text-[11px] text-gray-500">
-                No credit card required · Cheaper than typical low-code AI builders
-              </div>
-            </div>
           </div>
         </section>
 
