@@ -5,7 +5,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex bg-neutral-900 text-neutral-100 overflow-hidden">
       {/* Left side – Login form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 md:px-20 py-16 bg-neutral-950 border-r border-neutral-800">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-10 md:px-32 py-20 bg-neutral-950 border-r border-neutral-800">
         <h1 className="text-3xl font-semibold mb-6">Welcome to UR-DEV</h1>
         <p className="text-neutral-400 text-sm mb-10 max-w-sm">
           Sign in to access your workspace, cloud projects and development tools.
@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
           <input
             type="email"
             placeholder="you@example.com"
-            className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-100 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+            className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-100 focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 outline-none"
           />
         </div>
 
@@ -47,34 +47,34 @@ const LoginPage: React.FC = () => {
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-100 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none pr-10"
+              className="w-full px-3 py-2 rounded-md bg-neutral-900 border border-neutral-700 text-sm text-neutral-100 focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 outline-none pr-10"
             />
             <Lock className="h-4 w-4 text-neutral-500 absolute right-3 top-1/2 -translate-y-1/2" />
           </div>
         </div>
 
-        <button className="w-full max-w-sm mt-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition">
+        <button className="w-full max-w-sm mt-6 py-3 rounded-lg bg-neutral-700 hover:bg-neutral-600 text-white text-sm font-medium transition">
           Sign In
         </button>
 
         {/* Footer links */}
-        <a href="#" className="text-sky-400 text-xs mt-6 max-w-sm block hover:underline">
+        <a href="#" className="text-neutral-300 hover:text-white text-xs mt-6 max-w-sm block hover:underline">
           Create your UR-DEV account
         </a>
-        <a href="#" className="text-sky-400 text-xs mt-3 max-w-sm block hover:underline">
+        <a href="#" className="text-neutral-300 hover:text-white text-xs mt-3 max-w-sm block hover:underline">
           Resend confirmation email
         </a>
-        <a href="#" className="text-sky-400 text-xs mt-3 max-w-sm block hover:underline">
+        <a href="#" className="text-neutral-300 hover:text-white text-xs mt-3 max-w-sm block hover:underline">
           Reset your password
         </a>
 
         <p className="text-neutral-500 text-xs mt-5 max-w-sm">
           By signing in, you agree to the{" "}
-          <a href="#" className="text-sky-400 hover:underline">
+          <a href="#" className="text-neutral-300 hover:text-white hover:underline">
             UR-DEV Terms
           </a>{" "}
           and{" "}
-          <a href="#" className="text-sky-400 hover:underline">
+          <a href="#" className="text-neutral-300 hover:text-white hover:underline">
             Privacy Policy
           </a>
           .
@@ -110,7 +110,7 @@ app.scale();
                 display: inline-block;
                 width: 100%;
                 overflow: hidden;
-                border-right: 2px solid #7dd3fc;
+                border-right: 2px solid #9ca3af;
                 white-space: pre;
                 animation: typing 4s steps(40, end) infinite, caret .7s step-end infinite;
               }
