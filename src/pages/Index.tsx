@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AccountSettings from "@/pages/AccountSettings";
 import {
   Folder,
   FileCode2,
@@ -22,13 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 import { GitHubIntegration } from "@/components/GitHubIntegration";
 
@@ -144,6 +139,7 @@ function UrDevPreviewFrame() {
 
 function UrDevEditorPage() {
   const navigate = useNavigate();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeFileId, setActiveFileId] = useState("banner");
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
     buildInitialContents()
@@ -439,7 +435,7 @@ function UrDevEditorPage() {
             </button>
           </div>
           <button 
-            onClick={() => navigate("/settings")}
+            onClick={() => setIsSettingsOpen(true)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-slate-300 hover:bg-white/10"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1056,6 +1052,13 @@ function UrDevEditorPage() {
         onClose={() => setShowGitHubModal(false)}
         buttonRef={githubButtonRef}
       />
+
+      {/* Settings Dialog */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="max-w-[95vw] w-[1600px] h-[90vh] p-0 border-0 bg-transparent shadow-none">
+          <AccountSettings />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
