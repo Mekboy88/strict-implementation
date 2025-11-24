@@ -217,24 +217,22 @@ function UrDevEditorPage() {
             UR
           </div>
           <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity outline-none">
-                <div>
-                  <div className="text-sm font-semibold tracking-tight">UR-DEV IDE</div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
-                    YOU ARE THE DEVELOPER
-                  </div>
-                </div>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-slate-900 border-slate-700">
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-slate-800 focus:text-white">
-                  <ArrowLeft className="h-4 w-4" />
-                  Go Back
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="text-sm font-semibold tracking-tight">UR-DEV IDE</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
+              YOU ARE THE DEVELOPER
+            </div>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="hover:bg-slate-800 rounded p-1 transition-colors outline-none">
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 bg-slate-900 border-slate-700">
+              <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-slate-800 focus:text-white">
+                <ArrowLeft className="h-4 w-4" />
+                Go Back
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-1 py-1 text-[11px]">
           <button
