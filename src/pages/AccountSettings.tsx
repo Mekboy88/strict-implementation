@@ -95,6 +95,11 @@ const ProjectSettingsPage: React.FC = () => {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [draftName, setDraftName] = useState(projectName);
 
+  // Subdomain edit modal state
+  const [subdomain, setSubdomain] = useState("strict-as-is-protocol");
+  const [isSubdomainEditOpen, setIsSubdomainEditOpen] = useState(false);
+  const [draftSubdomain, setDraftSubdomain] = useState(subdomain);
+
   const toggleTarget = (key: keyof typeof targets) => {
     setTargets((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -113,6 +118,22 @@ const ProjectSettingsPage: React.FC = () => {
     if (!trimmed) return;
     setProjectName(trimmed);
     setIsRenameOpen(false);
+  };
+
+  const openSubdomainEditModal = () => {
+    setDraftSubdomain(subdomain);
+    setIsSubdomainEditOpen(true);
+  };
+
+  const closeSubdomainEditModal = () => {
+    setIsSubdomainEditOpen(false);
+  };
+
+  const handleSaveSubdomain = () => {
+    const trimmed = draftSubdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    if (!trimmed) return;
+    setSubdomain(trimmed);
+    setIsSubdomainEditOpen(false);
   };
 
   return (
@@ -222,9 +243,10 @@ const ProjectSettingsPage: React.FC = () => {
                   <div className="space-y-1">
                     <div className="text-[12px] text-neutral-400">URL subdomain</div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-neutral-100">strict-as-is-protocol</span>
+                      <span className="text-sm text-neutral-100">{subdomain}</span>
                       <button
                         type="button"
+                        onClick={openSubdomainEditModal}
                         className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-neutral-300"
                         aria-label="Edit subdomain"
                       >
@@ -625,6 +647,79 @@ const ProjectSettingsPage: React.FC = () => {
                 }`}
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit subdomain modal */}
+      {isSubdomainEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-950 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+              <div>
+                <h2 className="text-sm font-semibold text-neutral-50">Modify URL subdomain</h2>
+                <p className="text-[12px] text-neutral-400">Update the URL subdomain for your deployed project.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeSubdomainEditModal}
+                className="rounded-full p-1 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                aria-label="Close subdomain edit dialog"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-5 pt-4 pb-3 space-y-3">
+              <div className="space-y-1">
+                <label htmlFor="subdomain-input" className="text-[12px] text-neutral-400">
+                  URL subdomain
+                </label>
+                <input
+                  id="subdomain-input"
+                  type="text"
+                  value={draftSubdomain}
+                  onChange={(e) => setDraftSubdomain(e.target.value)}
+                  className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  maxLength={63}
+                  autoFocus
+                />
+                <p className="text-[11px] text-neutral-500">
+                  Use lowercase letters, numbers, and hyphens only. This will be used in your project URL.
+                </p>
+              </div>
+              
+              <div className="rounded-lg bg-neutral-900/50 border border-neutral-800 px-3 py-2">
+                <p className="text-[11px] text-neutral-500 mb-1">Your project will be accessible at:</p>
+                <p className="text-[12px] text-sky-400 font-mono break-all">
+                  https://{draftSubdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'your-subdomain'}.youaredev.app
+                </p>
+              </div>
+
+              <div className="text-[11px] text-neutral-500">
+                Display name: <span className="text-neutral-300">{projectName}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-neutral-800 px-5 py-3">
+              <button
+                type="button"
+                onClick={closeSubdomainEditModal}
+                className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-200 hover:bg-neutral-900"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSubdomain}
+                disabled={!draftSubdomain.trim()}
+                className={`rounded-md px-3 py-1.5 text-[12px] font-medium ${
+                  draftSubdomain.trim()
+                    ? "bg-sky-500 text-white hover:bg-sky-400"
+                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                }`}
+              >
+                Update URL subdomain
               </button>
             </div>
           </div>
