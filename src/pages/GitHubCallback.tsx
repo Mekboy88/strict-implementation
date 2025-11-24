@@ -20,9 +20,19 @@ export const GitHubCallback = () => {
 
         setStatus("Exchanging authorization code...");
 
-        // Call edge function to exchange code for token
+        // Get the current session to ensure we have auth token
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error("No active session. Please log in first.");
+        }
+
+        // Call edge function to exchange code for token with explicit auth
         const { data, error } = await supabase.functions.invoke("github-oauth-callback", {
           body: { code },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
         });
 
         if (error) throw error;
