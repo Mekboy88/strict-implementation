@@ -351,14 +351,19 @@ const UrDevLandingPage: React.FC = () => {
                       Continue with GitHub
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem asChild>
-                      <Link 
-                        to="/login"
-                        className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
-                      >
+                    <DropdownMenuItem 
+                      onSelect={(e) => {
+                        console.log("=== EMAIL LOGIN CLICKED ===");
+                        e.preventDefault();
+                        console.log("Navigating to /login");
+                        navigate("/login");
+                        console.log("Navigate called");
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer">
                         <Mail className="h-5 w-5" />
                         Sign in with Email
-                      </Link>
+                      </div>
                     </DropdownMenuItem>
                   </div>
 
