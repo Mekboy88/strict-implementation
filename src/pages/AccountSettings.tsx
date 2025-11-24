@@ -118,9 +118,7 @@ const ProjectSettingsPage: React.FC = () => {
 
   return (
     <>
-      {/* Grey wallpaper + centered horizontal pop-up */}
-      <div className="min-h-screen bg-neutral-900 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-[1600px] h-[880px] max-h-[98vh] rounded-2xl border border-neutral-700 bg-neutral-950 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
+    <div className="w-full h-full rounded-2xl border border-neutral-700 bg-neutral-950 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
           {/* Left sidebar */}
           <aside className="w-72 border-r border-neutral-800 bg-neutral-950/95">
             <nav className="py-3 text-[14px] overflow-y-auto h-full">
@@ -540,7 +538,6 @@ const ProjectSettingsPage: React.FC = () => {
             </div>
           </main>
         </div>
-      </div>
 
       {/* Rename project modal */}
       {isRenameOpen && (
