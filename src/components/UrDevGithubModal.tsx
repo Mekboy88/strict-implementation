@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Github, X, CheckCircle2, User, ArrowLeft, ExternalLink, FileCode2 } from "lucide-react";
+import {
+  Github,
+  X,
+  CheckCircle2,
+  User,
+  ArrowLeft,
+  ExternalLink,
+  FileCode2,
+} from "lucide-react";
 
 type GithubState = "idle" | "connecting" | "connected";
 
@@ -10,7 +18,7 @@ interface GithubAccount {
 
 interface GithubRepo {
   name: string;
-  fullName: string; // e.g. "owner/repo"
+  fullName: string;
   url: string;
 }
 
@@ -22,7 +30,13 @@ interface UrDevGithubModalProps {
   onConnect?: () => void;
 }
 
-function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, onConnect }: UrDevGithubModalProps) {
+function UrDevGithubModal({
+  isOpen,
+  onClose,
+  connectedAccount,
+  connectedRepo,
+  onConnect,
+}: UrDevGithubModalProps) {
   const [state, setState] = useState<GithubState>(
     connectedAccount ? "connected" : "idle"
   );
@@ -32,6 +46,15 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
   );
 
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
+  const [localRepo, setLocalRepo] = useState<GithubRepo | undefined>(
+    connectedRepo
+  );
+  const [repoFullNameInput, setRepoFullNameInput] = useState<string>(
+    connectedRepo?.fullName ?? ""
+  );
+  const [repoUrlInput, setRepoUrlInput] = useState<string>(
+    connectedRepo?.url ?? ""
+  );
 
   function handleConnect() {
     if (state === "connected") return;
@@ -42,22 +65,32 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
       return;
     }
 
-    // Fallback demo behavior (used only when no handler is passed)
+    // Fallback demo behavior
     setState("connecting");
 
     setTimeout(() => {
       const newAccount: GithubAccount = {
-        username: "new-dev",
-        avatarUrl: "https://avatars.githubusercontent.com/u/9919?v=4",
+        username: activeAccount?.username || "ur-dev-user",
+        avatarUrl:
+          activeAccount?.avatarUrl ||
+          "https://avatars.githubusercontent.com/u/9919?v=4",
       };
-      setActiveAccount(newAccount);
-      setState("connected");
-      setShowAccountSwitcher(false);
-    }, 1200);
-  }
 
-  function handleClose() {
-    onClose();
+      const newRepo: GithubRepo = {
+        name: "ur-dev-project",
+        fullName: "AlbQuantum/ur-dev-project",
+        url: "https://github.com/AlbQuantum/ur-dev-project",
+      };
+
+      setActiveAccount(newAccount);
+      setLocalRepo((prev) => prev || newRepo);
+      setState("connected");
+
+      // Only open the switcher the very first time
+      if (!connectedAccount) {
+        setShowAccountSwitcher(true);
+      }
+    }, 1200);
   }
 
   function handleOpenAccountSwitcher() {
@@ -71,9 +104,14 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
   function handleConnectAnotherAccount() {
     setShowAccountSwitcher(false);
     setState("idle");
+    setActiveAccount(undefined);
+    setLocalRepo(undefined);
+    setRepoFullNameInput("");
+    setRepoUrlInput("");
   }
 
   function handleManageOnGithub() {
+    if (typeof window === "undefined") return;
     window.open(
       "https://github.com/settings/installations",
       "_blank",
@@ -81,25 +119,29 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
     );
   }
 
-  const isConnected = state === "connected" || !!connectedAccount;
+  const showAccount =
+    state === "connected" && activeAccount ? activeAccount : null;
 
-  const showAccount = connectedAccount
-    ? connectedAccount
-    : state === "connected" && activeAccount
-      ? activeAccount
-      : null;
-
-  const repo = isConnected && connectedRepo ? connectedRepo : null;
+  const repo = state === "connected" ? connectedRepo ?? localRepo : null;
 
   function handleOpenProjectOnGithub() {
-    if (!repo) return;
+    if (!repo || typeof window === "undefined") return;
     window.open(repo.url, "_blank", "noopener,noreferrer");
   }
 
   function handleOpenInVsCode() {
-    if (!repo) return;
+    if (!repo || typeof window === "undefined") return;
     const vsCodeUrl = `https://github.dev/${repo.fullName}`;
     window.open(vsCodeUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function handleSaveRepoLink() {
+    if (!repoFullNameInput.trim()) return;
+    const fullName = repoFullNameInput.trim();
+    const url = repoUrlInput.trim() || `https://github.com/${fullName}`;
+    const name = fullName.split("/").slice(-1)[0];
+    setLocalRepo({ name, fullName, url });
+    setShowAccountSwitcher(false);
   }
 
   if (!isOpen) return null;
@@ -107,6 +149,7 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#020617] shadow-[0_0_55px_rgba(15,23,42,0.95)]">
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 border border-white/20">
@@ -123,15 +166,17 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
           </div>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={onClose}
             className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-slate-300 hover:bg-white/10"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
+        {/* Body */}
         <div className="relative px-6 py-5">
-          {state === "idle" && !connectedAccount && (
+          {/* IDLE */}
+          {state === "idle" && (
             <>
               <p className="text-sm text-slate-200">
                 Connect GitHub to sync branches, open pull requests, and keep
@@ -161,6 +206,7 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
             </>
           )}
 
+          {/* CONNECTING */}
           {state === "connecting" && (
             <>
               <div className="rounded-xl border border-slate-500/40 bg-slate-900/50 px-4 py-3">
@@ -201,6 +247,7 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
             </>
           )}
 
+          {/* CONNECTED */}
           {state === "connected" && (
             <>
               <div className="flex items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-900/20 px-4 py-3">
@@ -305,6 +352,7 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
             </>
           )}
 
+          {/* ACCOUNT SWITCHER OVERLAY */}
           {state === "connected" && showAccountSwitcher && (
             <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#020617]/95">
               <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/95 px-4 py-4 shadow-xl">
@@ -353,6 +401,37 @@ function UrDevGithubModal({ isOpen, onClose, connectedAccount, connectedRepo, on
                     </button>
                   </div>
                 )}
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-3">
+                  <div className="text-[11px] font-medium text-slate-100">
+                    Link a project repository
+                  </div>
+                  <label className="mt-2 block text-[10px] text-slate-400">
+                    Repository (owner/name)
+                  </label>
+                  <input
+                    value={repoFullNameInput}
+                    onChange={(e) => setRepoFullNameInput(e.target.value)}
+                    placeholder="AlbQuantum/ur-dev-web"
+                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                  />
+                  <label className="mt-2 block text-[10px] text-slate-400">
+                    GitHub URL (optional)
+                  </label>
+                  <input
+                    value={repoUrlInput}
+                    onChange={(e) => setRepoUrlInput(e.target.value)}
+                    placeholder="https://github.com/AlbQuantum/ur-dev-web"
+                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveRepoLink}
+                    className="mt-3 w-full rounded-lg bg-sky-500 px-3 py-2 text-[11px] font-semibold text-slate-950 hover:bg-sky-400"
+                  >
+                    Save project link
+                  </button>
+                </div>
 
                 <div className="mt-4 border-t border-white/10 pt-3">
                   <button
