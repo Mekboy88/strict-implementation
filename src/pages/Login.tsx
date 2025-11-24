@@ -1,5 +1,6 @@
 import React from "react";
 import { Github, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   return (
@@ -60,9 +61,9 @@ const LoginPage: React.FC = () => {
         </button>
 
         {/* Footer links */}
-        <a href="#" className="text-neutral-300 hover:text-white text-xs mt-6 max-w-sm block hover:underline">
+        <Link to="/register" className="text-neutral-300 hover:text-white text-xs mt-6 max-w-sm block hover:underline">
           Create your UR-DEV account
-        </a>
+        </Link>
         <a href="#" className="text-neutral-300 hover:text-white text-xs mt-3 max-w-sm block hover:underline">
           Resend confirmation email
         </a>
