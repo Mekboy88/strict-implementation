@@ -860,7 +860,7 @@ function UrDevEditorPage() {
             </div>
 
             <div className="border-t border-white/10 px-4 py-3">
-              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 space-y-3">
+              <div className="rounded-2xl border border-white/10 space-y-3">
                 {showQuickActions && (
                   <div className="rounded-2xl bg-neutral-800 px-3 py-3">
                     <div className="grid grid-cols-3 gap-3 text-[11px] text-slate-100">
@@ -891,7 +891,7 @@ function UrDevEditorPage() {
                     </div>
                   </div>
                 )}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 rounded-2xl bg-neutral-800 px-3 py-3">
                   <textarea
                     ref={assistantInputRef}
                     value={assistantInput}
