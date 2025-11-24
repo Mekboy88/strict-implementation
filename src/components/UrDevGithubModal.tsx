@@ -7,8 +7,10 @@ import {
   ArrowLeft,
   ExternalLink,
   FileCode2,
+  Loader2,
 } from "lucide-react";
 
+// Types
 type GithubState = "idle" | "connecting" | "connected";
 
 interface GithubAccount {
@@ -33,15 +35,21 @@ function UrDevGithubModal({
   connectedRepo,
   onClose,
 }: UrDevGithubModalProps) {
-  const [state, setState] = useState<GithubState>(
-    connectedAccount ? "connected" : "idle"
-  );
+  const hasAccount = !!connectedAccount;
+  const hasRepo = !!connectedRepo;
 
+  const initialState: GithubState = hasAccount
+    ? hasRepo
+      ? "connected"
+      : "idle"
+    : "idle";
+
+  const [state, setState] = useState<GithubState>(initialState);
   const [activeAccount, setActiveAccount] = useState<GithubAccount | undefined>(
     connectedAccount
   );
-
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
+
   const [localRepo, setLocalRepo] = useState<GithubRepo | undefined>(
     connectedRepo
   );
@@ -53,21 +61,35 @@ function UrDevGithubModal({
   );
 
   useEffect(() => {
-    // keep local state in sync if props change from outside
-    if (connectedAccount && !activeAccount) {
+    const hasAccountNow = !!connectedAccount;
+    const hasRepoNow = !!connectedRepo;
+
+    if (hasAccountNow) {
       setActiveAccount(connectedAccount);
-      setState("connected");
+    } else {
+      setActiveAccount(undefined);
     }
-    if (connectedRepo && !localRepo) {
+
+    if (hasRepoNow && connectedRepo) {
       setLocalRepo(connectedRepo);
       setRepoFullNameInput(connectedRepo.fullName);
       setRepoUrlInput(connectedRepo.url);
+    } else if (!hasRepoNow) {
+      setLocalRepo(undefined);
+      setRepoFullNameInput("");
+      setRepoUrlInput("");
     }
+
+    const nextState: GithubState = hasAccountNow
+      ? hasRepoNow
+        ? "connected"
+        : "idle"
+      : "idle";
+
+    setState(nextState);
   }, [connectedAccount, connectedRepo]);
 
-  function handleConnect() {
-    if (state === "connected") return;
-
+  function runConnectionFlow() {
     setState("connecting");
 
     setTimeout(() => {
@@ -92,8 +114,15 @@ function UrDevGithubModal({
     }, 1200);
   }
 
+  function handleConnect() {
+    if (state === "connecting") return;
+    runConnectionFlow();
+  }
+
   function handleClose() {
-    onClose?.();
+    if (onClose) {
+      onClose();
+    }
   }
 
   function handleOpenAccountSwitcher() {
@@ -102,6 +131,7 @@ function UrDevGithubModal({
 
   function handleUseCurrentAccount() {
     setShowAccountSwitcher(false);
+    runConnectionFlow();
   }
 
   function handleConnectAnotherAccount() {
@@ -123,8 +153,7 @@ function UrDevGithubModal({
   }
 
   const showAccount =
-    state === "connected" && activeAccount ? activeAccount : null;
-
+    (state === "connected" && activeAccount) || activeAccount || null;
   const repo = state === "connected" ? connectedRepo ?? localRepo : null;
 
   function handleOpenProjectOnGithub() {
@@ -147,6 +176,13 @@ function UrDevGithubModal({
 
     setLocalRepo({ name, fullName, url });
   }
+
+  const connectButtonLabel =
+    state === "connecting"
+      ? "Connecting to GitHub…"
+      : activeAccount
+      ? "Use this account for this project"
+      : "Connect with GitHub";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -177,9 +213,53 @@ function UrDevGithubModal({
 
         {/* Body */}
         <div className="relative px-6 py-5">
-          {/* IDLE */}
-          {state === "idle" && (
+          {(state === "idle" || state === "connecting") && (
             <>
+              {activeAccount && (
+                <div className="mb-4 rounded-xl border border-emerald-500/40 bg-emerald-900/15 px-3 py-3">
+                  <div className="flex items-center gap-3">
+                    {activeAccount.avatarUrl ? (
+                      <img
+                        src={activeAccount.avatarUrl}
+                        alt={activeAccount.username}
+                        className="h-7 w-7 rounded-full border border-slate-700"
+                      />
+                    ) : (
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-[10px] uppercase text-white">
+                        {activeAccount.username.slice(0, 2)}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-slate-50">
+                        @{activeAccount.username}
+                      </span>
+                      <span className="text-[10px] text-emerald-300">
+                        GitHub account already connected – use it instantly for
+                        this UR-DEV project.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* MAIN BUTTON VISIBLE IN FIRST WINDOW */}
+                  <button
+                    type="button"
+                    onClick={handleConnect}
+                    disabled={state === "connecting"}
+                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[11px] font-semibold shadow-[0_0_20px_rgba(16,185,129,0.55)] ${
+                      state === "connecting"
+                        ? "bg-emerald-300 text-emerald-900 opacity-95"
+                        : "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                    }`}
+                  >
+                    <Github className="h-3.5 w-3.5" />
+                    <span>{connectButtonLabel}</span>
+                    {state === "connecting" && (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-900" />
+                    )}
+                  </button>
+                </div>
+              )}
+
               <p className="text-sm text-slate-200">
                 Connect GitHub to sync branches, open pull requests, and keep
                 your generated code in a real repository you fully control.
@@ -191,65 +271,34 @@ function UrDevGithubModal({
                 <li>• Auto-open PRs for larger edits with clear diffs.</li>
               </ul>
 
-              <button
-                type="button"
-                onClick={handleConnect}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-[0_0_26px_rgba(255,255,255,0.35)] hover:bg-slate-100"
-              >
-                <Github className="h-4 w-4" />
-                <span>Connect with GitHub</span>
-              </button>
+              {/* Fallback button when there is NO existing account */}
+              {!activeAccount && (
+                <button
+                  type="button"
+                  onClick={handleConnect}
+                  disabled={state === "connecting"}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold shadow-[0_0_26px_rgba(255,255,255,0.35)] ${
+                    state === "connecting"
+                      ? "bg-slate-200 text-slate-800 opacity-90"
+                      : "bg-white text-slate-900 hover:bg-slate-100"
+                  }`}
+                >
+                  <Github className="h-4 w-4" />
+                  <span>{connectButtonLabel}</span>
+                  {state === "connecting" && (
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-700" />
+                  )}
+                </button>
+              )}
 
               <p className="mt-3 text-[11px] text-slate-500">
-                You&apos;ll be redirected to GitHub to authorize access. UR-DEV
-                only uses the scopes you approve and never pushes code without
-                confirmation.
+                When an account is already connected, UR-DEV shows a short
+                circle animation in this button. Once done, the modal switches
+                to a green "GitHub connected" state with a check mark.
               </p>
             </>
           )}
 
-          {/* CONNECTING */}
-          {state === "connecting" && (
-            <>
-              <div className="rounded-xl border border-slate-500/40 bg-slate-900/50 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm text-slate-100">
-                  <span className="relative inline-flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-200/80 opacity-75" />
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-slate-100" />
-                  </span>
-                  <span>Connecting to GitHub…</span>
-                </div>
-                <p className="mt-2 text-[11px] text-slate-300/90">
-                  Opening a secure OAuth session and preparing repository
-                  access. You may need to confirm in your browser.
-                </p>
-
-                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-950">
-                  <div className="h-full w-1/3 animate-pulse bg-gradient-to-r from-slate-200 via-slate-400 to-zinc-200" />
-                </div>
-
-                <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-300">
-                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-slate-200 animate-bounce" />
-                  <span>Step 1 · Verifying your GitHub identity…</span>
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
-                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-slate-400/70" />
-                  <span>Step 2 · Requesting repo &amp; PR permissions…</span>
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
-                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-slate-500/70" />
-                  <span>Step 3 · Linking UR-DEV workspace to GitHub…</span>
-                </div>
-              </div>
-
-              <p className="mt-4 text-[11px] text-slate-500">
-                If nothing happens in a few seconds, check for a GitHub popup
-                or a new browser tab asking for authorization.
-              </p>
-            </>
-          )}
-
-          {/* CONNECTED – MAIN WINDOW WITH ALL DETAILS */}
           {state === "connected" && (
             <>
               <div className="flex items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-900/20 px-4 py-3">
@@ -279,22 +328,22 @@ function UrDevGithubModal({
                       <span className="font-medium">
                         @{showAccount.username}
                       </span>
-                      <span className="rounded-full bg-emerald-500/20 px-2 py-[1px] text-[10px] text-emerald-300">
-                        Active account
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-[1px] text-[10px] text-emerald-300">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Connected
                       </span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* LINKED PROJECT + INPUTS + VS CODE */}
               <div className="mt-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-[11px] text-slate-100">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex flex-col">
                     <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
                       Linked project
                     </span>
-                    {repo && (
+                    {repo ? (
                       <button
                         type="button"
                         onClick={handleOpenProjectOnGithub}
@@ -303,6 +352,11 @@ function UrDevGithubModal({
                         <span>{repo.fullName}</span>
                         <ExternalLink className="h-3 w-3" />
                       </button>
+                    ) : (
+                      <span className="mt-1 text-[10px] text-slate-400">
+                        This project is not linked to a repository yet. Add one
+                        below.
+                      </span>
                     )}
                   </div>
                   {repo && (
@@ -343,7 +397,6 @@ function UrDevGithubModal({
                 </div>
               </div>
 
-              {/* ACTIONS */}
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -379,7 +432,6 @@ function UrDevGithubModal({
             </>
           )}
 
-          {/* ACCOUNT SWITCHER OVERLAY – ONLY FOR SWITCHING ACCOUNT */}
           {state === "connected" && showAccountSwitcher && (
             <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#020617]/95">
               <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/95 px-4 py-4 shadow-xl">
@@ -424,7 +476,7 @@ function UrDevGithubModal({
                       onClick={handleUseCurrentAccount}
                       className="mt-3 w-full rounded-lg bg-emerald-500 px-3 py-2 text-[11px] font-semibold text-slate-950 hover:bg-emerald-400"
                     >
-                      Keep using this account
+                      Use this account for this project
                     </button>
                   </div>
                 )}
