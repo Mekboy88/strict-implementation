@@ -322,7 +322,7 @@ const UrDevLandingPage: React.FC = () => {
           <div className="flex items-center gap-2 text-xs">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition">
+                <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition focus:outline-none focus:ring-0 focus:border-white/20">
                   Sign In
                 </button>
               </DropdownMenuTrigger>
