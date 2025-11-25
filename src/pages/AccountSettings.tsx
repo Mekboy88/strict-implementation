@@ -138,9 +138,9 @@ const ProjectSettingsPage: React.FC = () => {
 
   return (
     <>
-    <div className="w-full h-full rounded-2xl border border-neutral-700 bg-neutral-900 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
+    <div className="w-full h-full rounded-2xl border border-neutral-600 bg-neutral-800 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
           {/* Left sidebar */}
-          <aside className="w-72 border-r border-neutral-800 bg-neutral-900">
+          <aside className="w-72 border-r border-neutral-700 bg-neutral-800">
             <nav className="py-3 text-[14px] overflow-y-auto h-full">
               {NAV_GROUPS.map((group) => (
                 <div key={group.label} className="mt-2">
@@ -181,7 +181,7 @@ const ProjectSettingsPage: React.FC = () => {
           </aside>
 
           {/* Right content */}
-          <main className="flex-1 bg-neutral-900 px-8 py-6 overflow-y-auto">
+          <main className="flex-1 bg-neutral-800 px-8 py-6 overflow-y-auto">
             {/* Top header */}
             <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-4">
               <div>
