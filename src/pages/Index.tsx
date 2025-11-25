@@ -1113,6 +1113,76 @@ Rules:
               </div>
             )}
 
+            {/* Quick Actions Panel - Above Chat Input */}
+            {showQuickActions && (
+              <div className="px-4 py-3 flex-shrink-0">
+                <div className="rounded-2xl border border-white/10 bg-neutral-800 p-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/attach ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <Paperclip className="h-6 w-6" />
+                      <span className="text-sm font-medium">Attach File</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/settings ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <Settings2 className="h-6 w-6" />
+                      <span className="text-sm font-medium">Settings</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/wallet ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <WalletCards className="h-6 w-6" />
+                      <span className="text-sm font-medium">Wallet</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/help ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <HelpCircle className="h-6 w-6" />
+                      <span className="text-sm font-medium">Help</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/market ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <ShoppingBag className="h-6 w-6" />
+                      <span className="text-sm font-medium">Market</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAssistantInput("/community ");
+                        setShowQuickActions(false);
+                      }}
+                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                    >
+                      <MessageCircle className="h-6 w-6" />
+                      <span className="text-sm font-medium">Community</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="border-t border-white/10 px-4 py-3 flex-shrink-0">
               <div className="rounded-2xl border border-white/10 bg-neutral-800 overflow-hidden">
                 {/* To-dos Panel */}
@@ -1174,31 +1244,6 @@ Rules:
                         </div>
                       ))
                     )}
-                  </div>
-                )}
-
-                {/* Quick Actions Panel */}
-                {showQuickActions && (
-                  <div className="border-t border-white/10 px-3 py-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "fix", label: "Fix Issues" },
-                        { id: "refactor", label: "Refactor" },
-                        { id: "explain", label: "Explain" },
-                        { id: "optimize", label: "Optimize" },
-                      ].map((action) => (
-                        <button
-                          key={action.id}
-                          onClick={() => {
-                            setAssistantInput(`/${action.id} `);
-                            setShowQuickActions(false);
-                          }}
-                          className="px-3 py-2 text-xs rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 transition-colors text-left"
-                        >
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 )}
 
