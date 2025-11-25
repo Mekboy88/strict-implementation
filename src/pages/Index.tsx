@@ -919,7 +919,7 @@ Rules:
           <ResizablePanelGroup direction="horizontal" className="flex-1">
             {/* ASSISTANT PANEL - MOVED TO LEFT */}
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="hidden xl:block">
-              <aside className="flex h-full flex-col border-r border-white/10 bg-neutral-900">
+              <aside className="flex h-full flex-col border-r border-white/10 bg-neutral-900 overflow-hidden">
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
@@ -930,7 +930,7 @@ Rules:
               </button>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
+            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
               {/* Chat Messages */}
               {chatMessages.map((msg) => (
                 <div
