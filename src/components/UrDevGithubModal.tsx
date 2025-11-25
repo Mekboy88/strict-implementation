@@ -219,7 +219,7 @@ function UrDevGithubModal({
           {(state === "idle" || state === "connecting") && (
             <>
               {activeAccount && (
-                <div className="mb-4 rounded-xl border border-emerald-500/40 bg-emerald-900/15 px-3 py-3">
+                <div className="mb-4 rounded-xl border border-white/20 bg-white/10 px-3 py-3">
                   <div className="flex items-center gap-3">
                     {activeAccount.avatarUrl ? (
                       <img
