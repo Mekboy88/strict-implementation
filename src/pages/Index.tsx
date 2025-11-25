@@ -40,6 +40,7 @@ import { GitHubIntegration } from "@/components/GitHubIntegration";
 import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 import { toast } from "@/hooks/use-toast";
 import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from "@/utils/codeParser";
+import { extractTasksFromResponse, hasExtractableTasks, ExtractedTask } from "@/utils/taskParser";
 import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
 
@@ -187,6 +188,8 @@ function UrDevEditorPage() {
   const [showTodos, setShowTodos] = useState(false);
   const [todos, setTodos] = useState<{id: string; text: string; completed: boolean}[]>([]);
   const [isPlanning, setIsPlanning] = useState(false);
+  const [extractedTasks, setExtractedTasks] = useState<ExtractedTask[]>([]);
+  const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -302,6 +305,15 @@ Rules:
           const codeBlocks = parseCodeBlocks(assistantContent);
           if (codeBlocks.length > 0) {
             handleCodeFromAI(codeBlocks);
+          }
+
+          // Extract tasks from the response
+          if (hasExtractableTasks(assistantContent)) {
+            const tasks = extractTasksFromResponse(assistantContent);
+            if (tasks.length > 0) {
+              setExtractedTasks(tasks);
+              setShowTaskPrompt(true);
+            }
           }
 
           setChatMessages(prev => {
@@ -455,6 +467,29 @@ Rules:
     } finally {
       setIsPlanning(false);
     }
+  };
+
+  const handleAddExtractedTasks = () => {
+    const newTodos = extractedTasks.map((task) => ({
+      id: `todo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      text: task.text,
+      completed: false,
+    }));
+    
+    setTodos(prev => [...prev, ...newTodos]);
+    setShowTodos(true);
+    setShowTaskPrompt(false);
+    setExtractedTasks([]);
+    
+    toast({
+      title: "Tasks Added",
+      description: `Added ${newTodos.length} tasks to your to-do list`,
+    });
+  };
+
+  const handleDismissTaskPrompt = () => {
+    setShowTaskPrompt(false);
+    setExtractedTasks([]);
   };
 
   const handleConnectDatabase = () => {
@@ -1046,6 +1081,49 @@ Rules:
                 </div>
               )}
             </div>
+
+            {/* Task Extraction Prompt */}
+            {showTaskPrompt && extractedTasks.length > 0 && (
+              <div className="border-t border-white/10 px-4 py-3 bg-sky-500/5 flex-shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ListTodo className="w-3 h-3 text-sky-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-200 font-medium mb-2">
+                      I found {extractedTasks.length} tasks in this response. Add them to your to-do list?
+                    </p>
+                    <div className="space-y-1 mb-3 max-h-24 overflow-y-auto">
+                      {extractedTasks.slice(0, 5).map((task, i) => (
+                        <p key={i} className="text-[11px] text-slate-400 truncate">
+                          • {task.text}
+                        </p>
+                      ))}
+                      {extractedTasks.length > 5 && (
+                        <p className="text-[11px] text-slate-500">
+                          +{extractedTasks.length - 5} more...
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleAddExtractedTasks}
+                        className="inline-flex items-center gap-1 rounded-full bg-sky-500/20 px-3 py-1 text-xs text-sky-300 hover:bg-sky-500/30 transition-colors"
+                      >
+                        <Check className="h-3 w-3" />
+                        Add to To-dos
+                      </button>
+                      <button
+                        onClick={handleDismissTaskPrompt}
+                        className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400 hover:bg-white/10 transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="border-t border-white/10 px-4 py-3 flex-shrink-0">
               <div className="rounded-2xl border border-white/10 bg-neutral-800 overflow-hidden">
