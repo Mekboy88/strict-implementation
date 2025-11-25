@@ -32,8 +32,17 @@ import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 import { GitHubIntegration } from "@/components/GitHubIntegration";
 import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 import { toast } from "@/hooks/use-toast";
+import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from "@/utils/codeParser";
 
-const initialFiles = [
+interface FileItem {
+  id: string;
+  name: string;
+  path: string;
+  language: string;
+  content: string[];
+}
+
+const defaultFiles: FileItem[] = [
   {
     id: "banner",
     name: "banner.tsx",
@@ -91,11 +100,10 @@ const initialFiles = [
   },
 ];
 
-function buildInitialContents() {
+function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
-  for (const file of initialFiles) {
-    map[file.id] = file.content.join(`
-`);
+  for (const file of files) {
+    map[file.id] = file.content.join("\n");
   }
   return map;
 }
@@ -147,11 +155,12 @@ function UrDevEditorPage() {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeFileId, setActiveFileId] = useState("banner");
+  const [projectFiles, setProjectFiles] = useState<FileItem[]>(defaultFiles);
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
-    buildInitialContents()
+    buildInitialContents(defaultFiles)
   );
   const [savedContents, setSavedContents] = useState<Record<string, string>>(() =>
-    buildInitialContents()
+    buildInitialContents(defaultFiles)
   );
   const [showReasoning, setShowReasoning] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
@@ -202,9 +211,25 @@ function UrDevEditorPage() {
 
     let assistantContent = '';
 
+    // Custom system prompt for code generation
+    const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
+
+When generating code, ALWAYS include the file path in this format:
+\`\`\`tsx // src/components/ComponentName.tsx
+// your code here
+\`\`\`
+
+Rules:
+- Always use TypeScript/TSX
+- Use Tailwind CSS for styling
+- Include proper imports
+- Generate complete, working code
+- Use the file path comment format shown above so the code can be added to the editor`;
+
     try {
       await streamChat({
         messages: apiMessages,
+        systemPrompt,
         onDelta: (delta) => {
           assistantContent += delta;
           setChatMessages(prev => {
@@ -218,6 +243,12 @@ function UrDevEditorPage() {
           });
         },
         onDone: () => {
+          // Parse code blocks and update files
+          const codeBlocks = parseCodeBlocks(assistantContent);
+          if (codeBlocks.length > 0) {
+            handleCodeFromAI(codeBlocks);
+          }
+
           setChatMessages(prev => {
             const last = prev[prev.length - 1];
             if (last?.role === 'assistant') {
@@ -245,6 +276,56 @@ function UrDevEditorPage() {
         variant: "destructive",
       });
       setIsStreaming(false);
+    }
+  };
+
+  // Handle code blocks from AI - create or update files
+  const handleCodeFromAI = (codeBlocks: ParsedCodeBlock[]) => {
+    let filesUpdated = 0;
+    let filesCreated = 0;
+
+    codeBlocks.forEach(block => {
+      const fileId = generateFileId(block.path);
+      const existingFile = projectFiles.find(f => f.id === fileId);
+
+      if (existingFile) {
+        // Update existing file
+        setFileContents(prev => ({
+          ...prev,
+          [fileId]: block.content
+        }));
+        filesUpdated++;
+      } else {
+        // Create new file
+        const newFile: FileItem = {
+          id: fileId,
+          name: block.filename,
+          path: block.path,
+          language: block.language,
+          content: block.content.split('\n'),
+        };
+        setProjectFiles(prev => [...prev, newFile]);
+        setFileContents(prev => ({
+          ...prev,
+          [fileId]: block.content
+        }));
+        filesCreated++;
+      }
+
+      // Switch to the newly created/updated file
+      setActiveFileId(fileId);
+    });
+
+    // Show toast notification
+    if (filesCreated > 0 || filesUpdated > 0) {
+      const message = [];
+      if (filesCreated > 0) message.push(`${filesCreated} file(s) created`);
+      if (filesUpdated > 0) message.push(`${filesUpdated} file(s) updated`);
+      
+      toast({
+        title: "Code Applied",
+        description: message.join(', '),
+      });
     }
   };
 
@@ -301,11 +382,9 @@ function UrDevEditorPage() {
     }
   }, [isEditingEnabled]);
 
-  const activeFile = initialFiles.find((file) => file.id === activeFileId) || initialFiles[0];
-  const currentContent = fileContents[activeFileId] || activeFile.content.join(`
-`);
-  const currentLines = currentContent.split(`
-`);
+  const activeFile = projectFiles.find((file) => file.id === activeFileId) || projectFiles[0];
+  const currentContent = fileContents[activeFileId] || activeFile.content.join("\n");
+  const currentLines = currentContent.split("\n");
   const originalLines = activeFile.content;
 
   function handleChangeContent(value: string) {
@@ -925,7 +1004,7 @@ function UrDevEditorPage() {
                 {/* File tabs + copy */}
                 <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2.5 text-[11px]">
                   <div className="flex items-center gap-2 overflow-x-auto">
-                    {initialFiles.map((file) => {
+                    {projectFiles.map((file) => {
                       const isActive = file.id === activeFileId;
                       return (
                         <button
