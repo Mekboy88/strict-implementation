@@ -192,6 +192,8 @@ function UrDevEditorPage() {
   const [isPlanning, setIsPlanning] = useState(false);
   const [extractedTasks, setExtractedTasks] = useState<ExtractedTask[]>([]);
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
+  const [showUsePlanButton, setShowUsePlanButton] = useState(false);
+  const [planContent, setPlanContent] = useState("");
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -318,6 +320,9 @@ Rules:
             if (tasks.length > 0) {
               setExtractedTasks(tasks);
               setShowTaskPrompt(true);
+              // Also show "Use this Plan" button
+              setPlanContent(assistantContent);
+              setShowUsePlanButton(true);
             }
           }
 
@@ -485,6 +490,8 @@ Rules:
     setShowTodos(true);
     setShowTaskPrompt(false);
     setExtractedTasks([]);
+    setShowUsePlanButton(false);
+    setPlanContent("");
     
     toast({
       title: "Tasks Added",
@@ -493,6 +500,33 @@ Rules:
   };
 
   const handleDismissTaskPrompt = () => {
+    setShowTaskPrompt(false);
+    setExtractedTasks([]);
+    setShowUsePlanButton(false);
+    setPlanContent("");
+  };
+
+  const handleUsePlan = () => {
+    // Extract tasks from the plan content and add to todos
+    const tasks = extractTasksFromResponse(planContent);
+    if (tasks.length > 0) {
+      const newTodos = tasks.map((task) => ({
+        id: `todo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        text: task.text,
+        completed: false,
+      }));
+      
+      setTodos(prev => [...prev, ...newTodos]);
+      setShowTodos(true);
+      
+      toast({
+        title: "Plan Added to To-dos",
+        description: `Added ${newTodos.length} tasks from the plan`,
+      });
+    }
+    
+    setShowUsePlanButton(false);
+    setPlanContent("");
     setShowTaskPrompt(false);
     setExtractedTasks([]);
   };
@@ -1083,7 +1117,10 @@ Rules:
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-200 font-medium mb-2">
-                      I found {extractedTasks.length} tasks in this response. Add them to your to-do list?
+                      {showUsePlanButton 
+                        ? `Your plan has ${extractedTasks.length} tasks. Use this plan to add them to your to-do list?`
+                        : `I found ${extractedTasks.length} tasks in this response. Add them to your to-do list?`
+                      }
                     </p>
                     <div className="space-y-1 mb-3 max-h-24 overflow-y-auto">
                       {extractedTasks.slice(0, 5).map((task, i) => (
@@ -1099,11 +1136,11 @@ Rules:
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={handleAddExtractedTasks}
+                        onClick={showUsePlanButton ? handleUsePlan : handleAddExtractedTasks}
                         className="inline-flex items-center gap-1 rounded-full bg-sky-500/20 px-3 py-1 text-xs text-sky-300 hover:bg-sky-500/30 transition-colors"
                       >
                         <Check className="h-3 w-3" />
-                        Add to To-dos
+                        {showUsePlanButton ? "Use this Plan" : "Add to To-dos"}
                       </button>
                       <button
                         onClick={handleDismissTaskPrompt}
@@ -1286,25 +1323,13 @@ Rules:
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={handleMakePlan}
-                      disabled={!assistantInput.trim() || isPlanning || isStreaming}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors ${
-                        assistantInput.trim() && !isPlanning && !isStreaming
-                          ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30'
-                          : 'bg-white/5 text-slate-400 cursor-not-allowed'
-                      }`}
+                      onClick={() => {
+                        setAssistantInput("Tell me what project you want to build and I will make the very detailed plan for you to implement it and I will add in the Todo list");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors bg-sky-500/20 text-sky-300 hover:bg-sky-500/30"
                     >
-                      {isPlanning ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Planning...
-                        </>
-                      ) : (
-                        <>
-                          <ListTodo className="h-3 w-3" />
-                          Make the Plan
-                        </>
-                      )}
+                      <ListTodo className="h-3 w-3" />
+                      Make the Plan
                     </button>
                     {isStreaming ? (
                       <button
