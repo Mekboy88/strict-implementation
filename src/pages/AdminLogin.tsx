@@ -9,7 +9,7 @@ const AdminLoginPage: React.FC = () => {
           Leadership isn't power — it's responsibility.
         </h1>
         <p className="mt-3 text-2xl text-neutral-400 font-medium">
-          Being an admin doesn't give you privileges — it gives you purpose.
+          Being an admin doesn't give you privileges — it gives you responsibility.
         </p>
       </div>
 
