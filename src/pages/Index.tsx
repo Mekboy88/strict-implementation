@@ -1115,68 +1115,68 @@ Rules:
 
             {/* Quick Actions Panel - Above Chat Input */}
             {showQuickActions && (
-              <div className="px-4 py-3 flex-shrink-0">
-                <div className="rounded-2xl border border-white/10 bg-neutral-800 p-4">
-                  <div className="grid grid-cols-3 gap-3">
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="rounded-xl border border-white/10 bg-neutral-800 p-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => {
                         setAssistantInput("/attach ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <Paperclip className="h-6 w-6" />
-                      <span className="text-sm font-medium">Attach File</span>
+                      <Paperclip className="h-5 w-5" />
+                      <span className="text-xs font-medium">Attach File</span>
                     </button>
                     <button
                       onClick={() => {
                         setAssistantInput("/settings ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <Settings2 className="h-6 w-6" />
-                      <span className="text-sm font-medium">Settings</span>
+                      <Settings2 className="h-5 w-5" />
+                      <span className="text-xs font-medium">Settings</span>
                     </button>
                     <button
                       onClick={() => {
                         setAssistantInput("/wallet ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <WalletCards className="h-6 w-6" />
-                      <span className="text-sm font-medium">Wallet</span>
+                      <WalletCards className="h-5 w-5" />
+                      <span className="text-xs font-medium">Wallet</span>
                     </button>
                     <button
                       onClick={() => {
                         setAssistantInput("/help ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <HelpCircle className="h-6 w-6" />
-                      <span className="text-sm font-medium">Help</span>
+                      <HelpCircle className="h-5 w-5" />
+                      <span className="text-xs font-medium">Help</span>
                     </button>
                     <button
                       onClick={() => {
                         setAssistantInput("/market ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <ShoppingBag className="h-6 w-6" />
-                      <span className="text-sm font-medium">Market</span>
+                      <ShoppingBag className="h-5 w-5" />
+                      <span className="text-xs font-medium">Market</span>
                     </button>
                     <button
                       onClick={() => {
                         setAssistantInput("/community ");
                         setShowQuickActions(false);
                       }}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl bg-neutral-700/50 px-4 py-5 text-slate-200 hover:bg-neutral-700 transition-colors"
+                      className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-neutral-700/50 px-3 py-3 text-slate-200 hover:bg-neutral-700 transition-colors"
                     >
-                      <MessageCircle className="h-6 w-6" />
-                      <span className="text-sm font-medium">Community</span>
+                      <MessageCircle className="h-5 w-5" />
+                      <span className="text-xs font-medium">Community</span>
                     </button>
                   </div>
                 </div>
