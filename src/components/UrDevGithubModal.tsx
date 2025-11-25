@@ -386,7 +386,7 @@ function UrDevGithubModal({
                     onChange={(e) => setRepoFullNameInput(e.target.value)}
                     onBlur={handleAutoSaveRepo}
                     placeholder="AlbQuantum/ur-dev-web"
-                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                    className="mt-1 w-full rounded-md border border-white/20 bg-white/10 px-2 py-1.5 text-[11px] text-white placeholder:text-white/40 outline-none ring-0 focus:border-white/40"
                   />
                 </div>
                 <div className="mt-2">
@@ -398,7 +398,7 @@ function UrDevGithubModal({
                     onChange={(e) => setRepoUrlInput(e.target.value)}
                     onBlur={handleAutoSaveRepo}
                     placeholder="https://github.com/AlbQuantum/ur-dev-web"
-                    className="mt-1 w-full rounded-md border border-white/15 bg-slate-900 px-2 py-1.5 text-[11px] text-slate-100 outline-none ring-0 focus:border-sky-400"
+                    className="mt-1 w-full rounded-md border border-white/20 bg-white/10 px-2 py-1.5 text-[11px] text-white placeholder:text-white/40 outline-none ring-0 focus:border-white/40"
                   />
                 </div>
               </div>
