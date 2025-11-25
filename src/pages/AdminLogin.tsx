@@ -134,7 +134,6 @@ const AdminLogin = () => {
               <Shield className="w-12 h-12" style={{ color: "#4CB3FF" }} />
             </div>
             <h1 className="text-5xl font-bold mb-4" style={{ color: "#D6E4F0" }}>Admin Access</h1>
-            <p className="text-lg" style={{ color: "#8FA3B7" }}>Secure authentication required</p>
           </div>
         </div>
       </div>
