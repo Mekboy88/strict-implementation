@@ -978,73 +978,71 @@ Rules:
             </div>
 
             <div className="border-t border-white/10 px-4 py-3 flex-shrink-0">
-              <div className="space-y-0">
+              <div className="rounded-2xl border border-white/10 bg-neutral-800 overflow-hidden">
                 {/* To-dos Panel */}
-                <div className="rounded-t-2xl border border-white/10 bg-neutral-800 overflow-hidden">
-                  <button
-                    onClick={() => setShowTodos(!showTodos)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5 transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <ListTodo className="h-4 w-4" />
-                      To-dos
-                      {todos.length > 0 && (
-                        <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full">
-                          {todos.filter(t => !t.completed).length}
-                        </span>
-                      )}
-                    </span>
-                    {showTodos ? (
-                      <ChevronUp className="h-4 w-4 text-slate-400" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                <button
+                  onClick={() => setShowTodos(!showTodos)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/5 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <ListTodo className="h-4 w-4" />
+                    To-dos
+                    {todos.length > 0 && (
+                      <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full">
+                        {todos.filter(t => !t.completed).length}
+                      </span>
                     )}
-                  </button>
-                  
-                  {showTodos && (
-                    <div className="border-t border-white/10 px-4 py-3 space-y-2 max-h-48 overflow-y-auto">
-                      {todos.length === 0 ? (
-                        <p className="text-xs text-slate-500 text-center py-2">No to-dos yet. AI will add tasks here.</p>
-                      ) : (
-                        todos.map((todo) => (
-                          <div
-                            key={todo.id}
-                            className="flex items-center gap-3 text-sm"
-                          >
-                            <button
-                              onClick={() => {
-                                setTodos(prev =>
-                                  prev.map(t =>
-                                    t.id === todo.id ? { ...t, completed: !t.completed } : t
-                                  )
-                                );
-                              }}
-                              className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                                todo.completed
-                                  ? 'bg-sky-500 border-sky-500'
-                                  : 'border-slate-500 hover:border-slate-400'
-                              }`}
-                            >
-                              {todo.completed && <Check className="h-3 w-3 text-white" />}
-                            </button>
-                            <span className={todo.completed ? 'text-slate-500 line-through' : 'text-slate-200'}>
-                              {todo.text}
-                            </span>
-                            <button
-                              onClick={() => setTodos(prev => prev.filter(t => t.id !== todo.id))}
-                              className="ml-auto text-slate-500 hover:text-red-400 transition-colors"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                  </span>
+                  {showTodos ? (
+                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
                   )}
-                </div>
+                </button>
+                
+                {showTodos && (
+                  <div className="border-t border-white/10 px-4 py-3 space-y-2 max-h-48 overflow-y-auto">
+                    {todos.length === 0 ? (
+                      <p className="text-xs text-slate-500 text-center py-2">No to-dos yet. AI will add tasks here.</p>
+                    ) : (
+                      todos.map((todo) => (
+                        <div
+                          key={todo.id}
+                          className="flex items-center gap-3 text-sm"
+                        >
+                          <button
+                            onClick={() => {
+                              setTodos(prev =>
+                                prev.map(t =>
+                                  t.id === todo.id ? { ...t, completed: !t.completed } : t
+                                )
+                              );
+                            }}
+                            className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                              todo.completed
+                                ? 'bg-sky-500 border-sky-500'
+                                : 'border-slate-500 hover:border-slate-400'
+                            }`}
+                          >
+                            {todo.completed && <Check className="h-3 w-3 text-white" />}
+                          </button>
+                          <span className={todo.completed ? 'text-slate-500 line-through' : 'text-slate-200'}>
+                            {todo.text}
+                          </span>
+                          <button
+                            onClick={() => setTodos(prev => prev.filter(t => t.id !== todo.id))}
+                            className="ml-auto text-slate-500 hover:text-red-400 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
 
                 {/* Input Area */}
-                <div className={`flex flex-col gap-2 ${showTodos ? 'rounded-b-2xl rounded-t-none border-t-0' : 'rounded-2xl'} border border-white/10 bg-neutral-800 px-3 py-3`}>
+                <div className="flex flex-col gap-2 border-t border-white/10 px-3 py-3">
                   <textarea
                     ref={assistantInputRef}
                     value={assistantInput}
