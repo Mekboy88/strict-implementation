@@ -14,28 +14,46 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if already logged in as admin
-    const checkAdminSession = async () => {
-      const adminSession = sessionStorage.getItem('admin_authenticated');
-      if (adminSession === 'true') {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .in('role', ['owner', 'admin'])
-            .maybeSingle();
-          
-          if (data) {
-            navigate("/admin");
-          }
-        }
+    const checkAccess = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        navigate("/login");
+        toast({
+          title: "Authentication Required",
+          description: "Please login to your account first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .in("role", ["owner", "admin"])
+        .maybeSingle();
+
+      if (!roleData) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the admin area.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+
+      const adminAuth = sessionStorage.getItem("admin_authenticated");
+      if (adminAuth === "true") {
+        navigate("/admin");
       }
     };
-    
-    checkAdminSession();
-  }, [navigate]);
+
+    checkAccess();
+  }, [navigate, toast]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
