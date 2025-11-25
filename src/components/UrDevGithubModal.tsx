@@ -236,7 +236,7 @@ function UrDevGithubModal({
                       <span className="text-xs font-medium text-slate-50">
                         @{activeAccount.username}
                       </span>
-                      <span className="text-[10px] text-emerald-300">
+                      <span className="text-[10px] text-white/70">
                         GitHub account already connected – use it instantly for
                         this UR-DEV project.
                       </span>
