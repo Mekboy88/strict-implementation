@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Mail, Github } from "lucide-react";
+import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCard, Briefcase, Bell } from "lucide-react";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 const personas = [
   {
@@ -197,6 +198,21 @@ const UrDevLandingPage: React.FC = () => {
   const promptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleOAuthLogin = async (provider: "google" | "github") => {
     try {
@@ -215,6 +231,28 @@ const UrDevLandingPage: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to logout",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getUserInitial = () => {
+    if (!user?.email) return "U";
+    return user.email.charAt(0).toUpperCase();
   };
 
   const activePersona = personas.find((p) => p.id === activePersonaId)!;
@@ -320,66 +358,142 @@ const UrDevLandingPage: React.FC = () => {
             </a>
           </nav>
           <div className="flex items-center gap-2 text-xs">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition focus:outline-none focus:ring-0 focus:border-white/20">
-                  Sign In
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-96 bg-neutral-900 border-neutral-700 z-50 p-6">
-                <div className="flex flex-col items-center">
-                  {/* Title */}
-                  <h2 className="text-2xl font-bold mb-6 text-white">UR-DEV</h2>
-                  
-                  {/* Buttons */}
-                  <div className="space-y-3 w-full">
-                    <DropdownMenuItem 
-                      className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
-                      onSelect={() => handleOAuthLogin("google")}
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                        <path d="M263.821537,7247.00386 L254.211298,7247.00386 C254.211298,7248.0033 254.211298,7250.00218 254.205172,7251.00161 L259.774046,7251.00161 C259.560644,7252.00105 258.804036,7253.40026 257.734984,7254.10487 C257.733963,7254.10387 257.732942,7254.11086 257.7309,7254.10986 C256.309581,7255.04834 254.43389,7255.26122 253.041161,7254.98137 C250.85813,7254.54762 249.130492,7252.96451 248.429023,7250.95364 C248.433107,7250.95064 248.43617,7250.92266 248.439233,7250.92066 C248.000176,7249.67336 248.000176,7248.0033 248.439233,7247.00386 L248.438212,7247.00386 C249.003881,7245.1669 250.783592,7243.49084 252.969687,7243.0321 C254.727956,7242.65931 256.71188,7243.06308 258.170978,7244.42831 C258.36498,7244.23842 260.856372,7241.80579 261.043226,7241.6079 C256.0584,7237.09344 248.076756,7238.68155 245.090149,7244.51127 L245.089128,7244.51127 C245.089128,7244.51127 245.090149,7244.51127 245.084023,7244.52226 L245.084023,7244.52226 C243.606545,7247.38565 243.667809,7250.75975 245.094233,7253.48622 C245.090149,7253.48921 245.087086,7253.49121 245.084023,7253.49421 C246.376687,7256.0028 248.729215,7257.92672 251.563684,7258.6593 C254.574796,7259.44886 258.406843,7258.90916 260.973794,7256.58747 C260.974815,7256.58847 260.975836,7256.58947 260.976857,7256.59047 C263.15172,7254.63157 264.505648,7251.29445 263.821537,7247.00386" transform="translate(-244.000000, -7239.000000)"/>
-                      </svg>
-                      Continue with Google
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem 
-                      className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
-                      onSelect={() => handleOAuthLogin("github")}
-                    >
-                      <Github className="h-5 w-5" />
-                      Continue with GitHub
-                    </DropdownMenuItem>
-
-                    <Link to="/login" className="block">
-                      <DropdownMenuItem className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700">
-                        <Mail className="h-5 w-5" />
-                        Sign in with Email
-                      </DropdownMenuItem>
-                    </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="h-9 w-9 rounded-xl bg-neutral-700 flex items-center justify-center text-sm font-semibold hover:bg-neutral-600 transition focus:outline-none focus:ring-0">
+                    {getUserInitial()}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80 bg-neutral-900 text-neutral-100 rounded-2xl shadow-2xl p-5 border border-neutral-800 z-50">
+                  {/* User Info */}
+                  <div className="flex items-center gap-4 pb-4 border-b border-neutral-800">
+                    <div className="h-12 w-12 rounded-xl bg-neutral-700 flex items-center justify-center text-lg font-semibold">
+                      {getUserInitial()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">UR-DEV Workspace</p>
+                      <p className="text-neutral-400 text-xs">{user.email}</p>
+                    </div>
                   </div>
 
-                  {/* Terms */}
-                  <p className="text-neutral-500 text-xs mt-6 text-center">
-                    By signing in, you agree to the{" "}
-                    <a href="#" className="text-neutral-300 hover:text-white hover:underline">
-                      UR-DEV Terms
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-neutral-300 hover:text-white hover:underline">
-                      Privacy Policy
-                    </a>
-                    .
-                  </p>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Link
-              to="/register"
-              className="rounded-full bg-cyan-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:bg-cyan-400"
-            >
-              Launch IDE
-            </Link>
+                  {/* Credits */}
+                  <div className="mt-4 p-3 rounded-xl bg-neutral-800 border border-neutral-700">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Credits</span>
+                      <span className="text-neutral-300">2,450 left</span>
+                    </div>
+                    <div className="w-full h-2 bg-neutral-700 rounded-full overflow-hidden">
+                      <div className="h-full w-1/3 bg-neutral-300 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="mt-4 space-y-2">
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm focus:outline-none focus:ring-0">
+                      <Users className="h-4 w-4" /> Team & Members
+                      <span className="ml-auto bg-neutral-700 text-neutral-300 text-xs px-2 py-0.5 rounded-md">0</span>
+                      <span className="ml-2 bg-neutral-600 text-neutral-200 text-[10px] px-2 py-0.5 rounded-md">Add</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm focus:outline-none focus:ring-0">
+                      <CreditCard className="h-4 w-4" /> Billing & Credits
+                      <span className="ml-auto bg-neutral-700 text-neutral-300 text-xs px-2 py-0.5 rounded-md">3</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm focus:outline-none focus:ring-0">
+                      <Briefcase className="h-4 w-4" /> Workspace Manager
+                      <span className="ml-auto bg-neutral-700 text-neutral-300 text-xs px-2 py-0.5 rounded-md">Create</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm focus:outline-none focus:ring-0 mt-1">
+                      <span className="h-1.5 w-1.5 bg-neutral-400 rounded-full"></span>
+                      <span className="text-neutral-300">New Workspace</span>
+                      <span className="ml-auto bg-neutral-700 text-neutral-300 text-xs px-2 py-0.5 rounded-md">+ Create new</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm focus:outline-none focus:ring-0">
+                      <Bell className="h-4 w-4" /> Notifications
+                      <span className="ml-auto bg-red-600 text-white text-xs px-2 py-0.5 rounded-md">5</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
+                      <HelpCircle className="h-4 w-4" /> Help Center
+                      <span className="ml-auto text-neutral-500">➜</span>
+                    </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
+                      <Sun className="h-4 w-4" /> Appearance
+                    </button>
+                  </div>
+
+                  {/* Sign Out */}
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full mt-4 flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-red-400"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition focus:outline-none focus:ring-0 focus:border-white/20">
+                      Sign In
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-96 bg-neutral-900 border-neutral-700 z-50 p-6">
+                    <div className="flex flex-col items-center">
+                      {/* Title */}
+                      <h2 className="text-2xl font-bold mb-6 text-white">UR-DEV</h2>
+                      
+                      {/* Buttons */}
+                      <div className="space-y-3 w-full">
+                        <DropdownMenuItem 
+                          className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
+                          onSelect={() => handleOAuthLogin("google")}
+                        >
+                          <svg className="h-5 w-5" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path d="M263.821537,7247.00386 L254.211298,7247.00386 C254.211298,7248.0033 254.211298,7250.00218 254.205172,7251.00161 L259.774046,7251.00161 C259.560644,7252.00105 258.804036,7253.40026 257.734984,7254.10487 C257.733963,7254.10387 257.732942,7254.11086 257.7309,7254.10986 C256.309581,7255.04834 254.43389,7255.26122 253.041161,7254.98137 C250.85813,7254.54762 249.130492,7252.96451 248.429023,7250.95364 C248.433107,7250.95064 248.43617,7250.92266 248.439233,7250.92066 C248.000176,7249.67336 248.000176,7248.0033 248.439233,7247.00386 L248.438212,7247.00386 C249.003881,7245.1669 250.783592,7243.49084 252.969687,7243.0321 C254.727956,7242.65931 256.71188,7243.06308 258.170978,7244.42831 C258.36498,7244.23842 260.856372,7241.80579 261.043226,7241.6079 C256.0584,7237.09344 248.076756,7238.68155 245.090149,7244.51127 L245.089128,7244.51127 C245.089128,7244.51127 245.090149,7244.51127 245.084023,7244.52226 L245.084023,7244.52226 C243.606545,7247.38565 243.667809,7250.75975 245.094233,7253.48622 C245.090149,7253.48921 245.087086,7253.49121 245.084023,7253.49421 C246.376687,7256.0028 248.729215,7257.92672 251.563684,7258.6593 C254.574796,7259.44886 258.406843,7258.90916 260.973794,7256.58747 C260.974815,7256.58847 260.975836,7256.58947 260.976857,7256.59047 C263.15172,7254.63157 264.505648,7251.29445 263.821537,7247.00386" transform="translate(-244.000000, -7239.000000)"/>
+                          </svg>
+                          Continue with Google
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem 
+                          className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700"
+                          onSelect={() => handleOAuthLogin("github")}
+                        >
+                          <Github className="h-5 w-5" />
+                          Continue with GitHub
+                        </DropdownMenuItem>
+
+                        <Link to="/login" className="block">
+                          <DropdownMenuItem className="flex items-center justify-center gap-3 w-full py-3 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-sm border border-neutral-700 transition shadow-lg cursor-pointer focus:bg-neutral-700">
+                            <Mail className="h-5 w-5" />
+                            Sign in with Email
+                          </DropdownMenuItem>
+                        </Link>
+                      </div>
+
+                      {/* Terms */}
+                      <p className="text-neutral-500 text-xs mt-6 text-center">
+                        By signing in, you agree to the{" "}
+                        <a href="#" className="text-neutral-300 hover:text-white hover:underline">
+                          UR-DEV Terms
+                        </a>{" "}
+                        and{" "}
+                        <a href="#" className="text-neutral-300 hover:text-white hover:underline">
+                          Privacy Policy
+                        </a>
+                        .
+                      </p>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Link
+                  to="/register"
+                  className="rounded-full bg-cyan-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:bg-cyan-400"
+                >
+                  Launch IDE
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
