@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AccountSettings from "@/pages/AccountSettings";
@@ -20,6 +20,9 @@ import {
   User,
   Loader2,
   Square,
+  Save,
+  FolderOpen,
+  LogIn,
 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
@@ -27,12 +30,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 import { GitHubIntegration } from "@/components/GitHubIntegration";
 import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 import { toast } from "@/hooks/use-toast";
 import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from "@/utils/codeParser";
+import { useProjectPersistence } from "@/hooks/useProjectPersistence";
+import { ProjectDialog } from "@/components/ProjectDialog";
 
 interface FileItem {
   id: string;
@@ -174,7 +180,50 @@ function UrDevEditorPage() {
   const [showDatabasePopup, setShowDatabasePopup] = useState(false);
   const [dbState, setDbState] = useState<"idle" | "creating">("idle");
   const [showGitHubModal, setShowGitHubModal] = useState(false);
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
   const githubButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Project persistence
+  const {
+    user,
+    currentProject,
+    projects,
+    isLoading: isProjectLoading,
+    isSaving,
+    createNewProject,
+    loadProject,
+    saveCurrentProject,
+    removeProject,
+    convertProjectFilesToEditor,
+    setCurrentProject,
+  } = useProjectPersistence();
+
+  // Load project files when a project is loaded
+  useEffect(() => {
+    if (currentProject?.files && currentProject.files.length > 0) {
+      const loadedFiles = convertProjectFilesToEditor(currentProject);
+      setProjectFiles(loadedFiles);
+      setFileContents(buildInitialContents(loadedFiles));
+      setSavedContents(buildInitialContents(loadedFiles));
+      if (loadedFiles.length > 0) {
+        setActiveFileId(loadedFiles[0].id);
+      }
+    }
+  }, [currentProject, convertProjectFilesToEditor]);
+
+  const handleSaveProject = async () => {
+    if (!currentProject) {
+      // Prompt to create a new project
+      setShowProjectDialog(true);
+      return;
+    }
+    await saveCurrentProject(currentProject.id, projectFiles, fileContents);
+  };
+
+  const handleLoadProject = async (projectId: string) => {
+    const project = await loadProject(projectId);
+    return project;
+  };
   
   // Chat state
   interface ChatMsg { id: string; role: 'user' | 'assistant'; content: string; }
@@ -479,6 +528,39 @@ Rules:
           </button>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
+          {/* Project controls */}
+          {user ? (
+            <>
+              <button 
+                onClick={() => setShowProjectDialog(true)}
+                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-slate-200 hover:bg-white/10 transition-colors"
+              >
+                <FolderOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{currentProject?.name || "Projects"}</span>
+              </button>
+              <button 
+                onClick={handleSaveProject}
+                disabled={isSaving}
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                <span className="hidden sm:inline">Save</span>
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={() => navigate("/login")}
+              className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-slate-200 hover:bg-white/10 transition-colors"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span>Login to Save</span>
+            </button>
+          )}
+          
           <button className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_22px_rgba(56,189,248,0.8)] hover:bg-sky-400">
             <span>Preview</span>
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
@@ -1246,6 +1328,25 @@ Rules:
           <AccountSettings />
         </DialogContent>
       </Dialog>
+
+      {/* Project Dialog */}
+      <ProjectDialog
+        open={showProjectDialog}
+        onOpenChange={setShowProjectDialog}
+        projects={projects}
+        isLoading={isProjectLoading}
+        onCreateProject={async (name, desc) => {
+          const project = await createNewProject(name, desc);
+          if (project) {
+            // Save current files to the new project
+            await saveCurrentProject(project.id, projectFiles, fileContents);
+          }
+          return project;
+        }}
+        onLoadProject={handleLoadProject}
+        onDeleteProject={removeProject}
+        currentProjectId={currentProject?.id}
+      />
     </div>
   );
 }
