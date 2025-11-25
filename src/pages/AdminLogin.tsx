@@ -14,6 +14,9 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Clear any existing admin authentication to require fresh login
+    sessionStorage.removeItem("admin_authenticated");
+    
     const checkAccess = async () => {
       const {
         data: { session },
@@ -43,13 +46,6 @@ const AdminLogin = () => {
           variant: "destructive",
         });
         navigate("/");
-        return;
-      }
-
-      // If already authenticated as admin, redirect to dashboard
-      const adminAuth = sessionStorage.getItem("admin_authenticated");
-      if (adminAuth === "true") {
-        navigate("/admin/dashboard");
       }
     };
 
