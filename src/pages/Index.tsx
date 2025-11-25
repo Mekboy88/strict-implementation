@@ -1358,7 +1358,7 @@ Rules:
                           key={file.id}
                           type="button"
                           onClick={() => setActiveFileId(file.id)}
-                          className={`inline-flex items-center gap-2 rounded-t-md px-3 py-1 ${
+                          className={`inline-flex items-center gap-2 rounded-md px-4 py-1.5 ${
                             isActive
                               ? "bg-white/10 text-white"
                               : "text-slate-400 hover:text-slate-100"
