@@ -628,7 +628,7 @@ const UrDevLandingPage: React.FC = () => {
                       </button>
                       <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]">
                         <ListTodo className="h-3 w-3" />
-                        <span>Plan</span>
+                        <span>Make the Plan</span>
                       </button>
                     </div>
                   </div>
