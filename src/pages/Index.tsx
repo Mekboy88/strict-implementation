@@ -1360,7 +1360,7 @@ Rules:
                           onClick={() => setActiveFileId(file.id)}
                           className={`inline-flex items-center gap-2 rounded-t-md px-3 py-1 ${
                             isActive
-                              ? "bg-black text-sky-100"
+                              ? "bg-white/10 text-white"
                               : "text-slate-400 hover:text-slate-100"
                           }`}
                         >
