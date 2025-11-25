@@ -779,63 +779,6 @@ const AdminSettings = () => {
           <TabsTrigger value="credits" style={{ color: "#D6E4F0" }}>Credits</TabsTrigger>
         </TabsList>
 
-        {/* General Settings */}
-        <TabsContent value="general">
-          <div className="rounded-lg border p-6 space-y-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-            <div className="space-y-2">
-              <Label style={{ color: "#D6E4F0" }}>Platform Name</Label>
-              <Input
-                value={platformName}
-                onChange={(e) => setPlatformName(e.target.value)}
-                style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label style={{ color: "#D6E4F0" }}>Platform Description</Label>
-              <Textarea
-                value={platformDescription}
-                onChange={(e) => setPlatformDescription(e.target.value)}
-                rows={3}
-                style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label style={{ color: "#D6E4F0" }}>Domain</Label>
-              <Input
-                value={platformDomain}
-                onChange={(e) => setPlatformDomain(e.target.value)}
-                style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Timezone</Label>
-                <Input
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Default Language</Label>
-                <Input
-                  value={defaultLanguage}
-                  onChange={(e) => setDefaultLanguage(e.target.value)}
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                />
-              </div>
-            </div>
-
-            <Button onClick={() => handleSaveSettings("General")} style={{ background: "#4CB3FF", color: "#ffffff" }}>
-              <Save className="w-4 h-4 mr-2" />
-              Save General Settings
-            </Button>
-          </div>
-        </TabsContent>
 
         {/* Branding & Appearance Settings */}
         <TabsContent value="branding">
