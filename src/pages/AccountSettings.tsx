@@ -201,8 +201,8 @@ const ProjectSettingsPage: React.FC = () => {
             {/* Main sections */}
             <div className="space-y-6 text-[14px] pb-4">
               {/* Overview */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3 flex items-center justify-between">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3 flex items-center justify-between">
                   <div>
                     <h2 className="text-sm font-semibold text-neutral-100">Overview</h2>
                     <p className="text-[12px] text-neutral-400">
@@ -295,8 +295,8 @@ const ProjectSettingsPage: React.FC = () => {
               </section>
 
               {/* Visibility & workspace */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3 flex items-center justify-between">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3 flex items-center justify-between">
                   <div>
                     <h2 className="text-sm font-semibold text-neutral-100">Project visibility</h2>
                     <p className="text-[12px] text-neutral-400">
@@ -308,7 +308,7 @@ const ProjectSettingsPage: React.FC = () => {
                   {/* Visibility options */}
                   <div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -321,7 +321,7 @@ const ProjectSettingsPage: React.FC = () => {
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -334,7 +334,7 @@ const ProjectSettingsPage: React.FC = () => {
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[13px]">
+                      <label className="flex items-center gap-2 rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2 text-[13px]">
                         <input
                           type="radio"
                           className="h-3 w-3 accent-sky-500"
@@ -398,8 +398,8 @@ const ProjectSettingsPage: React.FC = () => {
               </section>
 
               {/* Build targets */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3">
                   <h2 className="text-sm font-semibold text-neutral-100">Build targets</h2>
                   <p className="text-[12px] text-neutral-400">
                     Choose which platforms this project should generate: web, mobile, or desktop.
@@ -460,15 +460,15 @@ const ProjectSettingsPage: React.FC = () => {
               </section>
 
               {/* Connected services */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3">
                   <h2 className="text-sm font-semibold text-neutral-100">Connected services</h2>
                   <p className="text-[12px] text-neutral-400">
                     Manage databases, auth, and code hosting linked to this project.
                   </p>
                 </div>
                 <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[13px]">
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-emerald-400" />
                       <div>
@@ -479,7 +479,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">Manage</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Github className="h-4 w-4 text-neutral-100" />
                       <div>
@@ -490,7 +490,7 @@ const ProjectSettingsPage: React.FC = () => {
                     <button className="text-[12px] text-sky-400 hover:text-sky-300">View repo</button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2.5">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-600 bg-neutral-600 px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Cloud className="h-4 w-4 text-sky-400" />
                       <div>
@@ -504,8 +504,8 @@ const ProjectSettingsPage: React.FC = () => {
               </section>
 
               {/* Project actions */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3">
                   <h2 className="text-sm font-semibold text-neutral-100">Project actions</h2>
                 </div>
                 <div className="px-5 py-4 space-y-3 text-[13px]">
@@ -548,8 +548,8 @@ const ProjectSettingsPage: React.FC = () => {
               </section>
 
               {/* Danger zone */}
-              <section className="rounded-xl border border-neutral-800 bg-neutral-900">
-                <div className="border-b border-neutral-800 px-5 py-3 flex items-center gap-2">
+              <section className="rounded-xl border border-neutral-600 bg-neutral-700">
+                <div className="border-b border-neutral-600 px-5 py-3 flex items-center gap-2">
                   <Shield className="h-4 w-4 text-amber-400" />
                   <h2 className="text-sm font-semibold text-neutral-100">Danger zone</h2>
                 </div>
