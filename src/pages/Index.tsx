@@ -642,13 +642,6 @@ Rules:
           {user ? (
             <>
               <button 
-                onClick={() => setShowProjectDialog(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-slate-200 hover:bg-white/10 transition-colors"
-              >
-                <FolderOpen className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{currentProject?.name || "Projects"}</span>
-              </button>
-              <button 
                 onClick={handleSaveProject}
                 disabled={isSaving}
                 className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
