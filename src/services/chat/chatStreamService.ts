@@ -2,7 +2,9 @@
  * Chat streaming service for real-time AI responses
  */
 
-const CHAT_URL = `https://kzymqlmtysrvnrpcneno.supabase.co/functions/v1/chat`;
+const SUPABASE_URL = "https://kzymqlmtysrvnrpcneno.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6eW1xbG10eXNydm5ycGNuZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzOTE1ODIsImV4cCI6MjA3ODk2NzU4Mn0.PqMj3ZUPt8sc0HRkK69aeEuN1pS8JnSIvzQcr1QhIlg";
+const CHAT_URL = `${SUPABASE_URL}/functions/v1/chat`;
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -32,6 +34,8 @@ export async function streamChat({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ messages, systemPrompt }),
     });
