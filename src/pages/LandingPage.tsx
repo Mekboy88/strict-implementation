@@ -365,7 +365,7 @@ const UrDevLandingPage: React.FC = () => {
                     {getUserInitial()}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80 bg-neutral-900 text-neutral-100 rounded-2xl shadow-2xl p-5 border border-neutral-800 z-50">
+                <DropdownMenuContent className="w-72 bg-neutral-900 text-neutral-100 rounded-2xl shadow-2xl p-4 border border-neutral-800 z-50">
                   {/* User Info */}
                   <div className="flex items-center gap-4 pb-4 border-b border-neutral-800">
                     <div className="h-12 w-12 rounded-xl bg-neutral-700 flex items-center justify-center text-lg font-semibold">
