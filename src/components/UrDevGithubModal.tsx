@@ -334,7 +334,7 @@ function UrDevGithubModal({
                       <span className="font-medium">
                         @{showAccount.username}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-[1px] text-[10px] text-white">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-[1px] text-[10px] text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" />
                         Connected
                       </span>
