@@ -457,9 +457,9 @@ const UrDevLandingPage: React.FC = () => {
                         setPrompt(e.target.value);
                         setPromptStatus("Draft");
                       }}
-                      placeholder={promptPlaceholder}
+                      placeholder="Hey UR-Dev, let's go!"
                       spellCheck={true}
-                      className="flex-1 bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none leading-tight align-top p-0 selection:bg-sky-500/40 selection:text-white"
+                      className="w-full bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none px-0 py-1 selection:bg-sky-500/40 selection:text-white overflow-y-auto"
                     />
                   <button
                     type="button"
