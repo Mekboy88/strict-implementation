@@ -439,8 +439,8 @@ function UrDevGithubModal({
           )}
 
           {state === "connected" && showAccountSwitcher && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[#020617]/95">
-              <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/95 px-4 py-4 shadow-xl">
+            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-neutral-900/95">
+              <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-neutral-900 px-4 py-4 shadow-xl">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ArrowLeft
@@ -454,16 +454,16 @@ function UrDevGithubModal({
                 </div>
 
                 {showAccount && (
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+                  <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-3">
                     <div className="flex items-center gap-3">
                       {showAccount.avatarUrl ? (
                         <img
                           src={showAccount.avatarUrl}
                           alt={showAccount.username}
-                          className="h-8 w-8 rounded-full border border-slate-700"
+                          className="h-8 w-8 rounded-full border border-white/20"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-[11px] uppercase text-white">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-[11px] uppercase text-white">
                           {showAccount.username.slice(0, 2)}
                         </div>
                       )}
@@ -471,7 +471,7 @@ function UrDevGithubModal({
                         <span className="text-xs font-medium text-slate-50">
                           @{showAccount.username}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-white/70">
                           Currently connected
                         </span>
                       </div>
@@ -480,7 +480,7 @@ function UrDevGithubModal({
                     <button
                       type="button"
                       onClick={handleUseCurrentAccount}
-                      className="mt-3 w-full rounded-lg bg-emerald-500 px-3 py-2 text-[11px] font-semibold text-slate-950 hover:bg-emerald-400"
+                      className="mt-3 w-full rounded-lg bg-white px-3 py-2 text-[11px] font-semibold text-neutral-900 hover:bg-white/90"
                     >
                       Use this account for this project
                     </button>
