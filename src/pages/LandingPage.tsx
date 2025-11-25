@@ -634,7 +634,7 @@ const UrDevLandingPage: React.FC = () => {
               {/* Visual Showcase: Website + Mobile Frame */}
               <div className="mt-8 relative pb-24 sm:pb-16">
                 {/* Desktop/Website Frame */}
-                <div className="relative rounded-2xl border border-white/10 bg-card p-3 sm:p-4 shadow-[0_0_80px_rgba(15,23,42,0.85)]">
+                <div className="relative rounded-2xl border border-white/10 bg-black/80 backdrop-blur p-3 sm:p-4 shadow-[0_0_80px_rgba(15,23,42,0.85)]">
                   <div className="flex items-center gap-2 mb-2 sm:mb-3 pb-2 border-b border-border">
                     <div className="flex gap-1.5">
                       <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-destructive/80"></div>
