@@ -157,8 +157,8 @@ const ProjectSettingsPage: React.FC = () => {
                             onClick={() => setActiveItem(item.id)}
                             className={`group flex w-full items-center justify-between px-5 py-2.5 text-left ${
                               active
-                                ? "bg-neutral-900 text-neutral-50"
-                                : "text-neutral-300 hover:bg-neutral-900/70 hover:text-neutral-50"
+                                ? "bg-neutral-700 text-neutral-50"
+                                : "text-neutral-300 hover:bg-neutral-700/70 hover:text-neutral-50"
                             }`}
                           >
                             <span>{item.label}</span>
@@ -191,7 +191,7 @@ const ProjectSettingsPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-neutral-400">
-                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-900 px-2 py-1 border border-neutral-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-neutral-800 px-2 py-1 border border-neutral-700">
                   <Activity className="h-3 w-3 text-emerald-400" />
                   Live workspace
                 </span>
@@ -218,7 +218,7 @@ const ProjectSettingsPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={openRenameModal}
-                        className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-neutral-300"
+                        className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-700 rounded text-neutral-400 hover:text-neutral-300"
                         aria-label="Rename project"
                       >
                         <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 503.322 503.322" xmlns="http://www.w3.org/2000/svg">
@@ -247,7 +247,7 @@ const ProjectSettingsPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={openSubdomainEditModal}
-                        className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-neutral-300"
+                        className="inline-flex items-center justify-center p-0.5 hover:bg-neutral-700 rounded text-neutral-400 hover:text-neutral-300"
                         aria-label="Edit subdomain"
                       >
                         <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 503.322 503.322" xmlns="http://www.w3.org/2000/svg">
@@ -358,7 +358,7 @@ const ProjectSettingsPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="space-y-1">
                       <div className="text-[12px] text-neutral-400">Workspace</div>
-                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-[13px] text-neutral-100">
+                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-[13px] text-neutral-100">
                         <span>Andi&apos;s UR-DEV workspace</span>
                         <ChevronRight className="h-3 w-3 text-neutral-500" />
                       </button>
@@ -366,7 +366,7 @@ const ProjectSettingsPage: React.FC = () => {
 
                     <div className="space-y-1">
                       <div className="text-[12px] text-neutral-400">Project category</div>
-                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-[13px] text-neutral-100">
+                      <button className="flex items-center justify-between w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-[13px] text-neutral-100">
                         <span>Select category</span>
                         <ChevronRight className="h-3 w-3 text-neutral-500" />
                       </button>
@@ -383,7 +383,7 @@ const ProjectSettingsPage: React.FC = () => {
                         type="button"
                         onClick={() => setHideBadge((v) => !v)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full border transition ${
-                          hideBadge ? "bg-sky-500 border-sky-400" : "bg-neutral-900 border-neutral-600"
+                          hideBadge ? "bg-sky-500 border-sky-400" : "bg-neutral-800 border-neutral-600"
                         }`}
                       >
                         <span
@@ -412,7 +412,7 @@ const ProjectSettingsPage: React.FC = () => {
                       onClick={() => toggleTarget("web")}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.web
-                          ? "border-sky-500 bg-neutral-900 text-sky-100"
+                          ? "border-sky-500 bg-neutral-800 text-sky-100"
                           : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
@@ -424,7 +424,7 @@ const ProjectSettingsPage: React.FC = () => {
                       onClick={() => toggleTarget("ios")}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.ios
-                          ? "border-sky-500 bg-neutral-900 text-sky-100"
+                          ? "border-sky-500 bg-neutral-800 text-sky-100"
                           : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
@@ -436,7 +436,7 @@ const ProjectSettingsPage: React.FC = () => {
                       onClick={() => toggleTarget("android")}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.android
-                          ? "border-sky-500 bg-neutral-900 text-sky-100"
+                          ? "border-sky-500 bg-neutral-800 text-sky-100"
                           : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
@@ -448,7 +448,7 @@ const ProjectSettingsPage: React.FC = () => {
                       onClick={() => toggleTarget("desktop")}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] ${
                         targets.desktop
-                          ? "border-sky-500 bg-neutral-900 text-sky-100"
+                          ? "border-sky-500 bg-neutral-800 text-sky-100"
                           : "border-neutral-700 bg-neutral-800 text-neutral-300"
                       }`}
                     >
@@ -517,7 +517,7 @@ const ProjectSettingsPage: React.FC = () => {
                       </div>
                     </div>
                     <button
-                      className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-900"
+                      className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-700"
                       type="button"
                       onClick={openRenameModal}
                     >
@@ -530,7 +530,7 @@ const ProjectSettingsPage: React.FC = () => {
                       <div className="text-neutral-100">Remix project</div>
                       <div className="text-[12px] text-neutral-400">Duplicate this app in a new project.</div>
                     </div>
-                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-900">
+                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-700">
                       Remix
                     </button>
                   </div>
@@ -540,7 +540,7 @@ const ProjectSettingsPage: React.FC = () => {
                       <div className="text-neutral-100">Transfer</div>
                       <div className="text-[12px] text-neutral-400">Move this project to a different workspace.</div>
                     </div>
-                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-900">
+                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-700">
                       Transfer
                     </button>
                   </div>
@@ -561,7 +561,7 @@ const ProjectSettingsPage: React.FC = () => {
                         Disable collecting analytics data for this project.
                       </div>
                     </div>
-                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-900">
+                    <button className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-100 hover:bg-neutral-700">
                       Disable
                     </button>
                   </div>
@@ -597,8 +597,8 @@ const ProjectSettingsPage: React.FC = () => {
       {/* Rename project modal */}
       {isRenameOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-800 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-neutral-50">Rename project</h2>
                 <p className="text-[12px] text-neutral-400">Update the name shown in your UR-DEV workspace.</p>
@@ -606,7 +606,7 @@ const ProjectSettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={closeRenameModal}
-                className="rounded-full p-1 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                className="rounded-full p-1 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100"
                 aria-label="Close rename dialog"
               >
                 ✕
@@ -622,17 +622,17 @@ const ProjectSettingsPage: React.FC = () => {
                   type="text"
                   value={draftName}
                   onChange={(e) => setDraftName(e.target.value)}
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                   maxLength={100}
                   autoFocus
                 />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-neutral-800 px-5 py-3">
+            <div className="flex items-center justify-end gap-2 border-t border-neutral-700 px-5 py-3">
               <button
                 type="button"
                 onClick={closeRenameModal}
-                className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-200 hover:bg-neutral-900"
+                className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-200 hover:bg-neutral-700"
               >
                 Cancel
               </button>
@@ -656,8 +656,8 @@ const ProjectSettingsPage: React.FC = () => {
       {/* Edit subdomain modal */}
       {isSubdomainEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+          <div className="w-full max-w-md rounded-2xl border border-neutral-700 bg-neutral-800 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-neutral-50">Modify URL subdomain</h2>
                 <p className="text-[12px] text-neutral-400">Update the URL subdomain for your deployed project.</p>
@@ -665,7 +665,7 @@ const ProjectSettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={closeSubdomainEditModal}
-                className="rounded-full p-1 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                className="rounded-full p-1 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100"
                 aria-label="Close subdomain edit dialog"
               >
                 ✕
@@ -681,7 +681,7 @@ const ProjectSettingsPage: React.FC = () => {
                   type="text"
                   value={draftSubdomain}
                   onChange={(e) => setDraftSubdomain(e.target.value)}
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                   maxLength={63}
                   autoFocus
                 />
@@ -690,7 +690,7 @@ const ProjectSettingsPage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="rounded-lg bg-neutral-900/50 border border-neutral-800 px-3 py-2">
+              <div className="rounded-lg bg-neutral-700/50 border border-neutral-700 px-3 py-2">
                 <p className="text-[11px] text-neutral-500 mb-1">Your project will be accessible at:</p>
                 <p className="text-[12px] text-sky-400 font-mono break-all">
                   https://{draftSubdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'your-subdomain'}.youaredev.app
@@ -701,11 +701,11 @@ const ProjectSettingsPage: React.FC = () => {
                 Display name: <span className="text-neutral-300">{projectName}</span>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-neutral-800 px-5 py-3">
+            <div className="flex items-center justify-end gap-2 border-t border-neutral-700 px-5 py-3">
               <button
                 type="button"
                 onClick={closeSubdomainEditModal}
-                className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-200 hover:bg-neutral-900"
+                className="rounded-md border border-neutral-700 px-3 py-1.5 text-[12px] text-neutral-200 hover:bg-neutral-700"
               >
                 Cancel
               </button>
