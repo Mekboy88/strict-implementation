@@ -620,7 +620,7 @@ Rules:
             type="button"
             onClick={() => setShowPreview(true)}
             className={`rounded-full px-3 py-1 ${
-              showPreview ? "bg-sky-500 text-black font-semibold" : "text-slate-300 hover:text-white"
+              showPreview ? "bg-white/10 text-white font-semibold" : "text-slate-300 hover:text-white"
             }`}
           >
             Preview
@@ -631,7 +631,7 @@ Rules:
             onClick={() => setShowPreview(false)}
             className={`rounded-full px-3 py-1 ${
               !showPreview
-                ? "bg-sky-500 text-black font-semibold shadow-[0_0_18px_rgba(56,189,248,0.6)]"
+                ? "bg-white/10 text-white font-semibold"
                 : "text-slate-300 hover:text-white"
             }`}
           >
