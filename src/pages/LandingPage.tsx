@@ -626,7 +626,13 @@ const UrDevLandingPage: React.FC = () => {
                         <span className="text-xs">＋</span>
                         <span>Attach</span>
                       </button>
-                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]">
+                      <button 
+                        onClick={() => {
+                          setPrompt("Tell me what project you want to build and I will make the very detailed plan for you to implement it and I will add in the Todo list on editor code");
+                          setPromptStatus("Ready to plan");
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
+                      >
                         <ListTodo className="h-3 w-3" />
                         <span>Make the Plan</span>
                       </button>
