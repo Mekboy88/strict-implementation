@@ -1007,7 +1007,7 @@ Rules:
                     </div>
                   </div>
                 )}
-                <div className="flex flex-col gap-2 rounded-2xl border-[0.5px] border-gray-700 bg-neutral-800 px-3 py-3">
+                <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-neutral-800 px-3 py-3">
                   <textarea
                     ref={assistantInputRef}
                     value={assistantInput}
