@@ -1324,7 +1324,7 @@ Rules:
                     <button
                       type="button"
                       onClick={() => {
-                        setAssistantInput("Tell me what project you want to build and I will make the very detailed plan for you to implement it and I will add in the Todo list");
+                        setAssistantInput("Describe your project idea and I'll generate a comprehensive development plan with actionable tasks organized in your To-do list.");
                       }}
                       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors bg-sky-500/20 text-sky-300 hover:bg-sky-500/30"
                     >
