@@ -459,7 +459,7 @@ const UrDevLandingPage: React.FC = () => {
                       }}
                       placeholder="Hey UR-Dev, let's go!"
                       spellCheck={true}
-                      className="w-full bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none px-0 py-1 selection:bg-sky-500/40 selection:text-white overflow-y-auto"
+                      className="w-full bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none px-0 py-1 selection:bg-sky-500/40 selection:text-white overflow-y-auto scrollbar-white"
                     />
                   <button
                     type="button"
