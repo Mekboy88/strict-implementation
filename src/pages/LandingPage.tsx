@@ -199,16 +199,44 @@ const UrDevLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-    });
+      
+      if (session?.user) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .in("role", ["owner", "admin"])
+          .maybeSingle();
+        
+        setIsAdmin(!!roleData);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkUser();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .in("role", ["owner", "admin"])
+          .maybeSingle();
+        
+        setIsAdmin(!!roleData);
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -419,12 +447,14 @@ const UrDevLandingPage: React.FC = () => {
                     <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
                       <Sun className="h-4 w-4" /> Appearance
                     </button>
-                    <button 
-                      onClick={() => navigate("/admin/login")}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400"
-                    >
-                      <Settings className="h-4 w-4" /> Admin Login
-                    </button>
+                    {isAdmin && (
+                      <button 
+                        onClick={() => navigate("/admin/login")}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400"
+                      >
+                        <Settings className="h-4 w-4" /> Admin Login
+                      </button>
+                    )}
                   </div>
 
                   {/* Sign Out */}
