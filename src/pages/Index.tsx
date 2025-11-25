@@ -671,12 +671,6 @@ Rules:
             </button>
           )}
           
-          <button className="inline-flex items-center gap-1 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_22px_rgba(56,189,248,0.8)] hover:bg-sky-400">
-            <span>Preview</span>
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
-              ↗
-            </span>
-          </button>
         </div>
       </header>
 
