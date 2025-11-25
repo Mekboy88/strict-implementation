@@ -186,6 +186,7 @@ function UrDevEditorPage() {
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [showTodos, setShowTodos] = useState(false);
   const [todos, setTodos] = useState<{id: string; text: string; completed: boolean}[]>([]);
+  const [isPlanning, setIsPlanning] = useState(false);
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -385,6 +386,75 @@ Rules:
 
   const handleStopStreaming = () => {
     setIsStreaming(false);
+  };
+
+  const handleMakePlan = async () => {
+    if (!assistantInput.trim() || isPlanning) return;
+    
+    setIsPlanning(true);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-plan`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ userRequest: assistantInput.trim() }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create plan');
+      }
+
+      const plan = await response.json();
+      
+      // Add tasks to the todos list
+      if (plan.tasks && plan.tasks.length > 0) {
+        const newTodos = plan.tasks.map((task: { title: string; description?: string }) => ({
+          id: `todo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          text: task.title,
+          completed: false,
+        }));
+        
+        setTodos(prev => [...prev, ...newTodos]);
+        setShowTodos(true); // Open the to-dos panel
+        setAssistantInput(''); // Clear the input
+        
+        // Reset textarea height
+        if (assistantInputRef.current) {
+          assistantInputRef.current.style.height = 'auto';
+        }
+        
+        toast({
+          title: "Plan Created",
+          description: `Added ${newTodos.length} tasks to your to-do list`,
+        });
+        
+        // Optionally add a chat message about the plan
+        if (plan.summary) {
+          const planMsg: ChatMsg = {
+            id: `plan-${Date.now()}`,
+            role: 'assistant',
+            content: `📋 **Plan Created**\n\n${plan.summary}\n\nI've added ${newTodos.length} tasks to your to-do list. Check them off as you complete each step!`,
+          };
+          setChatMessages(prev => [...prev, planMsg]);
+        }
+      }
+    } catch (error) {
+      console.error('Make plan error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create plan",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPlanning(false);
+    }
   };
 
   const handleConnectDatabase = () => {
@@ -1076,9 +1146,25 @@ Rules:
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10 transition-colors"
+                      onClick={handleMakePlan}
+                      disabled={!assistantInput.trim() || isPlanning || isStreaming}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors ${
+                        assistantInput.trim() && !isPlanning && !isStreaming
+                          ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30'
+                          : 'bg-white/5 text-slate-400 cursor-not-allowed'
+                      }`}
                     >
-                      Make the Plan
+                      {isPlanning ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Planning...
+                        </>
+                      ) : (
+                        <>
+                          <ListTodo className="h-3 w-3" />
+                          Make the Plan
+                        </>
+                      )}
                     </button>
                     {isStreaming ? (
                       <button
