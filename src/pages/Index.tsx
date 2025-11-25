@@ -1033,13 +1033,8 @@ Rules:
               {chatMessages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {msg.role === 'assistant' && (
-                    <div className="w-7 h-7 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-sky-400" />
-                    </div>
-                  )}
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                       msg.role === 'user'
@@ -1049,11 +1044,6 @@ Rules:
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
-                  {msg.role === 'user' && (
-                    <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-emerald-400" />
-                    </div>
-                  )}
                 </div>
               ))}
               {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
