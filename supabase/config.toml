@@ -1,4 +1,7 @@
 project_id = "kzymqlmtysrvnrpcneno"
 
 [functions."github-config"]
-verify_jwt = false  # Public endpoint - only returns client ID
+verify_jwt = false
+
+[functions."chat"]
+verify_jwt = false

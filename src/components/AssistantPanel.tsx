@@ -12,6 +12,7 @@ import { usePreviewStore } from "@/stores/usePreviewStore";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
 import { toast } from "@/hooks/use-toast";
 import { ChatMessage, createUserMessage, createAssistantMessage, getWelcomeMessage } from "@/services/chat/chatService";
+import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 
 interface AssistantPanelProps {
   explorerOpen?: boolean;
@@ -56,14 +57,58 @@ const AssistantPanel = ({
     setMessages((prev) => [...prev, userMessage]);
     setIsStreaming(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMessage = createAssistantMessage(
-        "I'm currently a placeholder AI assistant. Full integration with the GPU server is coming soon!"
-      );
-      setMessages((prev) => [...prev, assistantMessage]);
+    // Convert messages to API format
+    const apiMessages: StreamChatMessage[] = messages
+      .filter(m => m.role !== 'assistant' || m.content !== getWelcomeMessage().content)
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    apiMessages.push({ role: 'user', content });
+
+    let assistantContent = '';
+
+    try {
+      await streamChat({
+        messages: apiMessages,
+        onDelta: (delta) => {
+          assistantContent += delta;
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.id.startsWith('streaming-')) {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, content: assistantContent } : m
+              );
+            }
+            return [...prev, { ...createAssistantMessage(assistantContent), id: 'streaming-' + Date.now() }];
+          });
+        },
+        onDone: () => {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant') {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+              );
+            }
+            return prev;
+          });
+          setIsStreaming(false);
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to get AI response",
+            variant: "destructive",
+          });
+          setIsStreaming(false);
+        },
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect to AI service",
+        variant: "destructive",
+      });
       setIsStreaming(false);
-    }, 1000);
+    }
   };
 
   const handleStopStreaming = () => {
