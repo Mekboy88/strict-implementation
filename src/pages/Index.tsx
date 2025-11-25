@@ -43,6 +43,7 @@ import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from
 import { extractTasksFromResponse, hasExtractableTasks, ExtractedTask } from "@/utils/taskParser";
 import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
+import MainActionsDrawer from "@/components/chat/MainActionsDrawer";
 
 interface FileItem {
   id: string;
@@ -1540,6 +1541,15 @@ Rules:
         onLoadProject={handleLoadProject}
         onDeleteProject={removeProject}
         currentProjectId={currentProject?.id}
+      />
+
+      <MainActionsDrawer
+        open={showQuickActions}
+        onOpenChange={setShowQuickActions}
+        onSelectAction={(action) => {
+          setAssistantInput(`/${action} `);
+          setShowQuickActions(false);
+        }}
       />
     </div>
   );
