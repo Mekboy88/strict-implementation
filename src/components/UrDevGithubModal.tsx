@@ -189,7 +189,7 @@ function UrDevGithubModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#020617] shadow-[0_0_55px_rgba(15,23,42,0.95)]">
+      <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-900 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex items-center gap-3">
