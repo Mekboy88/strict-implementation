@@ -2,11 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createProject,
+  createSingleProject,
   getProjects,
   getProjectWithFiles,
   saveProjectFiles,
   deleteProject,
+  getPairedProject,
   Project,
+  ProjectVariantType,
+  ProjectPair,
 } from "@/services/projects/supabaseProjectService";
 import { toast } from "@/hooks/use-toast";
 
@@ -20,6 +24,8 @@ interface FileItem {
 
 export function useProjectPersistence() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [pairedProject, setPairedProject] = useState<Project | null>(null);
+  const [activeVariant, setActiveVariant] = useState<ProjectVariantType>('web');
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +51,7 @@ export function useProjectPersistence() {
     } else {
       setProjects([]);
       setCurrentProject(null);
+      setPairedProject(null);
     }
   }, [user]);
 
@@ -62,7 +69,12 @@ export function useProjectPersistence() {
     }
   }, [user]);
 
-  const createNewProject = useCallback(async (name: string, description?: string) => {
+  const createNewProject = useCallback(async (
+    name: string, 
+    description?: string,
+    variantType: ProjectVariantType = 'web',
+    createPairedVariant: boolean = false
+  ) => {
     if (!user) {
       toast({
         title: "Login Required",
@@ -74,14 +86,39 @@ export function useProjectPersistence() {
 
     setIsLoading(true);
     try {
-      const project = await createProject(name, description);
-      setProjects(prev => [project, ...prev]);
-      setCurrentProject(project);
+      let projectPair: ProjectPair;
+      
+      if (createPairedVariant) {
+        projectPair = await createProject(name, description, variantType, true);
+      } else {
+        const single = await createSingleProject(name, description, variantType);
+        projectPair = {
+          web: variantType === 'web' ? single : null,
+          mobile: variantType === 'mobile' ? single : null,
+        };
+      }
+
+      // Refresh projects list
+      await loadProjects();
+
+      // Set current project based on variant type
+      const primaryProject = variantType === 'web' ? projectPair.web : projectPair.mobile;
+      const secondaryProject = variantType === 'web' ? projectPair.mobile : projectPair.web;
+
+      if (primaryProject) {
+        setCurrentProject(primaryProject);
+        setPairedProject(secondaryProject);
+        setActiveVariant(variantType);
+      }
+
       toast({
         title: "Project Created",
-        description: `"${name}" has been created`,
+        description: createPairedVariant 
+          ? `"${name}" (Web & Mobile) has been created`
+          : `"${name}" has been created`,
       });
-      return project;
+
+      return projectPair;
     } catch (error) {
       console.error("Failed to create project:", error);
       toast({
@@ -93,7 +130,7 @@ export function useProjectPersistence() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, loadProjects]);
 
   const loadProject = useCallback(async (projectId: string) => {
     setIsLoading(true);
@@ -101,6 +138,16 @@ export function useProjectPersistence() {
       const project = await getProjectWithFiles(projectId);
       if (project) {
         setCurrentProject(project);
+        setActiveVariant(project.variant_type || 'web');
+
+        // Load paired project if exists
+        if (project.paired_project_id) {
+          const paired = await getPairedProject(projectId);
+          setPairedProject(paired);
+        } else {
+          setPairedProject(null);
+        }
+
         toast({
           title: "Project Loaded",
           description: `"${project.name}" loaded successfully`,
@@ -120,6 +167,25 @@ export function useProjectPersistence() {
       setIsLoading(false);
     }
   }, []);
+
+  const switchVariant = useCallback(async (variant: ProjectVariantType) => {
+    if (variant === activeVariant) return;
+
+    // If we have a paired project, switch to it
+    if (pairedProject && pairedProject.variant_type === variant) {
+      const temp = currentProject;
+      setCurrentProject(pairedProject);
+      setPairedProject(temp);
+      setActiveVariant(variant);
+
+      toast({
+        title: "Switched Version",
+        description: `Now editing ${variant === 'web' ? 'Web' : 'Mobile'} version`,
+      });
+    } else if (currentProject?.variant_type === variant) {
+      setActiveVariant(variant);
+    }
+  }, [activeVariant, currentProject, pairedProject]);
 
   const saveCurrentProject = useCallback(async (
     projectId: string,
@@ -167,9 +233,14 @@ export function useProjectPersistence() {
     try {
       await deleteProject(projectId);
       setProjects(prev => prev.filter(p => p.id !== projectId));
+      
       if (currentProject?.id === projectId) {
         setCurrentProject(null);
+        setPairedProject(null);
+      } else if (pairedProject?.id === projectId) {
+        setPairedProject(null);
       }
+
       toast({
         title: "Project Deleted",
         description: "Project has been deleted",
@@ -184,7 +255,7 @@ export function useProjectPersistence() {
       });
       return false;
     }
-  }, [currentProject]);
+  }, [currentProject, pairedProject]);
 
   const convertProjectFilesToEditor = useCallback((project: Project): FileItem[] => {
     if (!project.files) return [];
@@ -201,12 +272,15 @@ export function useProjectPersistence() {
   return {
     user,
     currentProject,
+    pairedProject,
+    activeVariant,
     projects,
     isLoading,
     isSaving,
     loadProjects,
     createNewProject,
     loadProject,
+    switchVariant,
     saveCurrentProject,
     removeProject,
     convertProjectFilesToEditor,
