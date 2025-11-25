@@ -1350,7 +1350,7 @@ Rules:
               <>
                 {/* File tabs + copy */}
                 <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2.5 text-[11px]">
-                  <div className="flex items-center gap-2 overflow-x-auto">
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                     {projectFiles.map((file) => {
                       const isActive = file.id === activeFileId;
                       return (
