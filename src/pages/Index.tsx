@@ -587,9 +587,9 @@ Rules:
 `));
 
   return (
-    <div className="h-screen bg-neutral-900 text-foreground flex flex-col overflow-hidden">
+    <div className="h-screen bg-neutral-800 text-foreground flex flex-col overflow-hidden">
       {/* TOP BAR */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-neutral-900 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
+      <header className="flex items-center justify-between border-b border-neutral-700 bg-neutral-800 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-400/70 text-xs font-semibold text-cyan-200">
             UR
@@ -603,7 +603,7 @@ Rules:
                 </div>
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-neutral-900 border-neutral-700">
+              <DropdownMenuContent align="start" className="w-48 bg-neutral-800 border-neutral-700">
                 <DropdownMenuItem 
                   onClick={() => navigate("/")}
                   className="flex items-center gap-2 cursor-pointer text-slate-200 focus:bg-neutral-800 focus:text-white"
@@ -615,7 +615,7 @@ Rules:
             </DropdownMenu>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-1 py-1 text-[11px]">
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-neutral-700 bg-white/5 px-1 py-1 text-[11px]">
           <button
             type="button"
             onClick={() => setShowPreview(true)}
@@ -670,7 +670,7 @@ Rules:
 
       <div className="flex-1 flex overflow-hidden">
         {/* FAR LEFT ACTIVITY RAIL */}
-        <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-white/10 bg-neutral-900 py-3">
+        <aside className="hidden lg:flex w-12 flex-col items-center justify-between border-r border-neutral-700 bg-neutral-800 py-3">
           <div className="flex flex-col items-center gap-3">
             <button 
               onClick={() => setShowFileExplorer(!showFileExplorer)}
@@ -801,8 +801,8 @@ Rules:
 
         {/* LEFT SIDEBAR (EXPLORER) */}
         {showFileExplorer && (
-          <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-neutral-900">
-          <div className="px-3 py-3 border-b border-white/10">
+          <aside className="hidden lg:flex w-72 flex-col border-r border-neutral-700 bg-neutral-800">
+          <div className="px-3 py-3 border-b border-neutral-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
                 <span className="text-xs font-semibold text-slate-100">Explorer</span>
@@ -870,7 +870,7 @@ Rules:
               </svg>
             </div>
             {showSearchBar && (
-              <div className="mt-3 flex items-center gap-2 rounded-md bg-neutral-900 px-2 py-1 text-[11px] text-slate-300 border border-neutral-700">
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-neutral-800 px-2 py-1 text-[11px] text-slate-300 border border-neutral-700">
                 <Search className="h-3 w-3 text-slate-500" />
                 <input
                   className="flex-1 bg-transparent outline-none placeholder:text-slate-600"
@@ -1002,7 +1002,7 @@ Rules:
             )}
           </div>
 
-          <div className="border-t border-white/10 px-4 py-3 text-[10px] text-slate-500 flex items-center justify-between">
+          <div className="border-t border-neutral-700 px-4 py-3 text-[10px] text-slate-500 flex items-center justify-between">
             <button className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:bg-white/10">
               <Settings2 className="h-3 w-3" />
               <span>Project settings</span>
@@ -1017,12 +1017,12 @@ Rules:
           <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
             {/* ASSISTANT PANEL - MOVED TO LEFT */}
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="hidden xl:block overflow-hidden">
-              <aside className="flex h-full flex-col border-r border-white/10 bg-neutral-900 overflow-hidden">
-            <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
+              <aside className="flex h-full flex-col border-r border-neutral-700 bg-neutral-800 overflow-hidden">
+            <div className="border-b border-neutral-700 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-100">UR-DEV Assistant</div>
               </div>
-              <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition-colors">
+              <button className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-white/5 px-3 py-1 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-100 transition-colors">
                 <span className="text-xs">▶</span>
                 <span>Run checks</span>
               </button>
@@ -1044,7 +1044,7 @@ Rules:
                     className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                       msg.role === 'user'
                         ? 'bg-sky-500 text-white'
-                        : 'bg-neutral-800 border border-white/10 text-slate-200'
+                        : 'bg-neutral-800 border border-neutral-700 text-slate-200'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -1061,7 +1061,7 @@ Rules:
                   <div className="w-7 h-7 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
                     <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
                   </div>
-                  <div className="bg-neutral-800 border border-white/10 rounded-2xl px-4 py-3">
+                  <div className="bg-neutral-800 border border-neutral-700 rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 text-slate-400 text-sm">
                       <span>Thinking...</span>
                     </div>
@@ -1072,7 +1072,7 @@ Rules:
 
             {/* Task Extraction Prompt */}
             {showTaskPrompt && extractedTasks.length > 0 && (
-              <div className="border-t border-white/10 px-4 py-3 bg-sky-500/5 flex-shrink-0">
+              <div className="border-t border-neutral-700 px-4 py-3 bg-sky-500/5 flex-shrink-0">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <ListTodo className="w-3 h-3 text-sky-400" />
@@ -1116,7 +1116,7 @@ Rules:
             {/* Quick Actions Panel - Above Chat Input */}
             {showQuickActions && (
               <div className="px-4 py-2 flex-shrink-0">
-                <div className="rounded-xl border border-white/10 bg-neutral-800 p-3">
+                <div className="rounded-xl border border-neutral-700 bg-neutral-800 p-3">
                   <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => {
@@ -1183,8 +1183,8 @@ Rules:
               </div>
             )}
 
-            <div className="border-t border-white/10 px-4 py-3 flex-shrink-0">
-              <div className="rounded-2xl border border-white/10 bg-neutral-800 overflow-hidden">
+            <div className="border-t border-neutral-700 px-4 py-3 flex-shrink-0">
+              <div className="rounded-2xl border border-neutral-700 bg-neutral-800 overflow-hidden">
                 {/* To-dos Panel */}
                 <button
                   onClick={() => setShowTodos(!showTodos)}
@@ -1207,7 +1207,7 @@ Rules:
                 </button>
                 
                 {showTodos && (
-                  <div className="border-t border-white/10 px-4 py-3 space-y-2 max-h-48 overflow-y-auto">
+                  <div className="border-t border-neutral-700 px-4 py-3 space-y-2 max-h-48 overflow-y-auto">
                     {todos.length === 0 ? (
                       <p className="text-xs text-slate-500 text-center py-2">No to-dos yet. AI will add tasks here.</p>
                     ) : (
@@ -1248,7 +1248,7 @@ Rules:
                 )}
 
                 {/* Input Area */}
-                <div className="flex flex-col gap-2 border-t border-white/10 px-3 py-3">
+                <div className="flex flex-col gap-2 border-t border-neutral-700 px-3 py-3">
                   <textarea
                     ref={assistantInputRef}
                     value={assistantInput}
@@ -1341,7 +1341,7 @@ Rules:
             <ResizableHandle withHandle className="hidden xl:flex" />
 
             <ResizablePanel defaultSize={75} minSize={50}>
-              <section className="flex-1 flex flex-col bg-neutral-900 h-full">
+              <section className="flex-1 flex flex-col bg-neutral-800 h-full">
             {showPreview ? (
               <div className="flex-1 overflow-auto">
                 <UrDevPreviewFrame />
@@ -1349,7 +1349,7 @@ Rules:
             ) : (
               <>
                 {/* File tabs + copy */}
-                <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2.5 text-[11px]">
+                <div className="flex items-center justify-between border-b border-neutral-700 bg-neutral-800 px-4 py-2.5 text-[11px]">
                   <div className="flex items-center gap-2 overflow-x-auto">
                     {projectFiles.map((file) => {
                       const isActive = file.id === activeFileId;
@@ -1435,7 +1435,7 @@ Rules:
                       </div>
                     )}
                     <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
-                      <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-neutral-900 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
+                      <div ref={lineNumbersRef} className="select-none border-r border-neutral-700 bg-neutral-800 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
                         {currentLines.map((line, index) => (
                           <div
                             key={index}
@@ -1456,7 +1456,7 @@ Rules:
                         onScroll={handleScroll}
                         spellCheck={false}
                         readOnly={!isEditingEnabled}
-                        className={`flex-1 resize-none bg-neutral-900 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
+                        className={`flex-1 resize-none bg-neutral-800 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
                           !isEditingEnabled ? "cursor-default" : ""
                         }`}
                       />
@@ -1474,9 +1474,9 @@ Rules:
       {/* Database Setup Popup */}
       {showDatabasePopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-neutral-900 shadow-xl">
+          <div className="w-full max-w-xl rounded-2xl border border-neutral-700 bg-neutral-800 shadow-xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-neutral-700 px-5 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/15 border border-sky-400/70">
                   <Database className="h-4 w-4 text-sky-300" />
