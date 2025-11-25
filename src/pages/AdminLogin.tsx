@@ -47,8 +47,26 @@ const AdminLoginPage: React.FC = () => {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full mb-6 p-3 rounded-lg bg-neutral-800 border border-neutral-700 placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
+            className="w-full mb-4 p-3 rounded-lg bg-neutral-800 border border-neutral-700 placeholder-neutral-500 focus:outline-none focus:border-neutral-500"
           />
+
+          {/* AUTH CODE */}
+          <label className="block text-sm mb-1">Authenticator Code</label>
+          <input
+            type="text"
+            placeholder="6‑digit code"
+            disabled
+            className="w-full mb-6 p-3 rounded-lg bg-neutral-800 border border-neutral-700 placeholder-neutral-500 focus:outline-none focus:border-neutral-500 opacity-50 cursor-not-allowed"
+          />
+
+          {/* HUMAN CHECK */}
+          <div className="w-full bg-neutral-800 border border-neutral-700 rounded-lg p-4 mb-6 flex items-center justify-between opacity-50">
+            <div className="flex items-center gap-3">
+              <div className="h-5 w-5 border-2 border-neutral-500 rounded-sm"></div>
+              <span className="text-neutral-300 text-sm">Verify you are human</span>
+            </div>
+            <span className="text-xs text-neutral-500">Cloudflare</span>
+          </div>
 
           {/* BUTTON */}
           <button 
