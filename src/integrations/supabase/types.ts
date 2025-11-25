@@ -1044,8 +1044,10 @@ export type Database = {
           github_repo_url: string | null
           id: string
           name: string
+          paired_project_id: string | null
           updated_at: string
           user_id: string
+          variant_type: string | null
         }
         Insert: {
           created_at?: string
@@ -1053,8 +1055,10 @@ export type Database = {
           github_repo_url?: string | null
           id?: string
           name: string
+          paired_project_id?: string | null
           updated_at?: string
           user_id: string
+          variant_type?: string | null
         }
         Update: {
           created_at?: string
@@ -1062,10 +1066,20 @@ export type Database = {
           github_repo_url?: string | null
           id?: string
           name?: string
+          paired_project_id?: string | null
           updated_at?: string
           user_id?: string
+          variant_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_paired_project_id_fkey"
+            columns: ["paired_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit: {
         Row: {

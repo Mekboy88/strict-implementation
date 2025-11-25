@@ -43,6 +43,7 @@ import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from
 import { extractTasksFromResponse, hasExtractableTasks, ExtractedTask } from "@/utils/taskParser";
 import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
+import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 
 
 interface FileItem {
@@ -197,11 +198,14 @@ function UrDevEditorPage() {
   const {
     user,
     currentProject,
+    pairedProject,
+    activeVariant,
     projects,
     isLoading: isProjectLoading,
     isSaving,
     createNewProject,
     loadProject,
+    switchVariant,
     saveCurrentProject,
     removeProject,
     convertProjectFilesToEditor,
@@ -639,6 +643,16 @@ Rules:
           </button>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
+          {/* Project variant switcher */}
+          {currentProject && (
+            <ProjectVariantSwitcher
+              activeVariant={activeVariant}
+              onVariantChange={switchVariant}
+              hasWebProject={activeVariant === 'web' || !!pairedProject}
+              hasMobileProject={activeVariant === 'mobile' || !!pairedProject}
+            />
+          )}
+          
           {/* Project controls */}
           {user ? (
             <>
@@ -1590,13 +1604,16 @@ Rules:
         onOpenChange={setShowProjectDialog}
         projects={projects}
         isLoading={isProjectLoading}
-        onCreateProject={async (name, desc) => {
-          const project = await createNewProject(name, desc);
-          if (project) {
-            // Save current files to the new project
-            await saveCurrentProject(project.id, projectFiles, fileContents);
+        onCreateProject={async (name, desc, variantType, createPaired) => {
+          const result = await createNewProject(name, desc, variantType, createPaired);
+          if (result) {
+            // Save current files to the new project (use web project if available, otherwise mobile)
+            const projectToSave = result.web || result.mobile;
+            if (projectToSave) {
+              await saveCurrentProject(projectToSave.id, projectFiles, fileContents);
+            }
           }
-          return project;
+          return result;
         }}
         onLoadProject={handleLoadProject}
         onDeleteProject={removeProject}
