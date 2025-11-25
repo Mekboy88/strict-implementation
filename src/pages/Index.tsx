@@ -894,7 +894,7 @@ function UrDevEditorPage() {
                     </div>
                   </div>
                 )}
-                <div className="flex flex-col gap-2 rounded-2xl bg-neutral-800 border-2 border-neutral-700 px-3 py-3">
+                <div className="flex flex-col gap-2 rounded-2xl bg-neutral-800 border border-neutral-700 px-3 py-3">
                   <textarea
                     ref={assistantInputRef}
                     value={assistantInput}
