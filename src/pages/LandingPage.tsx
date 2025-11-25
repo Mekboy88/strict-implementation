@@ -419,6 +419,12 @@ const UrDevLandingPage: React.FC = () => {
                     <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
                       <Sun className="h-4 w-4" /> Appearance
                     </button>
+                    <button 
+                      onClick={() => navigate("/admin/login")}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400"
+                    >
+                      <Settings className="h-4 w-4" /> Admin Login
+                    </button>
                   </div>
 
                   {/* Sign Out */}
