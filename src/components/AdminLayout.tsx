@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  Settings,
   LayoutDashboard,
   Users,
   FolderGit2,
@@ -10,149 +11,177 @@ import {
   Activity,
   Layers,
   SlidersHorizontal,
-  Sun,
-  Moon,
+  LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 
-// EXTREMELY CLEAN PURE GREY THEME — NO BLUE, NO BLACK, NO COLOR
-// EVERYTHING IS PURE GREY SHADES ONLY
-// Sidebar + Top Bar + Main Area all grey
-// Theme toggle switches between LIGHT GREY and DARK GREY (no colors)
-
 const MENU_ITEMS = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "users", label: "Users", icon: Users },
-  { id: "projects", label: "Projects", icon: FolderGit2 },
-  { id: "roles", label: "Roles", icon: Layers },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "system", label: "System", icon: Activity },
-  { id: "communication", label: "Communication", icon: MessageCircle },
-  { id: "analytics", label: "Analytics", icon: Activity },
-  { id: "advanced", label: "Advanced", icon: SlidersHorizontal },
-  { id: "settings", label: "Settings", icon: Cog },
+  { id: "dashboard", path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "users", path: "/admin/users", label: "Users", icon: Users },
+  { id: "projects", path: "/admin/projects", label: "Projects", icon: FolderGit2 },
+  { id: "roles", path: "/admin/roles", label: "Roles", icon: Layers },
+  { id: "security", path: "/admin/security", label: "Security", icon: Shield },
+  { id: "system", path: "/admin/system-monitoring", label: "System", icon: Activity },
+  { id: "communication", path: "/admin/communication", label: "Communication", icon: MessageCircle },
+  { id: "analytics", path: "/admin/analytics", label: "Analytics", icon: Activity },
+  { id: "advanced", path: "/admin/advanced", label: "Advanced", icon: SlidersHorizontal },
+  { id: "settings", path: "/admin/settings", label: "Settings", icon: Cog },
 ];
 
-const AdminSettingsPage: React.FC = () => {
-  const [active, setActive] = React.useState<string>("dashboard");
-  const [theme, setTheme] = React.useState<"light" | "dark">("dark");
+const AdminLayout: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const activeItem = MENU_ITEMS.find((item) => item.id === active) ?? MENU_ITEMS[0];
-  const isDark = theme === "dark";
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuthenticated = sessionStorage.getItem("admin_authenticated");
+      if (!isAuthenticated) {
+        navigate("/admin/login");
+        return;
+      }
 
-  // PURE GREY SHADES ONLY
-  const grey = {
-    lightBg: "bg-[#f2f2f2] text-[#000000]", // light grey
-    darkBg: "bg-[#3a3a3a] text-[#f2f2f2]", // dark grey
-    sidebarLight: "bg-[#ffffff] text-[#1a1a1a] border-[#e8e8e8]",
-    sidebarDark: "bg-[#2a2a2a] text-[#f2f2f2] border-[#555]",
-    cardLight: "bg-[#f8f8f8] border-[#c7c7c7]",
-    cardDark: "bg-[#4a4a4a] border-[#606060]",
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/admin/login");
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (!roleData || !["owner", "admin"].includes(roleData.role)) {
+        navigate("/admin/login");
+        return;
+      }
+
+      setUserEmail(session.user.email || "");
+      setIsAdmin(true);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    sessionStorage.removeItem("admin_authenticated");
+    navigate("/admin/login");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0f18" }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: "#4CB3FF" }}></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
+
+  const currentPath = location.pathname;
+
   return (
-    <div className={`min-h-screen w-full flex ${isDark ? grey.darkBg : grey.lightBg}`}>
-      {/* SIDEBAR */}
-      <aside
-        className={`hidden md:flex flex-col w-64 border-r
-          ${isDark ? grey.sidebarDark : grey.sidebarLight}
-        `}
+    <div className="min-h-screen flex" style={{ background: "#0a0f18" }}>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg"
+        style={{ background: "#1a2332", color: "#D6E4F0" }}
       >
-        {/* HEADER */}
-        <div className="h-14 flex items-center gap-2 px-4 border-b border-inherit/60">
-          <div className="h-8 w-8 rounded-lg bg-[#ffffff20] flex items-center justify-center">
-            <Settings className="h-4 w-4" />
+        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        `}
+        style={{ background: "#0d1421", borderRight: "1px solid #ffffff10" }}
+      >
+        {/* Header */}
+        <div className="h-16 flex items-center gap-3 px-4" style={{ borderBottom: "1px solid #ffffff10" }}>
+          <div
+            className="h-10 w-10 rounded-lg flex items-center justify-center"
+            style={{ background: "#4CB3FF20" }}
+          >
+            <LayoutDashboard className="h-5 w-5" style={{ color: "#4CB3FF" }} />
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs tracking-widest opacity-60">ADMIN</span>
-            <span className="text-sm font-semibold">Settings Panel</span>
+          <div className="flex flex-col">
+            <span className="text-xs tracking-wider" style={{ color: "#8FA3B7" }}>ADMIN</span>
+            <span className="text-sm font-semibold" style={{ color: "#D6E4F0" }}>UR-DEV Panel</span>
           </div>
         </div>
 
-        {/* SIDEBAR BUTTONS */}
-        <nav className="flex-1 py-3 px-2 flex flex-col gap-1 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = active === item.id;
+            const isActive = currentPath === item.path || (item.path === "/admin/dashboard" && currentPath === "/admin");
             return (
-              <button
+              <Link
                 key={item.id}
-                type="button"
-                onClick={() => setActive(item.id)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all
-                  ${
-                    isActive
-                      ? isDark
-                        ? "bg-[#ffffff20] text-[#f2f2f2] shadow-none"
-                        : "bg-[#f5f5f5] text-[#000000] shadow-[0_0_0_1px_rgba(0,0,0,0.12)]"
-                      : isDark
-                        ? "opacity-80 hover:opacity-100"
-                        : "opacity-80 hover:bg-[#f3f3f3]"
-                  }
-                `}
+                to={item.path}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all`}
+                style={{
+                  background: isActive ? "#4CB3FF15" : "transparent",
+                  color: isActive ? "#4CB3FF" : "#8FA3B7",
+                }}
               >
-                <span className={`w-7 h-7 flex items-center justify-center rounded-md border border-[#a0a0a0]`}>
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
+                <Icon className="h-4 w-4" />
                 {item.label}
-              </button>
+              </Link>
             );
           })}
         </nav>
 
-        <div className="h-12 border-t border-inherit/60 flex items-center justify-between px-4 text-xs opacity-70">
-          <span>UR-DEV Admin</span>
-          <span>v1.0</span>
+        {/* User section */}
+        <div className="p-4" style={{ borderTop: "1px solid #ffffff10" }}>
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium"
+              style={{ background: "#4CB3FF20", color: "#4CB3FF" }}
+            >
+              {userEmail.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs truncate" style={{ color: "#D6E4F0" }}>{userEmail}</p>
+              <p className="text-xs" style={{ color: "#8FA3B7" }}>Admin</p>
+            </div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
+            style={{ background: "#ffffff08", color: "#8FA3B7" }}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
-      {/* MAIN AREA */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* TOP BAR */}
-        <header
-          className={`h-14 flex items-center justify-between px-4 md:px-6 border-b
-            ${isDark ? "bg-[#2f2f2f] border-[#555]" : "bg-[#ffffff] border-[#e8e8e8]"}
-          `}
-        >
-          <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold">Admin Settings</h1>
-          </div>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-30 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-          {/* THEME BUTTON */}
-          <button
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className={`flex items-center gap-2 rounded-full px-3 py-1.5 border text-xs transition-all
-              ${
-                isDark
-                  ? "bg-[#3f3f3f] border-[#6a6a6a] text-[#f2f2f2] hover:bg-[#4a4a4a]"
-                  : "bg-[#f6f6f6] border-[#d5d5d5] text-[#000000] hover:bg-[#ebebeb]"
-              }
-            `}
-          >
-            {isDark ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
-            {isDark ? "Dark Grey" : "Light Grey"}
-          </button>
-        </header>
-
-        {/* CONTENT */}
-        <section className="flex-1 flex items-center justify-center px-4 md:px-8 py-6">
-          <div
-            className={`w-full max-w-2xl rounded-xl border shadow-inner
-              ${isDark ? grey.cardDark : grey.cardLight}
-            `}
-          >
-            <div className="p-8 flex flex-col items-center text-center gap-3">
-              <span className="text-xs opacity-60">{activeItem.label} page</span>
-              <h2 className="text-lg font-semibold">Empty {activeItem.label} page</h2>
-              <p className="text-xs opacity-60 max-w-md">
-                Grey-only theme. No colors. No blue. No black. Everything is pure multi‑tone grey for a clean
-                professional UI.
-              </p>
-            </div>
-          </div>
-        </section>
+      {/* Main content */}
+      <main className="flex-1 min-w-0 overflow-auto">
+        <Outlet />
       </main>
     </div>
   );
 };
 
-export default AdminSettingsPage;
+export default AdminLayout;
