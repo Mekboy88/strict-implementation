@@ -476,7 +476,7 @@ Rules:
 `));
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-foreground flex flex-col">
+    <div className="h-screen bg-neutral-900 text-foreground flex flex-col overflow-hidden">
       {/* TOP BAR */}
       <header className="flex items-center justify-between border-b border-white/10 bg-neutral-900 pl-1 pr-4 py-3 sm:pl-2 sm:pr-6 lg:pl-2 lg:pr-8">
         <div className="flex items-center gap-2">
@@ -915,10 +915,10 @@ Rules:
         )}
 
         {/* CENTER: EDITOR OR PREVIEW */}
-        <main className="flex-1 flex overflow-hidden">
-          <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <main className="flex-1 flex overflow-hidden min-h-0">
+          <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
             {/* ASSISTANT PANEL - MOVED TO LEFT */}
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="hidden xl:block">
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40} className="hidden xl:block overflow-hidden">
               <aside className="flex h-full flex-col border-r border-white/10 bg-neutral-900 overflow-hidden">
             <div className="border-b border-white/10 px-4 py-3 text-[11px] flex items-center justify-between">
               <div>
@@ -972,7 +972,7 @@ Rules:
               )}
             </div>
 
-            <div className="border-t border-white/10 px-4 py-3">
+            <div className="border-t border-white/10 px-4 py-3 flex-shrink-0">
               <div className="rounded-2xl space-y-3">
                 {showQuickActions && (
                   <div className="rounded-2xl bg-neutral-800 px-3 py-3">
