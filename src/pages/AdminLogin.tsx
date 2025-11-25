@@ -20,12 +20,12 @@ const AdminLogin = () => {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        navigate("/login");
         toast({
           title: "Authentication Required",
           description: "Please login to your account first.",
           variant: "destructive",
         });
+        navigate("/login");
         return;
       }
 
@@ -46,9 +46,10 @@ const AdminLogin = () => {
         return;
       }
 
+      // If already authenticated as admin, redirect to dashboard
       const adminAuth = sessionStorage.getItem("admin_authenticated");
       if (adminAuth === "true") {
-        navigate("/admin");
+        navigate("/admin/dashboard");
       }
     };
 
