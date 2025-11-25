@@ -16,6 +16,10 @@ import {
   ArrowLeft,
   Database,
   X,
+  Bot,
+  User,
+  Loader2,
+  Square,
 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SupabaseIcon from "@/assets/supabase-logo-icon-2.svg";
 import { GitHubIntegration } from "@/components/GitHubIntegration";
+import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
+import { toast } from "@/hooks/use-toast";
 
 const initialFiles = [
   {
@@ -160,6 +166,91 @@ function UrDevEditorPage() {
   const [dbState, setDbState] = useState<"idle" | "creating">("idle");
   const [showGitHubModal, setShowGitHubModal] = useState(false);
   const githubButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Chat state
+  interface ChatMsg { id: string; role: 'user' | 'assistant'; content: string; }
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
+    { id: 'welcome', role: 'assistant', content: "Hi! I'm UR-DEV AI. Tell me what you want to build and I'll help you create it." }
+  ]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when messages change
+  React.useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleSendChat = async () => {
+    if (!assistantInput.trim() || isStreaming) return;
+    
+    const userMsg: ChatMsg = { id: `user-${Date.now()}`, role: 'user', content: assistantInput.trim() };
+    setChatMessages(prev => [...prev, userMsg]);
+    setAssistantInput("");
+    setIsStreaming(true);
+    
+    // Reset textarea height
+    if (assistantInputRef.current) {
+      assistantInputRef.current.style.height = 'auto';
+    }
+
+    const apiMessages: StreamChatMessage[] = chatMessages
+      .filter(m => m.id !== 'welcome')
+      .map(m => ({ role: m.role, content: m.content }));
+    apiMessages.push({ role: 'user', content: userMsg.content });
+
+    let assistantContent = '';
+
+    try {
+      await streamChat({
+        messages: apiMessages,
+        onDelta: (delta) => {
+          assistantContent += delta;
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.id.startsWith('streaming-')) {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, content: assistantContent } : m
+              );
+            }
+            return [...prev, { id: `streaming-${Date.now()}`, role: 'assistant', content: assistantContent }];
+          });
+        },
+        onDone: () => {
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant') {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+              );
+            }
+            return prev;
+          });
+          setIsStreaming(false);
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to get AI response",
+            variant: "destructive",
+          });
+          setIsStreaming(false);
+        },
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect to AI service",
+        variant: "destructive",
+      });
+      setIsStreaming(false);
+    }
+  };
+
+  const handleStopStreaming = () => {
+    setIsStreaming(false);
+  };
 
   const handleConnectDatabase = () => {
     setDbState("creating");
@@ -678,56 +769,46 @@ function UrDevEditorPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
-              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3">
-                <button
-                  type="button"
-                  onClick={() => setShowReasoning((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-1 text-[11px] text-slate-200"
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
+              {/* Chat Messages */}
+              {chatMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <span>Reasoning</span>
-                  <span className="text-xs">{showReasoning ? "▾" : "▸"}</span>
-                </button>
-                {showReasoning && (
-                  <div className="mt-2 rounded-lg bg-neutral-800 animate-pulse px-3 py-2 text-[11px] text-slate-200">
-                    The assistant analyses the current file, identifies structural issues, and
-                    proposes a clear, maintainable revision plan before suggesting any code edits.
+                  {msg.role === 'assistant' && (
+                    <div className="w-7 h-7 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-sky-400" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                      msg.role === 'user'
+                        ? 'bg-sky-500 text-white'
+                        : 'bg-neutral-800 border border-white/10 text-slate-200'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
-                )}
-                <div className="mt-3 space-y-2 text-slate-100">
-                  <p>
-                    I have examined the active component and identified opportunities to simplify its
-                    layout, improve naming, and separate visual concerns from logic. The next step is
-                    to introduce small, focused helpers while preserving the original behaviour.
-                  </p>
-                  <p className="text-slate-300">
-                    All suggestions are conservative, emphasising readability, long-term
-                    maintainability, and type safety.
-                  </p>
+                  {msg.role === 'user' && (
+                    <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-emerald-400" />
+                    </div>
+                  )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button className="rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400">
-                    Error fixing
-                  </button>
-                  <button className="rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400">
-                    Find logic bugs
-                  </button>
-                  <button className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] text-slate-100 hover:border-sky-400/80 hover:text-sky-100">
-                    Suggest refactor
-                  </button>
+              ))}
+              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
+                <div className="flex gap-3 justify-start">
+                  <div className="w-7 h-7 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                    <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
+                  </div>
+                  <div className="bg-neutral-800 border border-white/10 rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <span>Thinking...</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                  Recent analysis
-                </div>
-                <ul className="mt-2 space-y-1 text-slate-300">
-                  <li>• Verified props and state usage are coherent.</li>
-                  <li>• No unreachable branches detected in this file.</li>
-                  <li>• Recommended extracting layout into smaller sections.</li>
-                </ul>
-              </div>
+              )}
             </div>
 
             <div className="border-t border-white/10 px-4 py-3">
@@ -776,9 +857,16 @@ function UrDevEditorPage() {
                     onFocus={(e) => {
                       autoResizeAssistantInput(e.target);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendChat();
+                      }
+                    }}
+                    disabled={isStreaming}
                     spellCheck={true}
-                    className="w-full bg-transparent text-base text-white/80 placeholder:text-white/50 outline-none resize-none px-0 py-1 selection:bg-blue-500/60 selection:text-white overflow-y-auto scrollbar-white"
-                    placeholder="Hey UR-Dev, let's go!"
+                    className="w-full bg-transparent text-base text-white/80 placeholder:text-white/50 outline-none resize-none px-0 py-1 selection:bg-blue-500/60 selection:text-white overflow-y-auto scrollbar-white disabled:opacity-50"
+                    placeholder={isStreaming ? "AI is responding..." : "Hey UR-Dev, let's go!"}
                     style={{ height: 'auto', minHeight: '24px' }}
                   />
                   <div className="flex items-center gap-2 justify-between">
@@ -789,18 +877,34 @@ function UrDevEditorPage() {
                   >
                     <Settings2 className="h-4 w-4" />
                   </button>
-                  <svg 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-6 w-6 transition-colors ${
-                      assistantInput.trim() 
-                        ? "text-sky-500 cursor-pointer hover:text-sky-400" 
-                        : "text-slate-600 cursor-not-allowed opacity-50"
-                    }`}
-                  >
-                    <path d="M16.19 2H7.81C4.17 2 2 4.17 2 7.81V16.18C2 19.83 4.17 22 7.81 22H16.18C19.82 22 21.99 19.83 21.99 16.19V7.81C22 4.17 19.83 2 16.19 2ZM8.47 8.98L11.47 5.98C11.54 5.91 11.62 5.86 11.71 5.82C11.89 5.74 12.1 5.74 12.28 5.82C12.37 5.86 12.45 5.91 12.52 5.98L15.52 8.98C15.81 9.27 15.81 9.75 15.52 10.04C15.37 10.19 15.18 10.26 14.99 10.26C14.8 10.26 14.61 10.19 14.46 10.04L12.74 8.32V14.51C12.74 14.92 12.4 15.26 11.99 15.26C11.58 15.26 11.24 14.92 11.24 14.51V8.32L9.52 10.04C9.23 10.33 8.75 10.33 8.46 10.04C8.17 9.75 8.18 9.28 8.47 8.98ZM18.24 17.22C16.23 17.89 14.12 18.23 12 18.23C9.88 18.23 7.77 17.89 5.76 17.22C5.37 17.09 5.16 16.66 5.29 16.27C5.42 15.88 5.85 15.66 6.24 15.8C9.96 17.04 14.05 17.04 17.77 15.8C18.16 15.67 18.59 15.88 18.72 16.27C18.84 16.67 18.63 17.09 18.24 17.22Z" fill="currentColor"/>
-                  </svg>
+                  {isStreaming ? (
+                    <button
+                      onClick={handleStopStreaming}
+                      className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-3 py-1 text-red-400 hover:bg-red-500/30 text-xs"
+                    >
+                      <Square className="h-3 w-3 fill-current" />
+                      Stop
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSendChat}
+                      disabled={!assistantInput.trim()}
+                      className={`h-6 w-6 transition-colors ${
+                        assistantInput.trim() 
+                          ? "text-sky-500 cursor-pointer hover:text-sky-400" 
+                          : "text-slate-600 cursor-not-allowed opacity-50"
+                      }`}
+                    >
+                      <svg 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-6 w-6"
+                      >
+                        <path d="M16.19 2H7.81C4.17 2 2 4.17 2 7.81V16.18C2 19.83 4.17 22 7.81 22H16.18C19.82 22 21.99 19.83 21.99 16.19V7.81C22 4.17 19.83 2 16.19 2ZM8.47 8.98L11.47 5.98C11.54 5.91 11.62 5.86 11.71 5.82C11.89 5.74 12.1 5.74 12.28 5.82C12.37 5.86 12.45 5.91 12.52 5.98L15.52 8.98C15.81 9.27 15.81 9.75 15.52 10.04C15.37 10.19 15.18 10.26 14.99 10.26C14.8 10.26 14.61 10.19 14.46 10.04L12.74 8.32V14.51C12.74 14.92 12.4 15.26 11.99 15.26C11.58 15.26 11.24 14.92 11.24 14.51V8.32L9.52 10.04C9.23 10.33 8.75 10.33 8.46 10.04C8.17 9.75 8.18 9.28 8.47 8.98ZM18.24 17.22C16.23 17.89 14.12 18.23 12 18.23C9.88 18.23 7.77 17.89 5.76 17.22C5.37 17.09 5.16 16.66 5.29 16.27C5.42 15.88 5.85 15.66 6.24 15.8C9.96 17.04 14.05 17.04 17.77 15.8C18.16 15.67 18.59 15.88 18.72 16.27C18.84 16.67 18.63 17.09 18.24 17.22Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                  )}
                   </div>
                 </div>
               </div>
