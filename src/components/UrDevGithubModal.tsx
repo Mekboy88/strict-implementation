@@ -248,10 +248,10 @@ function UrDevGithubModal({
                     type="button"
                     onClick={handleConnect}
                     disabled={state === "connecting"}
-                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[11px] font-semibold shadow-[0_0_20px_rgba(16,185,129,0.55)] ${
+                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[11px] font-semibold ${
                       state === "connecting"
-                        ? "bg-emerald-300 text-emerald-900 opacity-95"
-                        : "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                        ? "bg-white/80 text-neutral-900 opacity-95"
+                        : "bg-white text-neutral-900 hover:bg-white/90"
                     }`}
                   >
                     <Github className="h-3.5 w-3.5" />
