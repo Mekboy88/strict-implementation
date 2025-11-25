@@ -43,7 +43,7 @@ import { parseCodeBlocks, generateFileId, detectLanguage, ParsedCodeBlock } from
 import { extractTasksFromResponse, hasExtractableTasks, ExtractedTask } from "@/utils/taskParser";
 import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
-import MainActionsDrawer from "@/components/chat/MainActionsDrawer";
+
 
 interface FileItem {
   id: string;
@@ -1177,6 +1177,31 @@ Rules:
                   </div>
                 )}
 
+                {/* Quick Actions Panel */}
+                {showQuickActions && (
+                  <div className="border-t border-white/10 px-3 py-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: "fix", label: "Fix Issues" },
+                        { id: "refactor", label: "Refactor" },
+                        { id: "explain", label: "Explain" },
+                        { id: "optimize", label: "Optimize" },
+                      ].map((action) => (
+                        <button
+                          key={action.id}
+                          onClick={() => {
+                            setAssistantInput(`/${action.id} `);
+                            setShowQuickActions(false);
+                          }}
+                          className="px-3 py-2 text-xs rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 transition-colors text-left"
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Input Area */}
                 <div className="flex flex-col gap-2 border-t border-white/10 px-3 py-3">
                   <textarea
@@ -1541,15 +1566,6 @@ Rules:
         onLoadProject={handleLoadProject}
         onDeleteProject={removeProject}
         currentProjectId={currentProject?.id}
-      />
-
-      <MainActionsDrawer
-        open={showQuickActions}
-        onOpenChange={setShowQuickActions}
-        onSelectAction={(action) => {
-          setAssistantInput(`/${action} `);
-          setShowQuickActions(false);
-        }}
       />
     </div>
   );
