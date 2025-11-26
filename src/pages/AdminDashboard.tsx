@@ -238,12 +238,59 @@ const AdminDashboard = () => {
     totalUserSettings: 0,
     recentSettingsChanges: 0,
     usersWithSettings: 0,
+    // User Subscriptions Metrics
+    totalSubscriptions: 0,
+    activeSubscriptions2: 0,
+    cancelledSubscriptions: 0,
+    trialSubscriptions: 0,
+    monthlySubscriptions: 0,
+    yearlySubscriptions: 0,
+    // Teams Metrics
+    totalTeams: 0,
+    personalTeams: 0,
+    organizationTeams: 0,
+    teamsThisWeek: 0,
+    // Team Members Metrics
+    totalTeamMembers: 0,
+    ownerMembers: 0,
+    adminTeamMembers: 0,
+    regularMembers: 0,
+    pendingInvites: 0,
+    // Webhooks Metrics
+    totalWebhooks: 0,
+    activeWebhooks: 0,
+    inactiveWebhooks: 0,
+    failedWebhooks: 0,
+    webhooksTriggeredToday: 0,
+    // Activity Logs Metrics
+    totalActivityLogs: 0,
+    activityLogsToday: 0,
+    activityLogsThisWeek: 0,
+    uniqueActivityActions: 0,
+    // Feature Flags Metrics
+    totalFeatureFlags: 0,
+    enabledFlags: 0,
+    disabledFlags: 0,
+    flagsAt100Percent: 0,
+    // Templates Metrics
+    totalTemplates: 0,
+    publicTemplates: 0,
+    privateTemplates: 0,
+    featuredTemplates: 0,
+    totalTemplateUses: 0,
+    // Feedback Metrics
+    totalFeedback: 0,
+    openFeedback: 0,
+    resolvedFeedback: 0,
+    bugReports: 0,
+    featureRequests: 0,
+    urgentFeedback: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes, platformLogsRes, platformErrorsRes, billingUsageRes, platformLimitsRes, platformSettingsRes, projectEnvVarsRes, projectFilesRes, projectMembersRes, projectMetadataRes, projectSnapshotsRes, storagePermissionsRes, userConnectionsRes, userProfilesRes, userSettingsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes, platformLogsRes, platformErrorsRes, billingUsageRes, platformLimitsRes, platformSettingsRes, projectEnvVarsRes, projectFilesRes, projectMembersRes, projectMetadataRes, projectSnapshotsRes, storagePermissionsRes, userConnectionsRes, userProfilesRes, userSettingsRes, userSubscriptionsRes, teamsRes, teamMembersRes, webhooksRes, activityLogsRes, featureFlagsRes, templatesRes, feedbackRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -286,6 +333,14 @@ const AdminDashboard = () => {
         supabase.from('user_connections').select('*'),
         supabase.from('user_profiles').select('*'),
         supabase.from('user_settings').select('*'),
+        supabase.from('user_subscriptions').select('*'),
+        supabase.from('teams').select('*'),
+        supabase.from('team_members').select('*'),
+        supabase.from('webhooks').select('*'),
+        supabase.from('activity_logs').select('*'),
+        supabase.from('feature_flags').select('*'),
+        supabase.from('templates').select('*'),
+        supabase.from('feedback').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -330,6 +385,14 @@ const AdminDashboard = () => {
       const userConnections = userConnectionsRes.data || [];
       const userProfiles = userProfilesRes.data || [];
       const userSettings = userSettingsRes.data || [];
+      const userSubscriptions = userSubscriptionsRes.data || [];
+      const teams = teamsRes.data || [];
+      const teamMembers = teamMembersRes.data || [];
+      const webhooks = webhooksRes.data || [];
+      const activityLogs = activityLogsRes.data || [];
+      const featureFlags = featureFlagsRes.data || [];
+      const templates = templatesRes.data || [];
+      const feedbackList = feedbackRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -705,6 +768,61 @@ const AdminDashboard = () => {
       const recentSettingsChanges = userSettings.filter(s => new Date(s.updated_at) >= sevenDaysAgo).length;
       const usersWithSettingsCount = new Set(userSettings.map(s => s.user_id)).size;
 
+      // Calculate User Subscriptions metrics
+      const totalSubscriptions = userSubscriptions.length;
+      const activeSubscriptions2 = userSubscriptions.filter(s => s.status === 'active').length;
+      const cancelledSubscriptions = userSubscriptions.filter(s => s.status === 'cancelled').length;
+      const trialSubscriptions = userSubscriptions.filter(s => s.status === 'trial').length;
+      const monthlySubscriptions = userSubscriptions.filter(s => s.billing_cycle === 'monthly').length;
+      const yearlySubscriptions = userSubscriptions.filter(s => s.billing_cycle === 'yearly').length;
+
+      // Calculate Teams metrics
+      const totalTeams = teams.length;
+      const personalTeams = teams.filter(t => t.is_personal).length;
+      const organizationTeams = teams.filter(t => !t.is_personal).length;
+      const teamsThisWeek = teams.filter(t => new Date(t.created_at) >= sevenDaysAgo).length;
+
+      // Calculate Team Members metrics
+      const totalTeamMembers = teamMembers.length;
+      const ownerMembers = teamMembers.filter(m => m.role === 'owner').length;
+      const adminTeamMembers = teamMembers.filter(m => m.role === 'admin').length;
+      const regularMembers = teamMembers.filter(m => m.role === 'member').length;
+      const pendingInvites = teamMembers.filter(m => m.invite_status === 'pending').length;
+
+      // Calculate Webhooks metrics
+      const totalWebhooks = webhooks.length;
+      const activeWebhooks = webhooks.filter(w => w.is_active).length;
+      const inactiveWebhooks = webhooks.filter(w => !w.is_active).length;
+      const failedWebhooks = webhooks.filter(w => w.failure_count > 0).length;
+      const webhooksTriggeredToday = webhooks.filter(w => w.last_triggered_at && new Date(w.last_triggered_at) >= today).length;
+
+      // Calculate Activity Logs metrics
+      const totalActivityLogs = activityLogs.length;
+      const activityLogsToday = activityLogs.filter(a => new Date(a.created_at) >= today).length;
+      const activityLogsThisWeek = activityLogs.filter(a => new Date(a.created_at) >= sevenDaysAgo).length;
+      const uniqueActivityActions = new Set(activityLogs.map(a => a.action)).size;
+
+      // Calculate Feature Flags metrics
+      const totalFeatureFlags = featureFlags.length;
+      const enabledFlags = featureFlags.filter(f => f.is_enabled).length;
+      const disabledFlags = featureFlags.filter(f => !f.is_enabled).length;
+      const flagsAt100Percent = featureFlags.filter(f => f.rollout_percentage === 100).length;
+
+      // Calculate Templates metrics
+      const totalTemplates = templates.length;
+      const publicTemplates = templates.filter(t => t.is_public).length;
+      const privateTemplates = templates.filter(t => !t.is_public).length;
+      const featuredTemplates = templates.filter(t => t.is_featured).length;
+      const totalTemplateUses = templates.reduce((sum, t) => sum + (t.use_count || 0), 0);
+
+      // Calculate Feedback metrics
+      const totalFeedback = feedbackList.length;
+      const openFeedback = feedbackList.filter(f => f.status === 'open').length;
+      const resolvedFeedback = feedbackList.filter(f => f.status === 'resolved' || f.status === 'closed').length;
+      const bugReports = feedbackList.filter(f => f.type === 'bug').length;
+      const featureRequests = feedbackList.filter(f => f.type === 'feature_request').length;
+      const urgentFeedback = feedbackList.filter(f => f.priority === 'urgent').length;
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -1001,6 +1119,53 @@ const AdminDashboard = () => {
         totalUserSettings: totalUserSettingsCount,
         recentSettingsChanges,
         usersWithSettings: usersWithSettingsCount,
+        // User Subscriptions
+        totalSubscriptions,
+        activeSubscriptions2,
+        cancelledSubscriptions,
+        trialSubscriptions,
+        monthlySubscriptions,
+        yearlySubscriptions,
+        // Teams
+        totalTeams,
+        personalTeams,
+        organizationTeams,
+        teamsThisWeek,
+        // Team Members
+        totalTeamMembers,
+        ownerMembers,
+        adminTeamMembers,
+        regularMembers,
+        pendingInvites,
+        // Webhooks
+        totalWebhooks,
+        activeWebhooks,
+        inactiveWebhooks,
+        failedWebhooks,
+        webhooksTriggeredToday,
+        // Activity Logs
+        totalActivityLogs,
+        activityLogsToday,
+        activityLogsThisWeek,
+        uniqueActivityActions,
+        // Feature Flags
+        totalFeatureFlags,
+        enabledFlags,
+        disabledFlags,
+        flagsAt100Percent,
+        // Templates
+        totalTemplates,
+        publicTemplates,
+        privateTemplates,
+        featuredTemplates,
+        totalTemplateUses,
+        // Feedback
+        totalFeedback,
+        openFeedback,
+        resolvedFeedback,
+        bugReports,
+        featureRequests,
+        urgentFeedback,
       });
 
       setLoading(false);
@@ -2798,6 +2963,398 @@ const AdminDashboard = () => {
               {stats.totalUsers > 0 ? ((stats.usersWithSettings / stats.totalUsers) * 100).toFixed(1) : 0}%
             </p>
             <p className="text-xs mt-1 text-white/70">Users with custom settings</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Subscriptions Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-semibold text-white">User Subscriptions</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-emerald-400" />
+              <p className="text-sm text-white">Total Subscriptions</p>
+            </div>
+            <p className="text-3xl font-bold text-emerald-400">{stats.totalSubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">All subscriptions</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeSubscriptions2}</p>
+            <p className="text-xs mt-1 text-white/70">Currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Cancelled</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.cancelledSubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">Cancelled subs</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Trial</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.trialSubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">On trial</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Monthly</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.monthlySubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">Monthly billing</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Yearly</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.yearlySubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">Annual billing</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Teams Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <UsersRound className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-xl font-semibold text-white">Teams / Organizations</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <UsersRound className="w-4 h-4 text-indigo-400" />
+              <p className="text-sm text-white">Total Teams</p>
+            </div>
+            <p className="text-3xl font-bold text-indigo-400">{stats.totalTeams}</p>
+            <p className="text-xs mt-1 text-white/70">All teams</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCircle className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Personal</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.personalTeams}</p>
+            <p className="text-xs mt-1 text-white/70">Personal workspaces</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Organizations</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.organizationTeams}</p>
+            <p className="text-xs mt-1 text-white/70">Team organizations</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">New This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.teamsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Created recently</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Team Members Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="w-5 h-5 text-teal-400" />
+          <h2 className="text-xl font-semibold text-white">Team Members</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-teal-400" />
+              <p className="text-sm text-white">Total Members</p>
+            </div>
+            <p className="text-3xl font-bold text-teal-400">{stats.totalTeamMembers}</p>
+            <p className="text-xs mt-1 text-white/70">All team memberships</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Owners</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.ownerMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Team owners</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Admins</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.adminTeamMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Team admins</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <UserPlus className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Members</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.regularMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Regular members</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Pending Invites</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.pendingInvites}</p>
+            <p className="text-xs mt-1 text-white/70">Awaiting acceptance</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Webhooks Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Webhook className="w-5 h-5 text-orange-400" />
+          <h2 className="text-xl font-semibold text-white">Webhooks</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Webhook className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Total Webhooks</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.totalWebhooks}</p>
+            <p className="text-xs mt-1 text-white/70">All webhooks</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeWebhooks}</p>
+            <p className="text-xs mt-1 text-white/70">Currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Inactive</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-400">{stats.inactiveWebhooks}</p>
+            <p className="text-xs mt-1 text-white/70">Disabled webhooks</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Failed</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.failedWebhooks}</p>
+            <p className="text-xs mt-1 text-white/70">With failures</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Triggered Today</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.webhooksTriggeredToday}</p>
+            <p className="text-xs mt-1 text-white/70">Today's triggers</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Logs Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-xl font-semibold text-white">Activity Logs</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <ScrollText className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Total Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.totalActivityLogs}</p>
+            <p className="text-xs mt-1 text-white/70">All activity logs</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Today</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activityLogsToday}</p>
+            <p className="text-xs mt-1 text-white/70">Logged today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.activityLogsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Unique Actions</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueActivityActions}</p>
+            <p className="text-xs mt-1 text-white/70">Different action types</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Feature Flags Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <SlidersHorizontal className="w-5 h-5 text-pink-400" />
+          <h2 className="text-xl font-semibold text-white">Feature Flags</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <SlidersHorizontal className="w-4 h-4 text-pink-400" />
+              <p className="text-sm text-white">Total Flags</p>
+            </div>
+            <p className="text-3xl font-bold text-pink-400">{stats.totalFeatureFlags}</p>
+            <p className="text-xs mt-1 text-white/70">All feature flags</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Enabled</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.enabledFlags}</p>
+            <p className="text-xs mt-1 text-white/70">Active flags</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Disabled</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-400">{stats.disabledFlags}</p>
+            <p className="text-xs mt-1 text-white/70">Inactive flags</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Gauge className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">100% Rollout</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.flagsAt100Percent}</p>
+            <p className="text-xs mt-1 text-white/70">Fully rolled out</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Templates Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="w-5 h-5 text-violet-400" />
+          <h2 className="text-xl font-semibold text-white">Templates</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-4 h-4 text-violet-400" />
+              <p className="text-sm text-white">Total Templates</p>
+            </div>
+            <p className="text-3xl font-bold text-violet-400">{stats.totalTemplates}</p>
+            <p className="text-xs mt-1 text-white/70">All templates</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Public</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.publicTemplates}</p>
+            <p className="text-xs mt-1 text-white/70">Publicly visible</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Private</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-400">{stats.privateTemplates}</p>
+            <p className="text-xs mt-1 text-white/70">Private templates</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Featured</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.featuredTemplates}</p>
+            <p className="text-xs mt-1 text-white/70">Featured templates</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Uses</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalTemplateUses}</p>
+            <p className="text-xs mt-1 text-white/70">Times used</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Feedback Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-5 h-5 text-rose-400" />
+          <h2 className="text-xl font-semibold text-white">Feedback & Support</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="w-4 h-4 text-rose-400" />
+              <p className="text-sm text-white">Total Feedback</p>
+            </div>
+            <p className="text-3xl font-bold text-rose-400">{stats.totalFeedback}</p>
+            <p className="text-xs mt-1 text-white/70">All feedback items</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Inbox className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Open</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.openFeedback}</p>
+            <p className="text-xs mt-1 text-white/70">Awaiting response</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCheck className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Resolved</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.resolvedFeedback}</p>
+            <p className="text-xs mt-1 text-white/70">Completed</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Bug className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Bug Reports</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.bugReports}</p>
+            <p className="text-xs mt-1 text-white/70">Reported bugs</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Feature Requests</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.featureRequests}</p>
+            <p className="text-xs mt-1 text-white/70">Requested features</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertOctagon className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Urgent</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.urgentFeedback}</p>
+            <p className="text-xs mt-1 text-white/70">High priority</p>
           </div>
         </div>
       </div>
