@@ -58,7 +58,6 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDia
               <SelectItem value="user" className="text-white hover:bg-neutral-600">User</SelectItem>
               <SelectItem value="moderator" className="text-white hover:bg-neutral-600">Moderator</SelectItem>
               <SelectItem value="admin" className="text-white hover:bg-neutral-600">Admin</SelectItem>
-              <SelectItem value="owner" className="text-white hover:bg-neutral-600">Owner</SelectItem>
             </SelectContent>
           </Select>
         </div>
