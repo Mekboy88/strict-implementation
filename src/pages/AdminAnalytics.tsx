@@ -76,7 +76,7 @@ export default function AdminAnalytics() {
   const COLORS = ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B"];
 
   return (
-    <div className="min-h-screen bg-neutral-800 p-6">
+    <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
       {/* Main Content */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Analytics & Reports</h1>

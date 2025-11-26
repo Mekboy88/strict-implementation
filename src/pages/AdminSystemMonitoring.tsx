@@ -123,7 +123,7 @@ export default function AdminSystemMonitoring() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-800">
+    <div className="h-full bg-neutral-800 overflow-y-auto">
       {/* Top Bar */}
       <div className="sticky top-0 z-10 h-16 flex items-center justify-between px-6 bg-neutral-800 border-b border-neutral-700">
         <div className="flex items-center gap-4">

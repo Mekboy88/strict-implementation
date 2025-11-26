@@ -62,7 +62,7 @@ const AdminSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-800 p-6">
+    <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Platform Settings</h1>
