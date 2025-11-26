@@ -390,7 +390,7 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
                 <h3 className="text-base font-semibold text-white mb-1">What type of project?</h3>
                 <p className="text-sm text-slate-400">Select the category that best describes your project</p>
               </div>
-              <ScrollArea className="h-[500px] pr-4">
+              <ScrollArea className="h-[530px] pr-4">
                 <div className="grid grid-cols-2 gap-3">
                   {projectTypes.map((type) => {
                     const Icon = type.icon;
