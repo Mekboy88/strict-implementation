@@ -362,7 +362,7 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] bg-neutral-900 border-white/10 p-0 gap-0">
+      <DialogContent className="sm:max-w-[700px] bg-neutral-900 border-white/10 p-0 gap-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0">
         {/* Progress indicator */}
         <div className="px-6 pt-6">
           <div className="flex items-center justify-between mb-2">
