@@ -374,7 +374,7 @@ const AdminRoles = () => {
                       <h3 className="text-lg font-semibold text-white">
                         {role.name}
                       </h3>
-                      <p className="text-sm mt-1 text-white/70">
+                      <p className="text-sm mt-1 text-white">
                         {role.description}
                       </p>
                     </div>
