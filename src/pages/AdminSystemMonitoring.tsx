@@ -1,7 +1,29 @@
 import { useState } from "react";
-import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, Info, ChevronDown, ChevronUp, Lightbulb, Wrench, Shield, RefreshCw, Download, Search } from "lucide-react";
+import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, Info, ChevronDown, ChevronUp, Lightbulb, Wrench, Shield, RefreshCw, Download, Search, LayoutDashboard, Users, FolderGit2, Layers, Settings, MessageCircle, BarChart3, SlidersHorizontal, ChevronRight } from "lucide-react";
+import { useLocation, Link } from "react-router-dom";
+
+interface NavItem {
+  id: string;
+  label: string;
+  path: string;
+  icon: React.ElementType;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "dashboard", label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+  { id: "users", label: "Users", path: "/admin/users", icon: Users },
+  { id: "projects", label: "Projects", path: "/admin/projects", icon: FolderGit2 },
+  { id: "roles", label: "Roles", path: "/admin/roles", icon: Layers },
+  { id: "security", label: "Security", path: "/admin/security", icon: Shield },
+  { id: "monitoring", label: "System Monitoring", path: "/admin/system-monitoring", icon: Activity },
+  { id: "communication", label: "Communication", path: "/admin/communication", icon: MessageCircle },
+  { id: "analytics", label: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+  { id: "advanced", label: "Advanced", path: "/admin/advanced", icon: SlidersHorizontal },
+  { id: "settings", label: "Settings", path: "/admin/settings", icon: Settings },
+];
 
 export default function AdminSystemMonitoring() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<"errors" | "performance" | "uptime" | "alerts">("errors");
   const [expandedExplanation, setExpandedExplanation] = useState<number | null>(null);
   const [expandedIncident, setExpandedIncident] = useState<number | null>(null);
@@ -123,7 +145,44 @@ export default function AdminSystemMonitoring() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-800">
+    <div className="w-full h-full rounded-2xl border border-neutral-600 bg-neutral-800 shadow-[0_0_120px_rgba(15,23,42,0.85)] flex overflow-hidden">
+      {/* Left Sidebar */}
+      <aside className="w-72 border-r border-neutral-700 bg-neutral-800">
+        <nav className="py-3 text-[14px] overflow-y-auto h-full">
+          <div className="mt-2">
+            <div className="px-5 text-[12px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+              Admin Panel
+            </div>
+            <ul className="mt-1">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = location.pathname === item.path;
+                return (
+                  <li key={item.id}>
+                    <Link
+                      to={item.path}
+                      className={`group flex w-full items-center justify-between px-5 py-2.5 text-left ${
+                        active
+                          ? "bg-neutral-700 text-neutral-50"
+                          : "text-neutral-300 hover:bg-neutral-700/70 hover:text-neutral-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </span>
+                      <ChevronRight className="h-3 w-3 text-neutral-500 group-hover:text-neutral-300" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 bg-neutral-800 overflow-y-auto">
       {/* Top Bar */}
       <div className="sticky top-0 z-10 h-16 flex items-center justify-between px-6 bg-neutral-800 border-b border-neutral-700">
         <div className="flex items-center gap-4">
@@ -670,6 +729,7 @@ export default function AdminSystemMonitoring() {
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 }
