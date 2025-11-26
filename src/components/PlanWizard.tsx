@@ -51,18 +51,84 @@ import {
   Coffee,
   Wine,
   Shirt,
-  Watch,
   Gem,
   Smartphone,
-  Tv,
-  Laptop,
-  Headphones,
-  Globe,
   MapPin,
   Ticket,
   Gift,
   Sparkle,
-  Zap
+  Zap,
+  Banknote,
+  PiggyBank,
+  Bitcoin,
+  TrendingUp,
+  UserSearch,
+  UserPlus,
+  Tractor,
+  Wheat,
+  Wrench,
+  Factory,
+  Trophy,
+  Dices,
+  HeartHandshake,
+  Apple,
+  ShoppingBasket,
+  Box,
+  Gavel,
+  Sofa,
+  HardHat,
+  Cog,
+  Library,
+  Building,
+  Clapperboard,
+  Smile,
+  Brain,
+  Eye,
+  Sticker,
+  PawPrint,
+  Bike,
+  Anchor,
+  Sailboat,
+  Mountain,
+  Tent,
+  Trees,
+  Recycle,
+  Sun,
+  Lightbulb,
+  Printer,
+  PenTool,
+  Glasses,
+  Watch,
+  Cigarette,
+  Pill,
+  TestTube,
+  Microscope,
+  Atom,
+  Rocket,
+  Satellite,
+  Shield,
+  Lock as LockIcon,
+  Key,
+  Wifi,
+  Server,
+  Cloud,
+  Store,
+  Warehouse,
+  Container,
+  Forklift,
+  Bus,
+  Train,
+  Ship,
+  Fuel,
+  Droplets,
+  Flame,
+  Wind,
+  Leaf,
+  Fish,
+  Bird,
+  Rabbit,
+  Cat,
+  Bone
 } from "lucide-react";
 
 interface PlanWizardProps {
@@ -85,6 +151,9 @@ const projectTypes = [
   { id: "fashion", label: "Fashion & Apparel", icon: Shirt, description: "Clothing & accessories store" },
   { id: "jewelry", label: "Jewelry & Luxury", icon: Gem, description: "High-end products & accessories" },
   { id: "electronics", label: "Electronics Store", icon: Smartphone, description: "Gadgets & tech products" },
+  { id: "grocery", label: "Grocery & Supermarket", icon: ShoppingBasket, description: "Online grocery shopping" },
+  { id: "subscription", label: "Subscription Box", icon: Box, description: "Recurring product deliveries" },
+  { id: "auction", label: "Auction Platform", icon: Gavel, description: "Bidding & auctions" },
   
   // Food & Hospitality
   { id: "restaurant", label: "Restaurant", icon: UtensilsCrossed, description: "Food ordering & reservations" },
@@ -92,33 +161,65 @@ const projectTypes = [
   { id: "cafe", label: "Cafe & Coffee Shop", icon: Coffee, description: "Menu & online ordering" },
   { id: "bar", label: "Bar & Nightclub", icon: Wine, description: "Events & reservations" },
   { id: "fooddelivery", label: "Food Delivery", icon: Truck, description: "Delivery platform & tracking" },
+  { id: "bakery", label: "Bakery & Pastry", icon: Store, description: "Baked goods & orders" },
+  { id: "catering", label: "Catering Service", icon: UtensilsCrossed, description: "Event catering & menus" },
   
   // Health & Wellness
   { id: "healthcare", label: "Healthcare & Medical", icon: Stethoscope, description: "Patient management & appointments" },
   { id: "fitness", label: "Fitness & Gym", icon: Dumbbell, description: "Memberships & workout tracking" },
   { id: "spa", label: "Spa & Wellness", icon: Sparkle, description: "Booking & treatments" },
-  { id: "pharmacy", label: "Pharmacy", icon: Heart, description: "Medicine & prescriptions" },
+  { id: "pharmacy", label: "Pharmacy", icon: Pill, description: "Medicine & prescriptions" },
+  { id: "dental", label: "Dental Clinic", icon: Smile, description: "Dental appointments & records" },
+  { id: "mentalhealth", label: "Mental Health", icon: Brain, description: "Therapy & counseling platform" },
+  { id: "optical", label: "Optical & Eyewear", icon: Eye, description: "Eye care & glasses" },
+  { id: "veterinary", label: "Veterinary Clinic", icon: PawPrint, description: "Pet health & appointments" },
+  { id: "laboratory", label: "Lab & Diagnostics", icon: TestTube, description: "Medical testing & results" },
   
   // Education & Learning
   { id: "education", label: "Education Platform", icon: GraduationCap, description: "Courses & learning management" },
   { id: "school", label: "School & University", icon: BookOpen, description: "Student & course management" },
   { id: "tutoring", label: "Tutoring & Coaching", icon: Users, description: "1-on-1 learning sessions" },
+  { id: "library", label: "Digital Library", icon: Library, description: "Book lending & resources" },
+  { id: "training", label: "Corporate Training", icon: Briefcase, description: "Employee learning & development" },
   
   // Real Estate & Property
   { id: "realestate", label: "Real Estate", icon: Home, description: "Property listings & management" },
   { id: "rental", label: "Rental Platform", icon: Building2, description: "Short & long-term rentals" },
   { id: "propertymanagement", label: "Property Management", icon: Landmark, description: "Building & tenant management" },
+  { id: "coworking", label: "Coworking Space", icon: Building, description: "Office space & desk booking" },
+  { id: "interiordesign", label: "Interior Design", icon: Sofa, description: "Design services & portfolios" },
+  
+  // Finance & Banking
+  { id: "banking", label: "Banking & Finance", icon: Banknote, description: "Banking services & accounts" },
+  { id: "insurance", label: "Insurance", icon: Shield, description: "Insurance policies & claims" },
+  { id: "investment", label: "Investment Platform", icon: TrendingUp, description: "Trading & portfolio management" },
+  { id: "crypto", label: "Cryptocurrency", icon: Bitcoin, description: "Crypto trading & wallets" },
+  { id: "lending", label: "Lending & Loans", icon: PiggyBank, description: "Loan applications & management" },
+  { id: "crowdfunding", label: "Crowdfunding", icon: HeartHandshake, description: "Fundraising campaigns" },
   
   // Travel & Transportation
   { id: "travel", label: "Travel & Tourism", icon: Plane, description: "Bookings & trip planning" },
   { id: "carservice", label: "Car Service & Rental", icon: Car, description: "Vehicle booking & fleet management" },
   { id: "logistics", label: "Logistics & Shipping", icon: Package, description: "Delivery & tracking" },
+  { id: "taxi", label: "Taxi & Rideshare", icon: Car, description: "Ride booking & dispatch" },
+  { id: "bus", label: "Bus & Coach", icon: Bus, description: "Bus ticketing & schedules" },
+  { id: "airlines", label: "Airlines", icon: Plane, description: "Flight booking & management" },
+  { id: "cruise", label: "Cruise & Ferry", icon: Ship, description: "Maritime travel booking" },
+  { id: "parking", label: "Parking Management", icon: Car, description: "Parking spots & payments" },
+  { id: "moving", label: "Moving & Storage", icon: Truck, description: "Relocation services" },
+  
+  // Recruitment & HR
+  { id: "jobboard", label: "Job Board", icon: UserSearch, description: "Job listings & applications" },
+  { id: "recruitment", label: "Recruitment Agency", icon: UserPlus, description: "Hiring & talent acquisition" },
+  { id: "hrmanagement", label: "HR Management", icon: Users, description: "Employee management & payroll" },
+  { id: "freelance", label: "Freelance Marketplace", icon: Briefcase, description: "Freelancer hiring & projects" },
   
   // Professional Services
   { id: "saas", label: "SaaS Product", icon: Zap, description: "Software as a service" },
   { id: "agency", label: "Agency & Consulting", icon: Briefcase, description: "Client & project management" },
   { id: "legal", label: "Legal Services", icon: Scale, description: "Case & client management" },
   { id: "accounting", label: "Accounting & Finance", icon: CreditCard, description: "Financial management" },
+  { id: "marketing", label: "Marketing Agency", icon: TrendingUp, description: "Campaign & client management" },
   
   // Entertainment & Media
   { id: "social", label: "Social Platform", icon: Users, description: "User profiles & social features" },
@@ -127,11 +228,47 @@ const projectTypes = [
   { id: "music", label: "Music Platform", icon: Music, description: "Audio streaming & artists" },
   { id: "podcast", label: "Podcast Platform", icon: Radio, description: "Audio content & subscriptions" },
   { id: "news", label: "News & Magazine", icon: Newspaper, description: "Articles & subscriptions" },
+  { id: "cinema", label: "Cinema & Theater", icon: Clapperboard, description: "Movie tickets & showtimes" },
+  { id: "dating", label: "Dating App", icon: Heart, description: "Matchmaking & connections" },
+  
+  // Sports & Recreation
+  { id: "sports", label: "Sports Club", icon: Trophy, description: "Team & league management" },
+  { id: "fantasysports", label: "Fantasy Sports", icon: Dices, description: "Fantasy leagues & betting" },
+  { id: "outdoor", label: "Outdoor & Adventure", icon: Mountain, description: "Tours & activities" },
+  { id: "camping", label: "Camping & RV", icon: Tent, description: "Campsite booking" },
+  { id: "cycling", label: "Cycling & Bikes", icon: Bike, description: "Bike rentals & tours" },
+  { id: "watersports", label: "Water Sports", icon: Sailboat, description: "Boat rentals & lessons" },
+  
+  // Agriculture & Farming
+  { id: "agriculture", label: "Agriculture & Farming", icon: Tractor, description: "Farm management & sales" },
+  { id: "farmmarket", label: "Farm Marketplace", icon: Wheat, description: "Agricultural products" },
+  { id: "gardening", label: "Gardening & Nursery", icon: Trees, description: "Plants & landscaping" },
+  
+  // Manufacturing & Industry
+  { id: "manufacturing", label: "Manufacturing", icon: Factory, description: "Production & inventory" },
+  { id: "construction", label: "Construction", icon: HardHat, description: "Project management & tracking" },
+  { id: "automotive", label: "Car Dealership", icon: Car, description: "Vehicle sales & service" },
+  { id: "autoparts", label: "Auto Parts", icon: Wrench, description: "Parts inventory & sales" },
+  { id: "warehouse", label: "Warehouse Management", icon: Warehouse, description: "Inventory & logistics" },
+  
+  // Energy & Utilities
+  { id: "energy", label: "Energy & Utilities", icon: Lightbulb, description: "Utility services & billing" },
+  { id: "solar", label: "Solar & Renewable", icon: Sun, description: "Clean energy services" },
+  { id: "fuel", label: "Fuel & Gas Station", icon: Fuel, description: "Fuel sales & loyalty" },
+  { id: "water", label: "Water Services", icon: Droplets, description: "Water utility management" },
+  
+  // Technology & IT
+  { id: "itservices", label: "IT Services", icon: Server, description: "Tech support & consulting" },
+  { id: "hosting", label: "Web Hosting", icon: Cloud, description: "Hosting & domains" },
+  { id: "security", label: "Security Services", icon: Shield, description: "Cybersecurity & monitoring" },
+  { id: "telecom", label: "Telecom", icon: Wifi, description: "Communication services" },
   
   // Creative & Arts
   { id: "portfolio", label: "Portfolio & Landing", icon: Palette, description: "Showcase work & services" },
   { id: "photography", label: "Photography", icon: Camera, description: "Gallery & booking" },
   { id: "art", label: "Art & Gallery", icon: Image, description: "Artworks & exhibitions" },
+  { id: "printing", label: "Printing Services", icon: Printer, description: "Print shop & design" },
+  { id: "design", label: "Design Studio", icon: PenTool, description: "Creative services" },
   
   // Local Services
   { id: "salon", label: "Salon & Beauty", icon: Scissors, description: "Appointments & services" },
@@ -140,20 +277,30 @@ const projectTypes = [
   { id: "petservices", label: "Pet Services", icon: Dog, description: "Pet care & grooming" },
   { id: "florist", label: "Florist & Garden", icon: Flower2, description: "Products & delivery" },
   { id: "childcare", label: "Childcare & Daycare", icon: Baby, description: "Booking & management" },
+  { id: "laundry", label: "Laundry Services", icon: Shirt, description: "Laundry & dry cleaning" },
   
   // Events & Tickets
   { id: "events", label: "Events Platform", icon: Ticket, description: "Event management & ticketing" },
   { id: "wedding", label: "Wedding & Planning", icon: Heart, description: "Event planning & vendors" },
   { id: "church", label: "Church & Religious", icon: Church, description: "Community & events" },
+  { id: "funeral", label: "Funeral Services", icon: Flower2, description: "Memorial services" },
   
   // Content & Publishing
   { id: "blog", label: "Blog / CMS", icon: FileText, description: "Content management & articles" },
   { id: "dashboard", label: "Dashboard / Admin", icon: LayoutDashboard, description: "Data visualization & management" },
+  { id: "publishing", label: "Book Publishing", icon: BookOpen, description: "Author & book management" },
+  
+  // Government & Public
+  { id: "government", label: "Government Portal", icon: Landmark, description: "Public services & forms" },
+  { id: "voting", label: "Voting & Elections", icon: Check, description: "Election management" },
   
   // Other
   { id: "nonprofit", label: "Non-profit & Charity", icon: Gift, description: "Donations & volunteering" },
   { id: "directory", label: "Directory & Listings", icon: MapPin, description: "Business listings & reviews" },
   { id: "booking", label: "Booking Platform", icon: Calendar, description: "General appointment booking" },
+  { id: "recycling", label: "Recycling & Waste", icon: Recycle, description: "Waste management services" },
+  { id: "research", label: "Research & Science", icon: Microscope, description: "Scientific research platform" },
+  { id: "space", label: "Space & Aerospace", icon: Rocket, description: "Aerospace & satellite" },
   { id: "custom", label: "Custom Project", icon: Code, description: "Something unique" },
 ];
 
