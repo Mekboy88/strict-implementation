@@ -11,7 +11,7 @@ import {
 import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCard, Briefcase, Bell, ListTodo, Plug } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
-
+import { ProjectsDropdown, Project } from "@/components/ProjectsDropdown";
 const personas = [
   {
     id: "solo",
@@ -202,7 +202,32 @@ const UrDevLandingPage: React.FC = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showPlanWizard, setShowPlanWizard] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
 
+  const handleCreateProject = (planData: PlanData) => {
+    const newProject: Project = {
+      id: crypto.randomUUID(),
+      name: planData.projectName || `New ${planData.projectType}`,
+      type: planData.projectType === "mobile-app" ? "mobile" : 
+            planData.projectType === "dashboard" ? "dashboard" : "website",
+      description: planData.projectName?.slice(0, 100),
+      createdAt: new Date(),
+    };
+    setProjects((prev) => [newProject, ...prev]);
+    setShowPlanWizard(false);
+    toast({
+      title: "Project Created",
+      description: `${newProject.name} has been added to your projects.`,
+    });
+  };
+
+  const handleSelectProject = (project: Project) => {
+    toast({
+      title: "Opening Project",
+      description: `Opening ${project.name}...`,
+    });
+    navigate("/");
+  };
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -373,7 +398,14 @@ const UrDevLandingPage: React.FC = () => {
               <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">YOU ARE THE DEVELOPER</div>
             </div>
           </div>
-          <nav className="hidden gap-6 text-xs text-gray-300 sm:flex">
+          <nav className="hidden gap-6 text-xs text-gray-300 sm:flex items-center">
+            {projects.length > 0 && (
+              <ProjectsDropdown
+                projects={projects}
+                onNewProject={() => setShowPlanWizard(true)}
+                onSelectProject={handleSelectProject}
+              />
+            )}
             <a href="#frames" className="hover:text-white">
               Builder
             </a>
@@ -1072,6 +1104,9 @@ const UrDevLandingPage: React.FC = () => {
         open={showPlanWizard}
         onClose={() => setShowPlanWizard(false)}
         onGeneratePlan={(planData: PlanData) => {
+          // Add to projects list
+          handleCreateProject(planData);
+          
           const featuresList = planData.features.length > 0 
             ? `Key features: ${planData.features.join(", ")}. ` 
             : "";
@@ -1084,7 +1119,6 @@ const UrDevLandingPage: React.FC = () => {
           
           setPrompt(generatedPrompt);
           setPromptStatus("Plan ready");
-          setShowPlanWizard(false);
           
           // Navigate to editor with the plan
           navigate('/editor');
