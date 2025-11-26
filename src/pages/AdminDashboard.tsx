@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -63,10 +63,16 @@ const AdminDashboard = () => {
     databaseStatus: 'healthy',
     apiResponseTime: 125,
     errorRate: 0.02,
-    // Storage Metrics (placeholder)
-    totalStorageUsed: 2.4,
-    avgStoragePerUser: 48,
+    // Storage Metrics
+    totalStorageUsed: 0,
+    totalStorageBytes: 0,
+    totalFileCount: 0,
+    totalBuckets: 0,
+    publicBuckets: 0,
+    avgStoragePerUser: 0,
     storageLimit: 100,
+    largestBucket: '',
+    recentUploads: 0,
     // AI Usage (placeholder)
     totalAIRequests: 15420,
     aiRequestsToday: 342,
@@ -77,7 +83,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -88,6 +94,9 @@ const AdminDashboard = () => {
         supabase.from('edge_logs').select('*'),
         supabase.from('edge_errors').select('*'),
         supabase.from('github_connections').select('*'),
+        supabase.from('storage_usage').select('*'),
+        supabase.from('storage_buckets').select('*'),
+        supabase.from('storage_objects').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -100,6 +109,9 @@ const AdminDashboard = () => {
       const edgeLogs = edgeLogsRes.data || [];
       const edgeErrors = edgeErrorsRes.data || [];
       const githubConnections = githubConnectionsRes.data || [];
+      const storageUsage = storageUsageRes.data || [];
+      const storageBuckets = storageBucketsRes.data || [];
+      const storageObjects = storageObjectsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -165,6 +177,22 @@ const AdminDashboard = () => {
       const reposSynced = projects.filter(p => p.github_repo_url).length;
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const recentGitHubConnections = githubConnections.filter(c => new Date(c.connected_at) >= sevenDaysAgo).length;
+
+      // Calculate storage metrics
+      const totalStorageBytes = storageUsage.reduce((sum, s) => sum + Number(s.bytes_used || 0), 0);
+      const totalStorageUsed = totalStorageBytes / (1024 * 1024 * 1024); // Convert to GB
+      const totalFileCount = storageUsage.reduce((sum, s) => sum + (s.file_count || 0), 0) || storageObjects.length;
+      const totalBuckets = storageBuckets.length;
+      const publicBuckets = storageBuckets.filter(b => b.public).length;
+      const avgStoragePerUser = users?.length ? (totalStorageBytes / users.length) / (1024 * 1024) : 0; // MB per user
+      const recentUploads = storageObjects.filter(o => new Date(o.created_at) >= sevenDaysAgo).length;
+      
+      // Find largest bucket by objects
+      const bucketObjectCounts = storageBuckets.map(bucket => ({
+        name: bucket.name,
+        count: storageObjects.filter(o => o.bucket_id === bucket.id).length
+      }));
+      const largestBucket = bucketObjectCounts.sort((a, b) => b.count - a.count)[0]?.name || 'N/A';
 
       // Build recent activity feed
       const activities: ActivityItem[] = [];
@@ -290,9 +318,15 @@ const AdminDashboard = () => {
         databaseStatus: 'healthy',
         apiResponseTime: 125,
         errorRate: 0.02,
-        totalStorageUsed: 2.4,
-        avgStoragePerUser: 48,
+        totalStorageUsed,
+        totalStorageBytes,
+        totalFileCount,
+        totalBuckets,
+        publicBuckets,
+        avgStoragePerUser,
         storageLimit: 100,
+        largestBucket,
+        recentUploads,
         totalAIRequests: 15420,
         aiRequestsToday: 342,
         mostUsedModel: 'gpt-4o',
@@ -745,28 +779,59 @@ const AdminDashboard = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
-            <p className="text-sm mb-2 text-white">Total Storage</p>
-            <p className="text-3xl font-bold text-white">{stats.totalStorageUsed} GB</p>
+            <p className="text-sm mb-2 text-white">Total Storage Used</p>
+            <p className="text-3xl font-bold text-white">{stats.totalStorageUsed.toFixed(2)} GB</p>
             <div className="mt-2 h-2 rounded-full bg-neutral-600">
-              <div className="h-full rounded-full transition-all bg-blue-400" style={{ width: `${(stats.totalStorageUsed / stats.storageLimit) * 100}%` }}></div>
+              <div className="h-full rounded-full transition-all bg-blue-400" style={{ width: `${Math.min((stats.totalStorageUsed / stats.storageLimit) * 100, 100)}%` }}></div>
             </div>
+            <p className="text-xs mt-1 text-white/70">{(stats.totalStorageBytes / (1024 * 1024)).toFixed(2)} MB total</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Archive className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Total Buckets</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.totalBuckets}</p>
+            <p className="text-xs mt-1 text-white/70 flex items-center gap-2">
+              <span className="flex items-center gap-1"><Unlock className="w-3 h-3" /> {stats.publicBuckets} public</span>
+              <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> {stats.totalBuckets - stats.publicBuckets} private</span>
+            </p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Files</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalFileCount.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">Largest: {stats.largestBucket}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Upload className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Recent Uploads</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">+{stats.recentUploads}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Avg per User</p>
-            <p className="text-3xl font-bold text-white">{stats.avgStoragePerUser} MB</p>
+            <p className="text-3xl font-bold text-white">{stats.avgStoragePerUser.toFixed(2)} MB</p>
+            <p className="text-xs mt-1 text-white/70">Per active user</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Storage Limit</p>
             <p className="text-3xl font-bold text-white">{stats.storageLimit} GB</p>
-            <p className="text-xs mt-1 text-white">{stats.storageLimit - stats.totalStorageUsed} GB remaining</p>
+            <p className="text-xs mt-1 text-white/70">{(stats.storageLimit - stats.totalStorageUsed).toFixed(2)} GB remaining</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-4 h-4 text-green-500" />
+              <AlertCircle className={`w-4 h-4 ${stats.totalStorageUsed / stats.storageLimit > 0.9 ? 'text-red-400' : stats.totalStorageUsed / stats.storageLimit > 0.7 ? 'text-yellow-400' : 'text-green-400'}`} />
               <p className="text-sm text-white">Status</p>
             </div>
-            <p className="text-xl font-bold text-green-500">Good</p>
-            <p className="text-xs mt-1 text-white">97.6 GB available</p>
+            <p className={`text-xl font-bold ${stats.totalStorageUsed / stats.storageLimit > 0.9 ? 'text-red-400' : stats.totalStorageUsed / stats.storageLimit > 0.7 ? 'text-yellow-400' : 'text-green-400'}`}>
+              {stats.totalStorageUsed / stats.storageLimit > 0.9 ? 'Critical' : stats.totalStorageUsed / stats.storageLimit > 0.7 ? 'Warning' : 'Good'}
+            </p>
+            <p className="text-xs mt-1 text-white/70">{((stats.totalStorageUsed / stats.storageLimit) * 100).toFixed(1)}% used</p>
           </div>
         </div>
       </div>
