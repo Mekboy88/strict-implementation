@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2 } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -93,12 +93,17 @@ const AdminDashboard = () => {
     avgApiDuration: 0,
     apiPermissions: 0,
     topEndpoint: 'N/A',
+    // Supabase Integration Metrics
+    totalSupabaseIntegrations: 0,
+    activeSupabaseIntegrations: 0,
+    recentSupabaseConnections: 0,
+    uniqueSupabaseProjects: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -118,6 +123,7 @@ const AdminDashboard = () => {
         supabase.from('api_keys').select('*'),
         supabase.from('api_requests').select('*'),
         supabase.from('api_access').select('*'),
+        supabase.from('integrations_supabase').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -139,6 +145,7 @@ const AdminDashboard = () => {
       const apiKeys = apiKeysRes.data || [];
       const apiRequests = apiRequestsRes.data || [];
       const apiAccess = apiAccessRes.data || [];
+      const supabaseIntegrations = supabaseIntegrationsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -272,7 +279,11 @@ const AdminDashboard = () => {
       const topEndpoint = Object.entries(endpointCounts)
         .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
 
-      // Build recent activity feed
+      // Calculate Supabase integration metrics
+      const totalSupabaseIntegrations = supabaseIntegrations.length;
+      const activeSupabaseIntegrations = supabaseIntegrations.filter(i => i.is_active).length;
+      const recentSupabaseConnections = supabaseIntegrations.filter(i => new Date(i.connected_at) >= sevenDaysAgo).length;
+      const uniqueSupabaseProjects = new Set(supabaseIntegrations.map(i => i.project_id)).size;
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -424,6 +435,11 @@ const AdminDashboard = () => {
         avgApiDuration,
         apiPermissions,
         topEndpoint,
+        // Supabase Integration
+        totalSupabaseIntegrations,
+        activeSupabaseIntegrations,
+        recentSupabaseConnections,
+        uniqueSupabaseProjects,
       });
 
       setLoading(false);
@@ -1060,6 +1076,48 @@ const AdminDashboard = () => {
             </div>
             <p className="text-3xl font-bold text-red-400">{stats.expiredApiKeys}</p>
             <p className="text-xs mt-1 text-white/70">Need renewal</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Supabase Integration Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Database className="w-5 h-5 text-green-400" />
+          <h2 className="text-xl font-semibold text-white">Supabase Integration</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Total Integrations</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.totalSupabaseIntegrations}</p>
+            <p className="text-xs mt-1 text-white/70">Connected projects</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Active Integrations</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.activeSupabaseIntegrations}</p>
+            <p className="text-xs mt-1 text-white/70">Currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Recent Connections</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">+{stats.recentSupabaseConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Unique Projects</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueSupabaseProjects}</p>
+            <p className="text-xs mt-1 text-white/70">Projects with Supabase</p>
           </div>
         </div>
       </div>
