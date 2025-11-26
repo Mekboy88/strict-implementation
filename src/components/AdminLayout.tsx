@@ -78,8 +78,8 @@ const AdminLayout: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0f18" }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: "#4CB3FF" }}></div>
+      <div className="min-h-screen flex items-center justify-center bg-neutral-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-400"></div>
       </div>
     );
   }
@@ -89,78 +89,75 @@ const AdminLayout: React.FC = () => {
   const currentPath = location.pathname;
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0a0f18" }}>
+    <div className="min-h-screen flex bg-neutral-800">
       {/* Mobile menu button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg"
-        style={{ background: "#1a2332", color: "#D6E4F0" }}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-neutral-700 text-neutral-200"
       >
         {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 transform transition-transform duration-200 ease-in-out border-r border-neutral-700 bg-neutral-800
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
-        style={{ background: "#0d1421", borderRight: "1px solid #ffffff10" }}
       >
         {/* Header */}
-        <div className="h-16 flex items-center gap-3 px-4" style={{ borderBottom: "1px solid #ffffff10" }}>
-          <div
-            className="h-10 w-10 rounded-lg flex items-center justify-center"
-            style={{ background: "#4CB3FF20" }}
-          >
-            <LayoutDashboard className="h-5 w-5" style={{ color: "#4CB3FF" }} />
+        <div className="h-16 flex items-center gap-3 px-5 border-b border-neutral-700">
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-neutral-700">
+            <LayoutDashboard className="h-5 w-5 text-neutral-300" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs tracking-wider" style={{ color: "#8FA3B7" }}>ADMIN</span>
-            <span className="text-sm font-semibold" style={{ color: "#D6E4F0" }}>UR-DEV Panel</span>
+            <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-neutral-500">ADMIN</span>
+            <span className="text-sm font-semibold text-neutral-50">UR-DEV Panel</span>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
-          {MENU_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPath === item.path || (item.path === "/admin/dashboard" && currentPath === "/admin");
-            return (
-              <Link
-                key={item.id}
-                to={item.path}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all`}
-                style={{
-                  background: isActive ? "#4CB3FF15" : "transparent",
-                  color: isActive ? "#4CB3FF" : "#8FA3B7",
-                }}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="py-3 text-[14px] overflow-y-auto flex-1">
+          <div className="px-5 text-[12px] font-medium uppercase tracking-[0.14em] text-neutral-500 mb-1">
+            Admin Panel
+          </div>
+          <ul>
+            {MENU_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentPath === item.path || (item.path === "/admin/dashboard" && currentPath === "/admin");
+              return (
+                <li key={item.id}>
+                  <Link
+                    to={item.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`group flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors ${
+                      isActive
+                        ? "bg-neutral-700 text-neutral-50"
+                        : "text-neutral-300 hover:bg-neutral-700/70 hover:text-neutral-50"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
         {/* User section */}
-        <div className="p-4" style={{ borderTop: "1px solid #ffffff10" }}>
+        <div className="p-4 border-t border-neutral-700">
           <div className="flex items-center gap-3 mb-3">
-            <div
-              className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium"
-              style={{ background: "#4CB3FF20", color: "#4CB3FF" }}
-            >
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium bg-neutral-700 text-neutral-300">
               {userEmail.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs truncate" style={{ color: "#D6E4F0" }}>{userEmail}</p>
-              <p className="text-xs" style={{ color: "#8FA3B7" }}>Admin</p>
+              <p className="text-xs truncate text-neutral-200">{userEmail}</p>
+              <p className="text-xs text-neutral-500">Admin</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
-            style={{ background: "#ffffff08", color: "#8FA3B7" }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
           >
             <LogOut className="h-4 w-4" />
             Sign Out
@@ -177,7 +174,7 @@ const AdminLayout: React.FC = () => {
       )}
 
       {/* Main content */}
-      <main className="flex-1 min-w-0 overflow-auto">
+      <main className="flex-1 min-w-0 overflow-auto bg-neutral-800">
         <Outlet />
       </main>
     </div>
