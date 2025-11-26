@@ -1669,20 +1669,20 @@ const AdminRoles = () => {
               {/* Pie Chart */}
               <div className="rounded-lg border p-6 bg-neutral-700 border-neutral-600">
                 <h3 className="text-lg font-semibold text-white mb-4">Role Distribution</h3>
-                <div className="h-64">
+                <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={pieChartData}
+                        data={pieChartData.filter(d => d.value > 0)}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        cy="45%"
+                        innerRadius={50}
+                        outerRadius={70}
                         paddingAngle={5}
                         dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
+                        labelLine={false}
                       >
-                        {pieChartData.map((entry, index) => (
+                        {pieChartData.filter(d => d.value > 0).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -1693,8 +1693,16 @@ const AdminRoles = () => {
                           borderRadius: '8px',
                           color: '#fff'
                         }}
+                        formatter={(value: number, name: string) => [`${value} users`, name]}
                       />
-                      <Legend />
+                      <Legend 
+                        verticalAlign="bottom"
+                        height={36}
+                        formatter={(value: string) => {
+                          const item = pieChartData.find(d => d.name === value);
+                          return `${value}: ${item?.value || 0}`;
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
