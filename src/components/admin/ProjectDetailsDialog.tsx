@@ -589,7 +589,7 @@ export function ProjectDetailsDialog({
           <TabsContent value="ai-diagnose" className="mt-4">
             <div className="flex flex-col h-[500px]">
               <ScrollArea className="flex-1 mb-3">
-                {aiMessages.length === 0 ? (
+                {aiMessages.length === 0 && !aiLoading ? (
                   <div className="text-center py-8">
                     <Bot className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
                     <p className="text-neutral-400">Ask the AI to help diagnose issues with this project.</p>
