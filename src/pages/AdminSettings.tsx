@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PlatformSetting {
   id: string;
@@ -54,51 +55,51 @@ const AdminSettings = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center p-12 bg-neutral-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-neutral-800 p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Platform Settings</h1>
-          <p className="text-sm mt-1 text-muted-foreground">Manage system configuration</p>
+          <h1 className="text-3xl font-bold text-white">Platform Settings</h1>
+          <p className="text-sm mt-1 text-white">Manage system configuration</p>
         </div>
-        <button
+        <Button
           onClick={fetchSettings}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          className="bg-neutral-700 hover:bg-neutral-600 text-white border-neutral-600"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
-        </button>
+        </Button>
       </div>
 
       {settings.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No platform settings configured yet.</p>
+        <div className="rounded-lg border bg-neutral-700 border-neutral-600 p-12 text-center">
+          <p className="text-white">No platform settings configured yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {settings.map((setting) => (
-            <div key={setting.id} className="rounded-lg border border-border bg-card p-6">
+            <div key={setting.id} className="rounded-lg border bg-neutral-700 border-neutral-600 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground">{setting.setting_key}</h3>
-                  <p className="text-xs text-muted-foreground">
+                  <h3 className="text-lg font-semibold text-white">{setting.setting_key}</h3>
+                  <p className="text-xs text-white">
                     Last updated: {setting.updated_at ? new Date(setting.updated_at).toLocaleString() : "Never"}
                   </p>
                 </div>
-                <button
+                <Button
                   onClick={() => handleSave(setting.setting_key)}
                   disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-4 w-4 mr-2" />
                   Save
-                </button>
+                </Button>
               </div>
               <textarea
                 value={editedSettings[setting.setting_key] || ""}
@@ -108,7 +109,7 @@ const AdminSettings = () => {
                     [setting.setting_key]: e.target.value,
                   }))
                 }
-                className="w-full h-32 rounded-lg border border-border bg-background text-foreground p-3 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-32 rounded-lg border bg-neutral-800 border-neutral-600 text-white p-3 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           ))}

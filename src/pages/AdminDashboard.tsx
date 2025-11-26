@@ -95,169 +95,170 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold text-white">
           Platform Dashboard
         </h1>
-        <p className="text-sm mt-1 text-white/70">
+        <p className="text-sm mt-1 text-white">
           Overview of platform statistics and metrics
         </p>
       </div>
-            {/* User Metrics Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>User Metrics</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Total Users</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.totalUsers}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>New Today</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>+{stats.newUsersToday}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>New This Week</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>+{stats.newUsersThisWeek}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>New This Month</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>+{stats.newUsersThisMonth}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>DAU (Today)</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.activeUsersToday}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Daily active users</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>MAU (30d)</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.activeUsersThisMonth}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Monthly active users</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Project Metrics Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <FolderOpen className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Project Metrics</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Total Projects</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.totalProjects}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Active Projects</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>{stats.activeProjects}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Updated in 30 days</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Created Today</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>+{stats.projectsCreatedToday}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Avg per User</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.avgProjectsPerUser}</p>
-                </div>
-              </div>
-            </div>
+      {/* User Metrics Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-semibold text-white">User Metrics</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Users</p>
+            <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">New Today</p>
+            <p className="text-3xl font-bold text-blue-400">+{stats.newUsersToday}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">New This Week</p>
+            <p className="text-3xl font-bold text-blue-400">+{stats.newUsersThisWeek}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">New This Month</p>
+            <p className="text-3xl font-bold text-blue-400">+{stats.newUsersThisMonth}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">DAU (Today)</p>
+            <p className="text-3xl font-bold text-white">{stats.activeUsersToday}</p>
+            <p className="text-xs mt-1 text-white">Daily active users</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">MAU (30d)</p>
+            <p className="text-3xl font-bold text-white">{stats.activeUsersThisMonth}</p>
+            <p className="text-xs mt-1 text-white">Monthly active users</p>
+          </div>
+        </div>
+      </div>
 
-            {/* System Health Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>System Health</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm" style={{ color: "#8FA3B7" }}>Server Status</p>
-                    <CheckCircle2 className="w-5 h-5" style={{ color: "#10b981" }} />
-                  </div>
-                  <p className="text-2xl font-bold" style={{ color: "#10b981" }}>Healthy</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm" style={{ color: "#8FA3B7" }}>Database</p>
-                    <Database className="w-5 h-5" style={{ color: "#10b981" }} />
-                  </div>
-                  <p className="text-2xl font-bold" style={{ color: "#10b981" }}>Healthy</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>API Response</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.apiResponseTime}ms</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Average time</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Error Rate</p>
-                  <p className="text-3xl font-bold" style={{ color: "#10b981" }}>{(stats.errorRate * 100).toFixed(2)}%</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Last 24 hours</p>
-                </div>
-              </div>
-            </div>
+      {/* Project Metrics Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <FolderOpen className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-semibold text-white">Project Metrics</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Projects</p>
+            <p className="text-3xl font-bold text-white">{stats.totalProjects}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Active Projects</p>
+            <p className="text-3xl font-bold text-blue-400">{stats.activeProjects}</p>
+            <p className="text-xs mt-1 text-white">Updated in 30 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Created Today</p>
+            <p className="text-3xl font-bold text-blue-400">+{stats.projectsCreatedToday}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Avg per User</p>
+            <p className="text-3xl font-bold text-white">{stats.avgProjectsPerUser}</p>
+          </div>
+        </div>
+      </div>
 
-            {/* Storage Metrics Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <HardDrive className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Storage Metrics</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Total Storage</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.totalStorageUsed} GB</p>
-                  <div className="mt-2 h-2 rounded-full" style={{ background: "#ffffff10" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(stats.totalStorageUsed / stats.storageLimit) * 100}%`, background: "#4CB3FF" }}></div>
-                  </div>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Avg per User</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.avgStoragePerUser} MB</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Storage Limit</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.storageLimit} GB</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>{stats.storageLimit - stats.totalStorageUsed} GB remaining</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-4 h-4" style={{ color: "#10b981" }} />
-                    <p className="text-sm" style={{ color: "#8FA3B7" }}>Status</p>
-                  </div>
-                  <p className="text-xl font-bold" style={{ color: "#10b981" }}>Good</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>97.6 GB available</p>
-                </div>
-              </div>
+      {/* System Health Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-semibold text-white">System Health</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-white">Server Status</p>
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
             </div>
+            <p className="text-2xl font-bold text-green-500">Healthy</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-white">Database</p>
+              <Database className="w-5 h-5 text-green-500" />
+            </div>
+            <p className="text-2xl font-bold text-green-500">Healthy</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">API Response</p>
+            <p className="text-3xl font-bold text-white">{stats.apiResponseTime}ms</p>
+            <p className="text-xs mt-1 text-white">Average time</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Error Rate</p>
+            <p className="text-3xl font-bold text-green-500">{(stats.errorRate * 100).toFixed(2)}%</p>
+            <p className="text-xs mt-1 text-white">Last 24 hours</p>
+          </div>
+        </div>
+      </div>
 
-            {/* AI Usage Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Cpu className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>AI Usage</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Total Requests</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.totalAIRequests.toLocaleString()}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>All time</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Requests Today</p>
-                  <p className="text-3xl font-bold" style={{ color: "#4CB3FF" }}>+{stats.aiRequestsToday}</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Most Used Model</p>
-                  <p className="text-2xl font-bold" style={{ color: "#D6E4F0" }}>{stats.mostUsedModel}</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Primary model</p>
-                </div>
-                <div className="rounded-lg border p-5" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <p className="text-sm mb-2" style={{ color: "#8FA3B7" }}>Avg Response Time</p>
-                  <p className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>{stats.avgResponseTime}s</p>
-                  <p className="text-xs mt-1" style={{ color: "#8FA3B7" }}>Per request</p>
-                </div>
-              </div>
+      {/* Storage Metrics Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <HardDrive className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-semibold text-white">Storage Metrics</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Storage</p>
+            <p className="text-3xl font-bold text-white">{stats.totalStorageUsed} GB</p>
+            <div className="mt-2 h-2 rounded-full bg-neutral-600">
+              <div className="h-full rounded-full transition-all bg-blue-400" style={{ width: `${(stats.totalStorageUsed / stats.storageLimit) * 100}%` }}></div>
             </div>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Avg per User</p>
+            <p className="text-3xl font-bold text-white">{stats.avgStoragePerUser} MB</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Storage Limit</p>
+            <p className="text-3xl font-bold text-white">{stats.storageLimit} GB</p>
+            <p className="text-xs mt-1 text-white">{stats.storageLimit - stats.totalStorageUsed} GB remaining</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-green-500" />
+              <p className="text-sm text-white">Status</p>
+            </div>
+            <p className="text-xl font-bold text-green-500">Good</p>
+            <p className="text-xs mt-1 text-white">97.6 GB available</p>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Usage Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Cpu className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-semibold text-white">AI Usage</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Requests</p>
+            <p className="text-3xl font-bold text-white">{stats.totalAIRequests.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white">All time</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Requests Today</p>
+            <p className="text-3xl font-bold text-blue-400">+{stats.aiRequestsToday}</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Most Used Model</p>
+            <p className="text-2xl font-bold text-white">{stats.mostUsedModel}</p>
+            <p className="text-xs mt-1 text-white">Primary model</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Avg Response Time</p>
+            <p className="text-3xl font-bold text-white">{stats.avgResponseTime}s</p>
+            <p className="text-xs mt-1 text-white">Per request</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
