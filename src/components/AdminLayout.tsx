@@ -14,7 +14,17 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
+  User,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MENU_ITEMS = [
   { id: "dashboard", path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -107,21 +117,33 @@ const AdminLayout: React.FC = () => {
             <span className="text-sm font-semibold text-white">UR-DEV Admin Panel</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium bg-neutral-700 text-white">
-              {userEmail.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-sm text-white">{userEmail}</span>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all bg-neutral-700 text-white hover:bg-neutral-600"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden md:inline">Sign Out</span>
-          </button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all hover:bg-neutral-700">
+              <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium bg-neutral-700 text-white">
+                {userEmail.charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden md:inline text-sm text-white">{userEmail}</span>
+              <ChevronDown className="h-4 w-4 text-white hidden md:block" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-neutral-700 border-neutral-600">
+            <DropdownMenuLabel className="text-white">
+              <div className="flex flex-col">
+                <span className="font-medium">My Account</span>
+                <span className="text-xs text-white/70 font-normal">{userEmail}</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-neutral-600" />
+            <DropdownMenuItem 
+              onClick={handleSignOut}
+              className="text-red-400 hover:text-red-300 hover:bg-neutral-600 cursor-pointer"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
