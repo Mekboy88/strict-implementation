@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
-  Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown, UserPlus,
+  Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown,
   CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw
 } from "lucide-react";
 import {
@@ -404,26 +404,20 @@ const AdminUsers = () => {
             Manage all registered users and their roles
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            type="button"
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              console.log('Refresh clicked');
-              fetchUsers(true);
-            }}
-            disabled={isRefreshing}
-            className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add User
-          </Button>
-        </div>
+        <Button 
+          type="button"
+          variant="outline" 
+          size="sm"
+          onClick={() => {
+            console.log('Refresh clicked');
+            fetchUsers(true);
+          }}
+          disabled={isRefreshing}
+          className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
