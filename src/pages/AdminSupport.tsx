@@ -53,6 +53,7 @@ import {
   Image,
   Pencil,
   CheckSquare,
+  Download,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -427,6 +428,59 @@ const AdminSupport = () => {
     }
   };
 
+  const exportToCSV = () => {
+    if (filteredTickets.length === 0) {
+      toast.error("No tickets to export");
+      return;
+    }
+
+    const headers = [
+      "ID",
+      "Subject",
+      "Message",
+      "Status",
+      "Priority",
+      "Type",
+      "Project",
+      "Assigned To",
+      "Resolved By",
+      "Created At",
+      "Resolved At",
+    ];
+
+    const csvRows = [
+      headers.join(","),
+      ...filteredTickets.map((ticket) => {
+        const row = [
+          ticket.id,
+          `"${(ticket.subject || "").replace(/"/g, '""')}"`,
+          `"${(ticket.message || "").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+          ticket.status,
+          ticket.priority,
+          ticket.type,
+          `"${ticket.projectName || ""}"`,
+          `"${ticket.assignedAdminName || ""}"`,
+          `"${ticket.resolvedByName || ""}"`,
+          ticket.created_at,
+          ticket.resolved_at || "",
+        ];
+        return row.join(",");
+      }),
+    ];
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `support-tickets-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredTickets.length} ticket(s)`);
+  };
+
   const sendAIMessage = async () => {
     if (!aiInput.trim() || !selectedTicket) return;
 
@@ -555,6 +609,15 @@ const AdminSupport = () => {
             <p className="text-neutral-400 text-sm">Manage support tickets with AI assistance</p>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              size="sm"
+              className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
             <Button
               onClick={fetchTickets}
               variant="outline"
