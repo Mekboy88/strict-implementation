@@ -624,7 +624,7 @@ const AdminRoles = () => {
                   value={roleSearch}
                   onChange={(e) => setRoleSearch(e.target.value)}
                   placeholder="Search roles..."
-                  className="pl-9 bg-neutral-900 border-neutral-600 text-white"
+                  className="pl-9 bg-neutral-600 border-neutral-500 text-white placeholder:text-neutral-300"
                 />
               </div>
               <div className="flex gap-2">
