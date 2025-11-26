@@ -763,7 +763,7 @@ const AdminRoles = () => {
                   />
                 </div>
                 <Select value={activityFilter} onValueChange={setActivityFilter}>
-                  <SelectTrigger className="w-40 bg-neutral-900 border-neutral-600 text-white">
+                  <SelectTrigger className="w-40 bg-neutral-600 border-neutral-500 text-white">
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-800 border-neutral-600">
