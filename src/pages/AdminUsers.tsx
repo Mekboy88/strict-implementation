@@ -35,6 +35,7 @@ import {
 import { EditRoleDialog } from "@/components/admin/EditRoleDialog";
 import { SuspendUserDialog } from "@/components/admin/SuspendUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
+import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
 
 interface UserData {
   id: string;
@@ -69,6 +70,7 @@ const AdminUsers = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const [stats, setStats] = useState({
@@ -596,10 +598,7 @@ const AdminUsers = () => {
                           className="hover:bg-neutral-600 cursor-pointer text-white"
                           onClick={() => {
                             setSelectedUser(user);
-                            toast({
-                              title: "View Details",
-                              description: `Viewing details for ${user.email}`,
-                            });
+                            setUserDetailsOpen(true);
                           }}
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -732,6 +731,11 @@ const AdminUsers = () => {
         onOpenChange={setDeleteDialogOpen}
         user={selectedUser}
         onDelete={handleDeleteUser}
+      />
+      <UserDetailsDialog
+        open={userDetailsOpen}
+        onOpenChange={setUserDetailsOpen}
+        user={selectedUser}
       />
     </div>
   );
