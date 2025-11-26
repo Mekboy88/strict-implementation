@@ -604,83 +604,102 @@ const AdminUsers = () => {
                     })}
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="hover:bg-neutral-600 text-white">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="border z-50 bg-neutral-700 border-neutral-600 min-w-[180px]">
-                        <DropdownMenuLabel className="text-neutral-400 text-xs">
-                          User Actions
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-neutral-600" />
-                        <DropdownMenuItem
-                          className="hover:bg-neutral-600 cursor-pointer text-white"
+                    {user.role === "owner" ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded">
+                          Protected
+                        </span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hover:bg-neutral-600 text-white"
                           onClick={() => {
                             setSelectedUser(user);
                             setUserDetailsOpen(true);
                           }}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="hover:bg-neutral-600 cursor-pointer text-white"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit Role
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="hover:bg-neutral-600 cursor-pointer text-white"
-                          onClick={() => {
-                            toast({
-                              title: "Password Reset",
-                              description: `Password reset email sent to ${user.email}`,
-                            });
-                          }}
-                        >
-                          <Key className="w-4 h-4 mr-2" />
-                          Reset Password
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-neutral-600" />
-                        {isBanned ? (
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="hover:bg-neutral-600 text-white">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="border z-50 bg-neutral-700 border-neutral-600 min-w-[180px]">
+                          <DropdownMenuLabel className="text-neutral-400 text-xs">
+                            User Actions
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-neutral-600" />
                           <DropdownMenuItem
-                            className="hover:bg-neutral-600 cursor-pointer text-green-400"
-                            onClick={() => handleUnsuspendUser(user.user_id)}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Unsuspend User
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            className="hover:bg-neutral-600 cursor-pointer text-yellow-400"
+                            className="hover:bg-neutral-600 cursor-pointer text-white"
                             onClick={() => {
                               setSelectedUser(user);
-                              setSuspendDialogOpen(true);
+                              setUserDetailsOpen(true);
                             }}
                           >
-                            <Ban className="w-4 h-4 mr-2" />
-                            Suspend User
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator className="bg-neutral-600" />
-                        <DropdownMenuItem
-                          className="hover:bg-neutral-600 cursor-pointer text-red-400"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete User
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuItem
+                            className="hover:bg-neutral-600 cursor-pointer text-white"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit Role
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="hover:bg-neutral-600 cursor-pointer text-white"
+                            onClick={() => {
+                              toast({
+                                title: "Password Reset",
+                                description: `Password reset email sent to ${user.email}`,
+                              });
+                            }}
+                          >
+                            <Key className="w-4 h-4 mr-2" />
+                            Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-neutral-600" />
+                          {isBanned ? (
+                            <DropdownMenuItem
+                              className="hover:bg-neutral-600 cursor-pointer text-green-400"
+                              onClick={() => handleUnsuspendUser(user.user_id)}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Unsuspend User
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="hover:bg-neutral-600 cursor-pointer text-yellow-400"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setSuspendDialogOpen(true);
+                              }}
+                            >
+                              <Ban className="w-4 h-4 mr-2" />
+                              Suspend User
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator className="bg-neutral-600" />
+                          <DropdownMenuItem
+                            className="hover:bg-neutral-600 cursor-pointer text-red-400"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               );

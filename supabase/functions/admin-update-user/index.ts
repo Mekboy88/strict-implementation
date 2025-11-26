@@ -54,8 +54,39 @@ serve(async (req) => {
 
     const { action, userId, role, banDuration } = await req.json();
 
+    // CRITICAL: Check if target user is owner - NEVER allow changes to owner
+    const { data: targetUserRole } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    // Protection: Cannot modify owner role in any way
+    if (targetUserRole?.role === "owner") {
+      console.log("SECURITY: Attempted to modify platform owner role - BLOCKED");
+      return new Response(JSON.stringify({ 
+        error: "Cannot modify Platform Owner. This action has been logged.",
+        code: "OWNER_PROTECTED"
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     switch (action) {
       case "updateRole": {
+        // CRITICAL: Never allow assigning owner role
+        if (role === "owner") {
+          console.log("SECURITY: Attempted to assign owner role - BLOCKED");
+          return new Response(JSON.stringify({ 
+            error: "Owner role cannot be assigned. This action has been logged.",
+            code: "OWNER_ASSIGN_BLOCKED"
+          }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         // Update user role
         const { error } = await supabaseAdmin
           .from("user_roles")
