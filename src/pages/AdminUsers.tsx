@@ -140,10 +140,10 @@ const AdminUsers = () => {
   return (
     <div className="min-h-screen bg-neutral-800 p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-50">
+        <h1 className="text-3xl font-bold text-white">
           User Management
         </h1>
-        <p className="text-sm mt-1 text-neutral-400">
+        <p className="text-sm mt-1 text-white/70">
           Manage all registered users and their roles
         </p>
       </div>
