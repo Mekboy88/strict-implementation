@@ -383,16 +383,135 @@ const requiredBackendFeatures = [
   { id: "crud", label: "CRUD Operations", icon: Server, description: "Create, Read, Update, Delete for all entities" },
 ];
 
-// Optional extra features - user can choose
+// Optional extra features - user can choose (comprehensive list)
 const optionalFeatureOptions = [
-  { id: "payments", label: "Payment Processing", icon: CreditCard, description: "Stripe/PayPal integration for payments" },
-  { id: "notifications", label: "Notifications", icon: Bell, description: "Push, email & in-app notifications" },
-  { id: "search", label: "Advanced Search", icon: Search, description: "Full-text search with filters" },
-  { id: "chat", label: "Chat / Messaging", icon: MessageSquare, description: "Real-time messaging system" },
-  { id: "media", label: "Media Upload", icon: Image, description: "Image, video & file storage" },
-  { id: "scheduling", label: "Scheduling / Calendar", icon: Calendar, description: "Appointments & event management" },
-  { id: "analytics", label: "Analytics Dashboard", icon: TrendingUp, description: "Usage stats & reporting" },
-  { id: "admin_panel", label: "Admin Panel", icon: LayoutDashboard, description: "Backend management interface" },
+  // Payments & Commerce
+  { id: "payments", label: "Payment Processing", icon: CreditCard, category: "Commerce" },
+  { id: "subscriptions", label: "Subscription Billing", icon: Banknote, category: "Commerce" },
+  { id: "invoicing", label: "Invoicing System", icon: FileText, category: "Commerce" },
+  { id: "refunds", label: "Refunds & Disputes", icon: Scale, category: "Commerce" },
+  { id: "coupons", label: "Coupons & Discounts", icon: Ticket, category: "Commerce" },
+  { id: "cart", label: "Shopping Cart", icon: ShoppingCart, category: "Commerce" },
+  { id: "checkout", label: "Checkout Flow", icon: CreditCard, category: "Commerce" },
+  { id: "tax", label: "Tax Calculation", icon: Banknote, category: "Commerce" },
+  { id: "currency", label: "Multi-Currency", icon: Bitcoin, category: "Commerce" },
+  
+  // Communication
+  { id: "notifications", label: "Push Notifications", icon: Bell, category: "Communication" },
+  { id: "email_notifications", label: "Email Notifications", icon: Bell, category: "Communication" },
+  { id: "sms", label: "SMS Integration", icon: MessageSquare, category: "Communication" },
+  { id: "chat", label: "Real-time Chat", icon: MessageSquare, category: "Communication" },
+  { id: "video_calls", label: "Video Conferencing", icon: Film, category: "Communication" },
+  { id: "voice", label: "Voice/Audio Calls", icon: Radio, category: "Communication" },
+  { id: "email_templates", label: "Email Templates", icon: FileText, category: "Communication" },
+  { id: "newsletter", label: "Newsletter System", icon: Newspaper, category: "Communication" },
+  { id: "contact_forms", label: "Contact Forms", icon: FileText, category: "Communication" },
+  
+  // User Features
+  { id: "social_auth", label: "Social Login", icon: Users, category: "User Features" },
+  { id: "2fa", label: "Two-Factor Auth (2FA)", icon: Shield, category: "User Features" },
+  { id: "user_roles", label: "User Roles & Permissions", icon: Key, category: "User Features" },
+  { id: "teams", label: "Teams/Organizations", icon: Users, category: "User Features" },
+  { id: "invitations", label: "User Invitations", icon: UserPlus, category: "User Features" },
+  { id: "favorites", label: "Favorites/Bookmarks", icon: Heart, category: "User Features" },
+  { id: "activity_feed", label: "Activity Feed", icon: Zap, category: "User Features" },
+  { id: "user_preferences", label: "User Preferences", icon: Cog, category: "User Features" },
+  { id: "address_book", label: "Address Book", icon: MapPin, category: "User Features" },
+  
+  // Content & Media
+  { id: "media", label: "Media Upload", icon: Image, category: "Content" },
+  { id: "file_storage", label: "File Storage", icon: Cloud, category: "Content" },
+  { id: "image_gallery", label: "Image Gallery", icon: Image, category: "Content" },
+  { id: "video_upload", label: "Video Upload", icon: Film, category: "Content" },
+  { id: "document_upload", label: "Document Management", icon: FileText, category: "Content" },
+  { id: "rich_text", label: "Rich Text Editor", icon: PenTool, category: "Content" },
+  { id: "blog", label: "Blog/CMS", icon: Newspaper, category: "Content" },
+  { id: "comments", label: "Comments System", icon: MessageSquare, category: "Content" },
+  { id: "ratings", label: "Ratings & Reviews", icon: Trophy, category: "Content" },
+  
+  // Search & Discovery
+  { id: "search", label: "Advanced Search", icon: Search, category: "Search" },
+  { id: "filters", label: "Filters & Sorting", icon: Search, category: "Search" },
+  { id: "recommendations", label: "AI Recommendations", icon: Sparkles, category: "Search" },
+  { id: "recently_viewed", label: "Recently Viewed", icon: Eye, category: "Search" },
+  { id: "categories", label: "Categories & Tags", icon: Package, category: "Search" },
+  
+  // Scheduling & Booking
+  { id: "scheduling", label: "Scheduling/Calendar", icon: Calendar, category: "Scheduling" },
+  { id: "appointments", label: "Appointment Booking", icon: Calendar, category: "Scheduling" },
+  { id: "availability", label: "Availability Management", icon: Calendar, category: "Scheduling" },
+  { id: "reminders", label: "Automated Reminders", icon: Bell, category: "Scheduling" },
+  { id: "recurring", label: "Recurring Events", icon: Calendar, category: "Scheduling" },
+  
+  // Analytics & Reporting
+  { id: "analytics", label: "Analytics Dashboard", icon: TrendingUp, category: "Analytics" },
+  { id: "reports", label: "Custom Reports", icon: FileText, category: "Analytics" },
+  { id: "export_data", label: "Data Export (CSV/PDF)", icon: FileText, category: "Analytics" },
+  { id: "import_data", label: "Data Import", icon: FileText, category: "Analytics" },
+  { id: "audit_logs", label: "Audit Logs", icon: FileText, category: "Analytics" },
+  { id: "user_tracking", label: "User Behavior Tracking", icon: Eye, category: "Analytics" },
+  
+  // Admin & Management
+  { id: "admin_panel", label: "Admin Panel", icon: LayoutDashboard, category: "Admin" },
+  { id: "moderation", label: "Content Moderation", icon: Shield, category: "Admin" },
+  { id: "feature_flags", label: "Feature Flags", icon: Zap, category: "Admin" },
+  { id: "backups", label: "Automated Backups", icon: Cloud, category: "Admin" },
+  { id: "multi_tenant", label: "Multi-Tenancy", icon: Building2, category: "Admin" },
+  { id: "white_label", label: "White-Labeling", icon: Palette, category: "Admin" },
+  
+  // Integrations
+  { id: "api", label: "Public API", icon: Server, category: "Integrations" },
+  { id: "webhooks", label: "Webhooks", icon: Zap, category: "Integrations" },
+  { id: "zapier", label: "Zapier Integration", icon: Zap, category: "Integrations" },
+  { id: "social_sharing", label: "Social Sharing", icon: Users, category: "Integrations" },
+  { id: "maps", label: "Maps Integration", icon: MapPin, category: "Integrations" },
+  { id: "third_party", label: "Third-Party APIs", icon: Server, category: "Integrations" },
+  
+  // E-commerce Specific
+  { id: "inventory", label: "Inventory Management", icon: Package, category: "E-commerce" },
+  { id: "orders", label: "Order Management", icon: ShoppingBasket, category: "E-commerce" },
+  { id: "shipping", label: "Shipping Integration", icon: Truck, category: "E-commerce" },
+  { id: "wishlist", label: "Wishlist", icon: Heart, category: "E-commerce" },
+  { id: "product_variants", label: "Product Variants", icon: Package, category: "E-commerce" },
+  { id: "stock_alerts", label: "Stock Alerts", icon: Bell, category: "E-commerce" },
+  { id: "gift_cards", label: "Gift Cards", icon: Gift, category: "E-commerce" },
+  
+  // Gamification & Engagement
+  { id: "points", label: "Points System", icon: Trophy, category: "Gamification" },
+  { id: "badges", label: "Badges & Achievements", icon: Trophy, category: "Gamification" },
+  { id: "leaderboards", label: "Leaderboards", icon: TrendingUp, category: "Gamification" },
+  { id: "referrals", label: "Referral Program", icon: Gift, category: "Gamification" },
+  { id: "loyalty", label: "Loyalty Program", icon: Heart, category: "Gamification" },
+  
+  // Support & Help
+  { id: "support_tickets", label: "Support Tickets", icon: MessageSquare, category: "Support" },
+  { id: "live_chat", label: "Live Chat Support", icon: MessageSquare, category: "Support" },
+  { id: "knowledge_base", label: "Knowledge Base/FAQ", icon: BookOpen, category: "Support" },
+  { id: "feedback", label: "Feedback & Surveys", icon: FileText, category: "Support" },
+  { id: "onboarding", label: "User Onboarding", icon: UserPlus, category: "Support" },
+  
+  // Location & Geo
+  { id: "geolocation", label: "Geolocation", icon: MapPin, category: "Location" },
+  { id: "location_search", label: "Location-based Search", icon: MapPin, category: "Location" },
+  { id: "delivery_tracking", label: "Delivery Tracking", icon: Truck, category: "Location" },
+  { id: "store_locator", label: "Store Locator", icon: Store, category: "Location" },
+  
+  // Advanced Features
+  { id: "offline", label: "Offline Mode (PWA)", icon: Wifi, category: "Advanced" },
+  { id: "realtime", label: "Real-time Updates", icon: Zap, category: "Advanced" },
+  { id: "dark_mode", label: "Dark Mode", icon: Sun, category: "Advanced" },
+  { id: "i18n", label: "Multi-Language (i18n)", icon: BookOpen, category: "Advanced" },
+  { id: "qr_codes", label: "QR Code Generation", icon: Smartphone, category: "Advanced" },
+  { id: "pdf_generation", label: "PDF Generation", icon: FileText, category: "Advanced" },
+  { id: "digital_signatures", label: "Digital Signatures", icon: PenTool, category: "Advanced" },
+  { id: "ai_features", label: "AI-Powered Features", icon: Brain, category: "Advanced" },
+  
+  // Marketplace Features
+  { id: "vendors", label: "Multi-Vendor Support", icon: Store, category: "Marketplace" },
+  { id: "commissions", label: "Commission System", icon: Banknote, category: "Marketplace" },
+  { id: "escrow", label: "Escrow Payments", icon: Shield, category: "Marketplace" },
+  { id: "disputes", label: "Dispute Resolution", icon: Scale, category: "Marketplace" },
+  { id: "verified_badges", label: "Verified Badges", icon: Check, category: "Marketplace" },
 ];
 
 export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGeneratePlan }) => {
@@ -588,95 +707,101 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
 
           {/* Step 3: Features */}
           {step === 3 && (
-            <div className="space-y-5">
-              {/* Required Backend Features Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-5">
+                {/* Required Backend Features Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-white">Required Backend Features</h3>
+                      <p className="text-xs text-slate-400">Automatically included in your project ({requiredBackendFeatures.length} features)</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-white">Required Backend Features</h3>
-                    <p className="text-xs text-slate-400">Automatically included in your project</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {requiredBackendFeatures.map((feature) => {
+                      const Icon = feature.icon;
+                      return (
+                        <div
+                          key={feature.id}
+                          className="flex items-start gap-2 px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5"
+                        >
+                          <div className="w-5 h-5 rounded flex items-center justify-center bg-emerald-500/20 flex-shrink-0 mt-0.5">
+                            <Icon className="w-3 h-3 text-emerald-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-emerald-300 font-medium">{feature.label}</span>
+                              <LockIcon className="w-2.5 h-2.5 text-emerald-500/50" />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {requiredBackendFeatures.map((feature) => {
-                    const Icon = feature.icon;
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-xs text-slate-500">Optional Extras ({optionalFeatureOptions.length} available)</span>
+                  <div className="flex-1 h-px bg-white/10" />
+                </div>
+
+                {/* Optional Features Section - Grouped by Category */}
+                {(() => {
+                  const categories = [...new Set(optionalFeatureOptions.map(f => f.category))];
+                  return categories.map((category) => {
+                    const categoryFeatures = optionalFeatureOptions.filter(f => f.category === category);
+                    const selectedCount = categoryFeatures.filter(f => selectedFeatures.includes(f.id)).length;
                     return (
-                      <div
-                        key={feature.id}
-                        className="flex items-start gap-2 px-3 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5"
-                      >
-                        <div className="w-5 h-5 rounded flex items-center justify-center bg-emerald-500/20 flex-shrink-0 mt-0.5">
-                          <Icon className="w-3 h-3 text-emerald-400" />
+                      <div key={category}>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                            {category}
+                          </h4>
+                          {selectedCount > 0 && (
+                            <span className="text-xs text-sky-400">{selectedCount} selected</span>
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm text-emerald-300 font-medium">{feature.label}</span>
-                            <LockIcon className="w-3 h-3 text-emerald-500/50" />
-                          </div>
-                          <p className="text-xs text-slate-500 truncate">{feature.description}</p>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {categoryFeatures.map((feature) => {
+                            const Icon = feature.icon;
+                            const isSelected = selectedFeatures.includes(feature.id);
+                            return (
+                              <button
+                                key={feature.id}
+                                onClick={() => toggleFeature(feature.id)}
+                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border transition-all text-left ${
+                                  isSelected 
+                                    ? 'border-sky-500 bg-sky-500/10' 
+                                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                                }`}
+                              >
+                                <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
+                                  isSelected ? 'bg-sky-500' : 'bg-white/10'
+                                }`}>
+                                  {isSelected ? (
+                                    <Check className="w-2.5 h-2.5 text-white" />
+                                  ) : (
+                                    <Icon className="w-2.5 h-2.5 text-slate-400" />
+                                  )}
+                                </div>
+                                <span className={`text-xs truncate ${isSelected ? 'text-sky-300' : 'text-slate-300'}`}>
+                                  {feature.label}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     );
-                  })}
-                </div>
+                  });
+                })()}
               </div>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-xs text-slate-500">Optional Extras</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              {/* Optional Features Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center">
-                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-white">Choose Extra Features</h3>
-                    <p className="text-xs text-slate-400">Select additional features for your project</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {optionalFeatureOptions.map((feature) => {
-                    const Icon = feature.icon;
-                    const isSelected = selectedFeatures.includes(feature.id);
-                    return (
-                      <button
-                        key={feature.id}
-                        onClick={() => toggleFeature(feature.id)}
-                        className={`flex items-start gap-2 px-3 py-2.5 rounded-lg border transition-all text-left ${
-                          isSelected 
-                            ? 'border-sky-500 bg-sky-500/10' 
-                            : 'border-white/10 bg-white/5 hover:border-white/20'
-                        }`}
-                      >
-                        <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          isSelected ? 'bg-sky-500' : 'bg-white/10'
-                        }`}>
-                          {isSelected ? (
-                            <Check className="w-3 h-3 text-white" />
-                          ) : (
-                            <Icon className="w-3 h-3 text-slate-400" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className={`text-sm ${isSelected ? 'text-sky-300' : 'text-slate-300'}`}>
-                            {feature.label}
-                          </span>
-                          <p className="text-xs text-slate-500 truncate">{feature.description}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            </ScrollArea>
           )}
 
           {/* Step 4: Additional Details */}
