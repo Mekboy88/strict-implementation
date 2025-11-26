@@ -117,7 +117,7 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRo
             onValueChange={setSelectedRole}
             disabled={!isCurrentUserOwner}
           >
-            <SelectTrigger className={`bg-neutral-700 border-neutral-600 text-white ${!isCurrentUserOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <SelectTrigger className={`bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus:outline-none ${!isCurrentUserOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <SelectValue>
                 {selectedRoleInfo && (
                   <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRo
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
-            className="border-neutral-600 text-white hover:bg-neutral-700"
+            className="border-neutral-600 text-white hover:bg-neutral-700 focus:ring-0 focus:ring-offset-0 focus:outline-none"
           >
             Cancel
           </Button>
@@ -164,7 +164,7 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRo
             <Button 
               onClick={handleSave} 
               disabled={loading || selectedRole === user?.role} 
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 focus:ring-0 focus:ring-offset-0 focus:outline-none"
             >
               {loading ? "Saving..." : "Save Changes"}
             </Button>
