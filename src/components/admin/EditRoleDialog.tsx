@@ -116,21 +116,6 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRo
           </div>
         )}
 
-        {/* Current Role Display */}
-        <div className="py-2">
-          <Label className="text-neutral-400 text-xs mb-2 block">Current Role</Label>
-          <div className="flex items-center gap-2">
-            {currentRoleInfo && (
-              <>
-                <Badge className={`${currentRoleInfo.color} border flex items-center gap-1`}>
-                  <currentRoleInfo.icon className="w-3 h-3" />
-                  {currentRoleInfo.label}
-                </Badge>
-              </>
-            )}
-          </div>
-        </div>
-
         {/* Role Selection - Only enabled for platform owner */}
         <div className="py-2">
           <Label className="text-white mb-2 block">Select New Role</Label>
