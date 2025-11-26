@@ -312,7 +312,7 @@ export function ProjectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[85vh] bg-neutral-800 border-neutral-600 text-white">
+      <DialogContent className="sm:max-w-[1100px] max-h-[90vh] bg-neutral-800 border-neutral-600 text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <FolderOpen className="h-5 w-5 text-blue-400" />
