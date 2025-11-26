@@ -89,7 +89,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-800 p-6">
+    <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">

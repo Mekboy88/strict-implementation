@@ -235,7 +235,7 @@ const AdminRoles = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-800 p-6">
+    <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
       {/* Header */}
       <div className="border-b border-neutral-700">
         <div className="px-6 py-6 flex items-center justify-between">

@@ -78,7 +78,7 @@ const AdminLayout: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-800">
+      <div className="h-screen flex items-center justify-center bg-neutral-800">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-400"></div>
       </div>
     );
@@ -89,9 +89,9 @@ const AdminLayout: React.FC = () => {
   const currentPath = location.pathname;
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-800">
-      {/* Top Bar */}
-      <header className="h-14 border-b border-neutral-700 bg-neutral-800 flex items-center justify-between px-4 md:px-6 shrink-0">
+    <div className="h-screen flex flex-col bg-neutral-800 overflow-hidden">
+      {/* Fixed Top Bar */}
+      <header className="h-14 border-b border-neutral-700 bg-neutral-800 flex items-center justify-between px-4 md:px-6 shrink-0 z-50">
         <div className="flex items-center gap-3">
           {/* Mobile menu button */}
           <button
@@ -127,9 +127,8 @@ const AdminLayout: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <aside
-          className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out border-r border-neutral-700 bg-neutral-800
+          className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out border-r border-neutral-700 bg-neutral-800 pt-14 md:pt-0
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-            md:top-0
           `}
         >
           {/* Navigation */}
@@ -170,8 +169,8 @@ const AdminLayout: React.FC = () => {
           />
         )}
 
-        {/* Main content */}
-        <main className="flex-1 min-w-0 overflow-auto bg-neutral-800">
+        {/* Main content - scrollable area */}
+        <main className="flex-1 min-w-0 overflow-y-auto bg-neutral-800">
           <Outlet />
         </main>
       </div>
