@@ -1529,6 +1529,50 @@ export type Database = {
           },
         ]
       }
+      team_notes: {
+        Row: {
+          color: string | null
+          content: string | null
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          team_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          team_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          team_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_notes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           avatar_url: string | null
