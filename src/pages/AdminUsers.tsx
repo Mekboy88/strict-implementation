@@ -6,7 +6,7 @@ import {
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
   Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown,
   CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw, UserX,
-  Download, UserPlus, MailCheck, LogIn
+  Download, UserPlus, MailCheck, LogIn, Coins
 } from "lucide-react";
 import {
   Table,
@@ -42,6 +42,7 @@ import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
 import { BlacklistPanel } from "@/components/admin/BlacklistPanel";
 import { InviteUserDialog } from "@/components/admin/InviteUserDialog";
 import { BulkActionsDialog } from "@/components/admin/BulkActionsDialog";
+import { GiveCreditsDialog } from "@/components/admin/GiveCreditsDialog";
 
 interface UserData {
   id: string;
@@ -88,6 +89,7 @@ const AdminUsers = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState<"suspend" | "delete" | null>(null);
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const [stats, setStats] = useState({
@@ -500,6 +502,26 @@ const AdminUsers = () => {
 
     toast({ title: "Success", description: `Invitation sent to ${email}` });
     fetchUsers();
+  };
+
+  const handleGiveCredits = async (userId: string, amount: number, reason: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase.functions.invoke("admin-update-user", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: { action: "giveCredits", userId, amount, creditReason: reason }
+    });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to give credits", variant: "destructive" });
+      return;
+    }
+
+    toast({ 
+      title: "Credits Granted", 
+      description: `${amount} AI credits given to ${data?.email || 'user'}. They will receive a notification.`
+    });
   };
 
   // Bulk actions
@@ -1011,6 +1033,17 @@ const AdminUsers = () => {
                             Impersonate User
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-neutral-600" />
+                          <DropdownMenuItem
+                            className="hover:bg-neutral-600 cursor-pointer text-amber-400"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setCreditsDialogOpen(true);
+                            }}
+                          >
+                            <Coins className="w-4 h-4 mr-2" />
+                            Give Credits
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-neutral-600" />
                           {isBanned ? (
                             <DropdownMenuItem
                               className="hover:bg-neutral-600 cursor-pointer text-green-400"
@@ -1140,6 +1173,12 @@ const AdminUsers = () => {
         action={bulkAction}
         selectedCount={selectedUsers.size}
         onConfirm={handleBulkAction}
+      />
+      <GiveCreditsDialog
+        open={creditsDialogOpen}
+        onOpenChange={setCreditsDialogOpen}
+        user={selectedUser ? { id: selectedUser.user_id, email: selectedUser.email || '', full_name: undefined } : null}
+        onGiveCredits={handleGiveCredits}
       />
     </div>
   );
