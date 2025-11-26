@@ -67,7 +67,6 @@ const AdminUsers = () => {
   const [itemsPerPage] = useState(10);
   const [currentUserRole, setCurrentUserRole] = useState<string>("user");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(true);
   
   // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -211,7 +210,6 @@ const AdminUsers = () => {
 
   // Real-time subscription for user_roles changes
   useEffect(() => {
-    if (!autoRefresh) return;
 
     const channel = supabase
       .channel('user-roles-changes')
@@ -232,7 +230,7 @@ const AdminUsers = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [autoRefresh, fetchUsers]);
+  }, [fetchUsers]);
 
   const handleManualRefresh = () => {
     fetchUsers(true);
@@ -416,14 +414,6 @@ const AdminUsers = () => {
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
-          </Button>
-          <Button 
-            variant={autoRefresh ? "default" : "outline"}
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? "bg-green-600 hover:bg-green-700" : "border-neutral-600 text-white hover:bg-neutral-700"}
-          >
-            {autoRefresh ? "Auto-Refresh: ON" : "Auto-Refresh: OFF"}
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700">
             <UserPlus className="w-4 h-4 mr-2" />
