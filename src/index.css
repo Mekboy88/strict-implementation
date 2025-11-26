@@ -73,6 +73,17 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Global text selection - blue shade */
+  ::selection {
+    background: hsl(210 100% 50% / 0.5);
+    color: #ffffff;
+  }
+
+  ::-moz-selection {
+    background: hsl(210 100% 50% / 0.5);
+    color: #ffffff;
+  }
 }
 
 @layer utilities {
