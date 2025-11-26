@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck, MessageSquare, MessagesSquare, Sparkles } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck, MessageSquare, MessagesSquare, Sparkles, ScrollText, Bug, Info } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -150,12 +150,28 @@ const AdminDashboard = () => {
     uniqueLlmUsers: 0,
     avgPromptLength: 0,
     avgResponseLength: 0,
+    // Platform Logs Metrics
+    totalPlatformLogs: 0,
+    platformLogsToday: 0,
+    platformLogsThisWeek: 0,
+    infoLogs: 0,
+    warnLogs: 0,
+    errorLogs: 0,
+    debugLogs: 0,
+    uniqueLogUsers: 0,
+    // Platform Errors Metrics
+    totalPlatformErrors: 0,
+    platformErrorsToday: 0,
+    platformErrorsThisWeek: 0,
+    uniqueErrorCodes: 0,
+    errorsWithStackTrace: 0,
+    topErrorCode: 'N/A',
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes, platformLogsRes, platformErrorsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -184,6 +200,8 @@ const AdminDashboard = () => {
         supabase.from('notification_preferences').select('*'),
         supabase.from('admin_alerts').select('*'),
         supabase.from('llm_logs').select('*'),
+        supabase.from('platform_logs').select('*'),
+        supabase.from('platform_errors').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -214,6 +232,8 @@ const AdminDashboard = () => {
       const notificationPrefs = notificationPrefsRes.data || [];
       const adminAlerts = adminAlertsRes.data || [];
       const llmLogs = llmLogsRes.data || [];
+      const platformLogs = platformLogsRes.data || [];
+      const platformErrors = platformErrorsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -440,6 +460,32 @@ const AdminDashboard = () => {
         ? Math.round(llmLogs.filter(l => l.response).reduce((sum, l) => sum + (l.response?.length || 0), 0) / llmLogsWithResponse)
         : 0;
 
+      // Calculate Platform Logs metrics
+      const totalPlatformLogs = platformLogs.length;
+      const platformLogsToday = platformLogs.filter(l => new Date(l.created_at) >= today).length;
+      const platformLogsThisWeek = platformLogs.filter(l => new Date(l.created_at) >= sevenDaysAgo).length;
+      const infoLogs = platformLogs.filter(l => l.level === 'info').length;
+      const warnLogs = platformLogs.filter(l => l.level === 'warn' || l.level === 'warning').length;
+      const errorLogs = platformLogs.filter(l => l.level === 'error').length;
+      const debugLogs = platformLogs.filter(l => l.level === 'debug').length;
+      const uniqueLogUsers = new Set(platformLogs.filter(l => l.user_id).map(l => l.user_id)).size;
+
+      // Calculate Platform Errors metrics
+      const totalPlatformErrors = platformErrors.length;
+      const platformErrorsToday = platformErrors.filter(e => new Date(e.created_at) >= today).length;
+      const platformErrorsThisWeek = platformErrors.filter(e => new Date(e.created_at) >= sevenDaysAgo).length;
+      const uniqueErrorCodes = new Set(platformErrors.filter(e => e.error_code).map(e => e.error_code)).size;
+      const errorsWithStackTrace = platformErrors.filter(e => e.stack_trace).length;
+      
+      // Find top error code
+      const errorCodeCounts: Record<string, number> = {};
+      platformErrors.forEach(e => {
+        const code = e.error_code || 'unknown';
+        errorCodeCounts[code] = (errorCodeCounts[code] || 0) + 1;
+      });
+      const topErrorCode = Object.entries(errorCodeCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -648,6 +694,22 @@ const AdminDashboard = () => {
         uniqueLlmUsers,
         avgPromptLength,
         avgResponseLength,
+        // Platform Logs
+        totalPlatformLogs,
+        platformLogsToday,
+        platformLogsThisWeek,
+        infoLogs,
+        warnLogs,
+        errorLogs,
+        debugLogs,
+        uniqueLogUsers,
+        // Platform Errors
+        totalPlatformErrors,
+        platformErrorsToday,
+        platformErrorsThisWeek,
+        uniqueErrorCodes,
+        errorsWithStackTrace,
+        topErrorCode,
       });
 
       setLoading(false);
@@ -1719,6 +1781,122 @@ const AdminDashboard = () => {
               {stats.totalLlmLogs > 0 ? ((stats.llmLogsWithResponse / stats.totalLlmLogs) * 100).toFixed(1) : 0}%
             </p>
             <p className="text-xs mt-1 text-white/70">Responses generated</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Logs Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <ScrollText className="w-5 h-5 text-teal-400" />
+          <h2 className="text-xl font-semibold text-white">Platform Logs</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-teal-400" />
+              <p className="text-sm text-white">Total Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-teal-400">{stats.totalPlatformLogs}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.platformLogsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.platformLogsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Info className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Info Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.infoLogs}</p>
+            <p className="text-xs mt-1 text-white/70">Informational</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Warn Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.warnLogs}</p>
+            <p className="text-xs mt-1 text-white/70">Warnings</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Error Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.errorLogs}</p>
+            <p className="text-xs mt-1 text-white/70">Errors logged</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Cpu className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Debug Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-400">{stats.debugLogs}</p>
+            <p className="text-xs mt-1 text-white/70">Debug messages</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Unique Users</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueLogUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with logs</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Errors Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Bug className="w-5 h-5 text-red-400" />
+          <h2 className="text-xl font-semibold text-white">Platform Errors</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertOctagon className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Total Errors</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.totalPlatformErrors}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.platformErrorsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.platformErrorsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Unique Error Codes</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueErrorCodes}</p>
+            <p className="text-xs mt-1 text-white/70">Different error types</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">With Stack Trace</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.errorsWithStackTrace}</p>
+            <p className="text-xs mt-1 text-white/70">Detailed traces</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Top Error Code</p>
+            </div>
+            <p className="text-lg font-bold text-yellow-400 truncate">{stats.topErrorCode}</p>
+            <p className="text-xs mt-1 text-white/70">Most common error</p>
           </div>
         </div>
       </div>
