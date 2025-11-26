@@ -243,7 +243,7 @@ const AdminRoles = () => {
             <h1 className="text-3xl font-bold text-white">
               Role & Permission Management
             </h1>
-            <p className="text-sm mt-1 text-white/70">
+            <p className="text-sm mt-1 text-white">
               Define roles, manage permissions, and track admin activities
             </p>
           </div>
@@ -259,7 +259,7 @@ const AdminRoles = () => {
                 <DialogTitle className="text-white">
                   {editingRole ? "Edit Role" : "Create New Role"}
                 </DialogTitle>
-                <DialogDescription className="text-white/70">
+                <DialogDescription className="text-white">
                   Define role details and set granular permissions
                 </DialogDescription>
               </DialogHeader>
@@ -394,7 +394,7 @@ const AdminRoles = () => {
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-neutral-600">
-                    <p className="text-xs font-medium mb-2 text-white/70">
+                    <p className="text-xs font-medium mb-2 text-white">
                       Key Permissions
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -483,8 +483,8 @@ const AdminRoles = () => {
                       <TableCell className="text-white">{activity.timestamp}</TableCell>
                       <TableCell className="text-white">{activity.admin}</TableCell>
                       <TableCell className="text-white">{activity.action}</TableCell>
-                      <TableCell className="text-white/70">{activity.details}</TableCell>
-                      <TableCell className="text-white/70">{activity.affectedUser || "-"}</TableCell>
+                      <TableCell className="text-white">{activity.details}</TableCell>
+                      <TableCell className="text-white">{activity.affectedUser || "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
