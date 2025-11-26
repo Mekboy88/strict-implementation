@@ -52,7 +52,7 @@ serve(async (req) => {
       });
     }
 
-    const { action, userId, role, banDuration, redirectUrl } = await req.json();
+    const { action, userId, role, banDuration, redirectUrl, reason } = await req.json();
 
     // CRITICAL: Check if target user is owner - NEVER allow changes to owner
     const { data: targetUserRole } = await supabaseAdmin
@@ -127,14 +127,57 @@ serve(async (req) => {
       }
 
       case "delete": {
-        // Delete user
-        const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
-        if (error) throw error;
+        // Get user data before deletion for blacklist
+        
+        // Get user data before deletion for blacklist
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userError) {
+          console.error("Error fetching user for deletion:", userError);
+          throw userError;
+        }
 
-        // Also delete from user_roles
+        const userEmail = userData?.user?.email;
+        const userMetadata = userData?.user?.user_metadata;
+        const fullName = userMetadata?.full_name || 
+                        `${userMetadata?.first_name || ''} ${userMetadata?.last_name || ''}`.trim() || 
+                        null;
+
+        if (!userEmail) {
+          throw new Error("Cannot delete user: email not found");
+        }
+
+        // Add to blacklist before deletion
+        const { error: blacklistError } = await supabaseAdmin
+          .from("deleted_user_blacklist")
+          .insert({
+            email: userEmail,
+            original_user_id: userId,
+            full_name: fullName,
+            deletion_reason: reason || "No reason provided",
+            deleted_by: requestingUser.id,
+          });
+
+        if (blacklistError) {
+          console.error("Error adding to blacklist:", blacklistError);
+          // Continue with deletion even if blacklist fails
+        }
+
+        console.log(`User ${userEmail} added to blacklist. Proceeding with deletion.`);
+
+        // Delete user from auth (cascades to user_roles due to foreign key)
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (deleteError) throw deleteError;
+
+        // Also explicitly delete from user_roles to be safe
         await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
 
-        return new Response(JSON.stringify({ success: true }), {
+        console.log(`User ${userEmail} successfully deleted and blacklisted.`);
+
+        return new Response(JSON.stringify({ 
+          success: true,
+          blacklisted: !blacklistError,
+          email: userEmail 
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
