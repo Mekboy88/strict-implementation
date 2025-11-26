@@ -26,6 +26,7 @@ import {
   LogIn,
   ListTodo,
   Check,
+  Pencil,
 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import {
@@ -521,7 +522,7 @@ Rules:
       
       toast({
         title: "Plan Added to To-dos",
-        description: `Added ${newTodos.length} tasks from the plan`,
+        description: `Added ${newTodos.length} tasks from the plan. Navigating to editor...`,
       });
     }
     
@@ -529,6 +530,16 @@ Rules:
     setPlanContent("");
     setShowTaskPrompt(false);
     setExtractedTasks([]);
+    
+    // Navigate to editor page after a brief delay
+    setTimeout(() => {
+      navigate('/editor');
+    }, 500);
+  };
+
+  const handleModifyPlan = () => {
+    setAssistantInput("I'd like to modify the plan. Please adjust it to: ");
+    setShowTaskPrompt(false);
   };
 
   const handleConnectDatabase = () => {
@@ -1134,7 +1145,7 @@ Rules:
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={showUsePlanButton ? handleUsePlan : handleAddExtractedTasks}
                         className="inline-flex items-center gap-1 rounded-full bg-sky-500/20 px-3 py-1 text-xs text-sky-300 hover:bg-sky-500/30 transition-colors"
@@ -1142,6 +1153,15 @@ Rules:
                         <Check className="h-3 w-3" />
                         {showUsePlanButton ? "Use this Plan" : "Add to To-dos"}
                       </button>
+                      {showUsePlanButton && (
+                        <button
+                          onClick={handleModifyPlan}
+                          className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-3 py-1 text-xs text-amber-300 hover:bg-amber-500/30 transition-colors"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Modify Plan
+                        </button>
+                      )}
                       <button
                         onClick={handleDismissTaskPrompt}
                         className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400 hover:bg-white/10 transition-colors"
