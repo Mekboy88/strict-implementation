@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -8,8 +8,17 @@ interface PlanSubscription {
   revenue: number;
 }
 
+interface ActivityItem {
+  id: string;
+  type: 'signup' | 'deployment' | 'error' | 'project' | 'github';
+  message: string;
+  timestamp: string;
+  status?: 'success' | 'failed' | 'pending' | 'info';
+}
+
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [stats, setStats] = useState({
     // User Metrics
     totalUsers: 0,
@@ -157,6 +166,88 @@ const AdminDashboard = () => {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const recentGitHubConnections = githubConnections.filter(c => new Date(c.connected_at) >= sevenDaysAgo).length;
 
+      // Build recent activity feed
+      const activities: ActivityItem[] = [];
+      
+      // Add recent signups (last 10)
+      const recentUsers = (users || [])
+        .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
+        .slice(0, 5);
+      recentUsers.forEach(user => {
+        activities.push({
+          id: `signup-${user.id}`,
+          type: 'signup',
+          message: `New user signed up`,
+          timestamp: user.created_at!,
+          status: 'success',
+        });
+      });
+
+      // Add recent deployments (last 10)
+      const recentDeployments = deployments
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      recentDeployments.forEach(dep => {
+        const status = dep.status === 'success' || dep.status === 'deployed' 
+          ? 'success' 
+          : dep.status === 'failed' || dep.status === 'error' 
+            ? 'failed' 
+            : 'pending';
+        activities.push({
+          id: `deploy-${dep.id}`,
+          type: 'deployment',
+          message: `Deployment ${dep.status}`,
+          timestamp: dep.created_at,
+          status,
+        });
+      });
+
+      // Add recent errors (last 5)
+      const recentErrors = edgeErrors
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      recentErrors.forEach(err => {
+        activities.push({
+          id: `error-${err.id}`,
+          type: 'error',
+          message: err.error_message.substring(0, 50) + (err.error_message.length > 50 ? '...' : ''),
+          timestamp: err.created_at,
+          status: 'failed',
+        });
+      });
+
+      // Add recent projects (last 5)
+      const recentProjects = projects
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      recentProjects.forEach(proj => {
+        activities.push({
+          id: `project-${proj.id}`,
+          type: 'project',
+          message: `Project "${proj.name}" created`,
+          timestamp: proj.created_at,
+          status: 'info',
+        });
+      });
+
+      // Add recent GitHub connections (last 5)
+      const recentGithub = githubConnections
+        .sort((a, b) => new Date(b.connected_at).getTime() - new Date(a.connected_at).getTime())
+        .slice(0, 5);
+      recentGithub.forEach(conn => {
+        activities.push({
+          id: `github-${conn.id}`,
+          type: 'github',
+          message: `GitHub connected: ${conn.github_username}`,
+          timestamp: conn.connected_at,
+          status: 'success',
+        });
+      });
+
+      // Sort all activities by timestamp and take the most recent 15
+      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setRecentActivity(activities.slice(0, 15));
+
       setStats({
         totalUsers: users?.length || 0,
         newUsersToday,
@@ -214,6 +305,115 @@ const AdminDashboard = () => {
     fetchStats();
   }, []);
 
+  // Real-time subscriptions for live activity feed
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-activity-feed')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_roles' },
+        (payload) => {
+          const newActivity: ActivityItem = {
+            id: `signup-${payload.new.id}`,
+            type: 'signup',
+            message: 'New user signed up',
+            timestamp: payload.new.created_at,
+            status: 'success',
+          };
+          setRecentActivity(prev => [newActivity, ...prev.slice(0, 14)]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'project_deployments' },
+        (payload) => {
+          const status = payload.new.status === 'success' || payload.new.status === 'deployed' 
+            ? 'success' 
+            : payload.new.status === 'failed' || payload.new.status === 'error' 
+              ? 'failed' 
+              : 'pending';
+          const newActivity: ActivityItem = {
+            id: `deploy-${payload.new.id}`,
+            type: 'deployment',
+            message: `Deployment ${payload.new.status}`,
+            timestamp: payload.new.created_at,
+            status,
+          };
+          setRecentActivity(prev => [newActivity, ...prev.slice(0, 14)]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'edge_errors' },
+        (payload) => {
+          const newActivity: ActivityItem = {
+            id: `error-${payload.new.id}`,
+            type: 'error',
+            message: (payload.new.error_message as string).substring(0, 50),
+            timestamp: payload.new.created_at,
+            status: 'failed',
+          };
+          setRecentActivity(prev => [newActivity, ...prev.slice(0, 14)]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'projects' },
+        (payload) => {
+          const newActivity: ActivityItem = {
+            id: `project-${payload.new.id}`,
+            type: 'project',
+            message: `Project "${payload.new.name}" created`,
+            timestamp: payload.new.created_at,
+            status: 'info',
+          };
+          setRecentActivity(prev => [newActivity, ...prev.slice(0, 14)]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Helper function to format relative time
+  const formatRelativeTime = (timestamp: string) => {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  // Helper function to get activity icon
+  const getActivityIcon = (type: ActivityItem['type'], status?: ActivityItem['status']) => {
+    switch (type) {
+      case 'signup':
+        return <UserPlus className="w-4 h-4 text-green-400" />;
+      case 'deployment':
+        return status === 'success' 
+          ? <Rocket className="w-4 h-4 text-green-400" />
+          : status === 'failed'
+            ? <Rocket className="w-4 h-4 text-red-400" />
+            : <Rocket className="w-4 h-4 text-yellow-400" />;
+      case 'error':
+        return <AlertTriangle className="w-4 h-4 text-red-400" />;
+      case 'project':
+        return <FolderOpen className="w-4 h-4 text-blue-400" />;
+      case 'github':
+        return <Github className="w-4 h-4 text-white" />;
+      default:
+        return <Activity className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12 bg-neutral-800">
@@ -232,6 +432,53 @@ const AdminDashboard = () => {
         <p className="text-sm mt-1 text-white">
           Overview of platform statistics and metrics
         </p>
+      </div>
+
+      {/* Recent Activity Feed */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-orange-400" />
+          <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
+          <span className="ml-auto text-xs px-2 py-1 rounded-full bg-green-400/20 text-green-400 flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+            Live
+          </span>
+        </div>
+        <div className="rounded-lg border bg-neutral-700 border-neutral-600 overflow-hidden">
+          {recentActivity.length === 0 ? (
+            <div className="p-8 text-center text-white/50">
+              <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No recent activity</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-600 max-h-80 overflow-y-auto">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3 p-3 hover:bg-neutral-600/50 transition-colors">
+                  <div className="flex-shrink-0">
+                    {getActivityIcon(activity.type, activity.status)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{activity.message}</p>
+                    <p className="text-xs text-white/50 capitalize">{activity.type}</p>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    <span className="text-xs text-white/50">{formatRelativeTime(activity.timestamp)}</span>
+                    {activity.status && (
+                      <div className={`mt-1 text-xs px-2 py-0.5 rounded-full inline-block ${
+                        activity.status === 'success' ? 'bg-green-400/20 text-green-400' :
+                        activity.status === 'failed' ? 'bg-red-400/20 text-red-400' :
+                        activity.status === 'pending' ? 'bg-yellow-400/20 text-yellow-400' :
+                        'bg-blue-400/20 text-blue-400'
+                      }`}>
+                        {activity.status}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* User Metrics Section */}
