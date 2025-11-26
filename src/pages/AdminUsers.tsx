@@ -410,7 +410,7 @@ const AdminUsers = () => {
             size="sm"
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="border-neutral-600 text-white hover:bg-neutral-700"
+            className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
