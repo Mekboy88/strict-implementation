@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -83,12 +83,22 @@ const AdminDashboard = () => {
     avgResponseTime: 0,
     uniqueAIUsers: 0,
     aiConfigs: 0,
+    // API Usage Metrics
+    totalApiKeys: 0,
+    activeApiKeys: 0,
+    expiredApiKeys: 0,
+    totalApiRequests: 0,
+    apiRequestsToday: 0,
+    apiSuccessRate: 0,
+    avgApiDuration: 0,
+    apiPermissions: 0,
+    topEndpoint: 'N/A',
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -105,6 +115,9 @@ const AdminDashboard = () => {
         supabase.from('ai_usage').select('*'),
         supabase.from('ai_logs').select('*'),
         supabase.from('ai_config').select('*'),
+        supabase.from('api_keys').select('*'),
+        supabase.from('api_requests').select('*'),
+        supabase.from('api_access').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -123,6 +136,9 @@ const AdminDashboard = () => {
       const aiUsage = aiUsageRes.data || [];
       const aiLogs = aiLogsRes.data || [];
       const aiConfig = aiConfigRes.data || [];
+      const apiKeys = apiKeysRes.data || [];
+      const apiRequests = apiRequestsRes.data || [];
+      const apiAccess = apiAccessRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -231,6 +247,30 @@ const AdminDashboard = () => {
         ...aiLogs.map(r => r.user_id)
       ]).size;
       const aiConfigs = aiConfig.length;
+
+      // Calculate API usage metrics
+      const totalApiKeys = apiKeys.length;
+      const activeApiKeys = apiKeys.filter(k => k.is_active).length;
+      const expiredApiKeys = apiKeys.filter(k => k.expires_at && new Date(k.expires_at) < now).length;
+      const totalApiRequests = apiRequests.length;
+      const apiRequestsToday = apiRequests.filter(r => new Date(r.created_at) >= today).length;
+      const successfulApiRequests = apiRequests.filter(r => r.status_code >= 200 && r.status_code < 400).length;
+      const apiSuccessRate = totalApiRequests > 0 
+        ? (successfulApiRequests / totalApiRequests) * 100 
+        : 0;
+      const avgApiDuration = totalApiRequests > 0
+        ? apiRequests.reduce((sum, r) => sum + (r.duration_ms || 0), 0) / totalApiRequests
+        : 0;
+      const apiPermissions = apiAccess.length;
+      
+      // Find top endpoint
+      const endpointCounts: Record<string, number> = {};
+      apiRequests.forEach(r => {
+        const endpoint = r.endpoint || 'unknown';
+        endpointCounts[endpoint] = (endpointCounts[endpoint] || 0) + 1;
+      });
+      const topEndpoint = Object.entries(endpointCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
 
       // Build recent activity feed
       const activities: ActivityItem[] = [];
@@ -374,6 +414,16 @@ const AdminDashboard = () => {
         avgResponseTime,
         uniqueAIUsers,
         aiConfigs,
+        // API Usage
+        totalApiKeys,
+        activeApiKeys,
+        expiredApiKeys,
+        totalApiRequests,
+        apiRequestsToday,
+        apiSuccessRate,
+        avgApiDuration,
+        apiPermissions,
+        topEndpoint,
       });
 
       setLoading(false);
@@ -937,6 +987,79 @@ const AdminDashboard = () => {
             <p className="text-sm mb-2 text-white">AI Configurations</p>
             <p className="text-3xl font-bold text-white">{stats.aiConfigs}</p>
             <p className="text-xs mt-1 text-white/70">Custom AI configs</p>
+          </div>
+        </div>
+      </div>
+
+      {/* API Usage Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Key className="w-5 h-5 text-orange-400" />
+          <h2 className="text-xl font-semibold text-white">API Usage</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Key className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Total API Keys</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.totalApiKeys}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.activeApiKeys} active, {stats.expiredApiKeys} expired</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Server className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Requests</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalApiRequests.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.apiRequestsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className={`w-4 h-4 ${stats.apiSuccessRate >= 95 ? 'text-green-400' : stats.apiSuccessRate >= 80 ? 'text-yellow-400' : 'text-red-400'}`} />
+              <p className="text-sm text-white">Success Rate</p>
+            </div>
+            <p className={`text-3xl font-bold ${stats.apiSuccessRate >= 95 ? 'text-green-400' : stats.apiSuccessRate >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+              {stats.apiSuccessRate.toFixed(1)}%
+            </p>
+            <p className="text-xs mt-1 text-white/70">HTTP 2xx/3xx responses</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Avg Response Time</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.avgApiDuration.toFixed(0)}ms</p>
+            <p className="text-xs mt-1 text-white/70">Per API request</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Top Endpoint</p>
+            <p className="text-lg font-bold text-white truncate">{stats.topEndpoint}</p>
+            <p className="text-xs mt-1 text-white/70">Most called endpoint</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">API Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.apiPermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Access rules configured</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active Keys</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeApiKeys}</p>
+            <p className="text-xs mt-1 text-white/70">Currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Expired Keys</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.expiredApiKeys}</p>
+            <p className="text-xs mt-1 text-white/70">Need renewal</p>
           </div>
         </div>
       </div>
