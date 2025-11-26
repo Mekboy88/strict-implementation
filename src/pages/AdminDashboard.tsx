@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -45,6 +45,10 @@ const AdminDashboard = () => {
     edgeFunctionErrors: 0,
     edgeFunctionErrorRate: 0,
     avgEdgeFunctionDuration: 0,
+    // GitHub Integration Metrics
+    connectedGitHubAccounts: 0,
+    reposSynced: 0,
+    recentGitHubConnections: 0,
     // System Health (placeholder data)
     serverStatus: 'healthy',
     databaseStatus: 'healthy',
@@ -64,7 +68,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -74,10 +78,11 @@ const AdminDashboard = () => {
         supabase.from('edge_functions').select('*'),
         supabase.from('edge_logs').select('*'),
         supabase.from('edge_errors').select('*'),
+        supabase.from('github_connections').select('*'),
       ]);
 
       const users = usersRes.data;
-      const projects = projectsRes.data;
+      const projects = projectsRes.data || [];
       const billingAccounts = billingAccountsRes.data || [];
       const invoices = invoicesRes.data || [];
       const plans = plansRes.data || [];
@@ -85,6 +90,7 @@ const AdminDashboard = () => {
       const edgeFunctions = edgeFunctionsRes.data || [];
       const edgeLogs = edgeLogsRes.data || [];
       const edgeErrors = edgeErrorsRes.data || [];
+      const githubConnections = githubConnectionsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -145,6 +151,12 @@ const AdminDashboard = () => {
         ? edgeLogs.reduce((sum, l) => sum + l.duration_ms, 0) / totalInvocations
         : 0;
 
+      // Calculate GitHub integration metrics
+      const connectedGitHubAccounts = githubConnections.length;
+      const reposSynced = projects.filter(p => p.github_repo_url).length;
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const recentGitHubConnections = githubConnections.filter(c => new Date(c.connected_at) >= sevenDaysAgo).length;
+
       setStats({
         totalUsers: users?.length || 0,
         newUsersToday,
@@ -178,6 +190,10 @@ const AdminDashboard = () => {
         edgeFunctionErrors,
         edgeFunctionErrorRate,
         avgEdgeFunctionDuration,
+        // GitHub
+        connectedGitHubAccounts,
+        reposSynced,
+        recentGitHubConnections,
         // System
         serverStatus: 'healthy',
         databaseStatus: 'healthy',
@@ -401,6 +417,41 @@ const AdminDashboard = () => {
             <p className="text-sm mb-2 text-white">Avg Duration</p>
             <p className="text-3xl font-bold text-white">{stats.avgEdgeFunctionDuration.toFixed(0)}ms</p>
             <p className="text-xs mt-1 text-white/70">Per invocation</p>
+          </div>
+        </div>
+      </div>
+
+      {/* GitHub Integration Stats Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Github className="w-5 h-5 text-white" />
+          <h2 className="text-xl font-semibold text-white">GitHub Integration</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Github className="w-4 h-4 text-white" />
+              <p className="text-sm text-white">Connected Accounts</p>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.connectedGitHubAccounts}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.recentGitHubConnections} this week</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <GitBranch className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Repos Synced</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.reposSynced}</p>
+            <p className="text-xs mt-1 text-white/70">Projects with GitHub</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Sync Rate</p>
+            <p className="text-3xl font-bold text-green-400">
+              {stats.totalProjects > 0 
+                ? ((stats.reposSynced / stats.totalProjects) * 100).toFixed(1) 
+                : 0}%
+            </p>
+            <p className="text-xs mt-1 text-white/70">Projects connected to GitHub</p>
           </div>
         </div>
       </div>
