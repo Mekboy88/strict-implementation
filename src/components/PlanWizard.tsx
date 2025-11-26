@@ -321,6 +321,12 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
   const [projectName, setProjectName] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [additionalDetails, setAdditionalDetails] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProjectTypes = projectTypes.filter(type => 
+    type.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    type.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const resetWizard = () => {
     setStep(1);
@@ -328,6 +334,7 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
     setProjectName("");
     setSelectedFeatures([]);
     setAdditionalDetails("");
+    setSearchQuery("");
   };
 
   const handleClose = () => {
@@ -386,13 +393,25 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
           {/* Step 1: Project Type */}
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <h3 className="text-base font-semibold text-white mb-1">What type of project?</h3>
-                <p className="text-sm text-slate-400">Select the category that best describes your project</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-semibold text-white mb-1">What type of project?</h3>
+                  <p className="text-sm text-slate-400">Select the category that best describes your project</p>
+                </div>
+                <div className="relative flex-shrink-0">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search..."
+                    className="w-36 pl-8 pr-3 py-1.5 text-xs rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
               </div>
               <ScrollArea className="h-[515px] pr-4">
                 <div className="grid grid-cols-2 gap-3">
-                  {projectTypes.map((type) => {
+                  {filteredProjectTypes.map((type) => {
                     const Icon = type.icon;
                     const isSelected = projectType === type.id;
                     return (
