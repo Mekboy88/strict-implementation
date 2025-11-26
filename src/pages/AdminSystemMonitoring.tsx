@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, MessageSquare, Users, Settings, Shield, LayoutDashboard, FolderOpen, UserCog, BarChart3, Zap as ZapIcon } from "lucide-react";
+import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, MessageSquare, Users, Settings, Shield, LayoutDashboard, FolderOpen, UserCog, BarChart3, Zap as ZapIcon, Info, ChevronDown, ChevronUp, Lightbulb, Wrench } from "lucide-react";
 
 export default function AdminSystemMonitoring() {
   const [activeTab, setActiveTab] = useState<"errors" | "performance" | "uptime" | "alerts">("errors");
+  const [expandedExplanation, setExpandedExplanation] = useState<number | null>(null);
+  const [expandedIncident, setExpandedIncident] = useState<number | null>(null);
 
-  // Mock error logs data
+  // Mock error logs data with explanations
   const errorLogs = [
     {
       id: 1,
@@ -13,6 +15,18 @@ export default function AdminSystemMonitoring() {
       message: "Database connection timeout",
       stackTrace: "Error: Connection timeout\n  at Database.connect (db.ts:45)\n  at Server.initialize (server.ts:12)",
       count: 3,
+      explanation: {
+        cause: "The database server is not responding within the expected time frame. This can occur due to network latency, high database load, or the database server being temporarily unavailable.",
+        impact: "Users may experience slow page loads or failed data operations. Repeated timeouts can lead to degraded application performance.",
+        resolution: [
+          "Check database server status and resource usage (CPU, memory, connections)",
+          "Verify network connectivity between app server and database",
+          "Review and optimize slow database queries",
+          "Consider increasing connection timeout settings if appropriate",
+          "Implement connection pooling to manage database connections efficiently"
+        ],
+        prevention: "Set up database monitoring alerts, implement connection retry logic with exponential backoff, and regularly review query performance."
+      }
     },
     {
       id: 2,
@@ -21,6 +35,18 @@ export default function AdminSystemMonitoring() {
       message: "High memory usage detected",
       stackTrace: "Warning: Memory usage at 87%\n  at Monitor.check (monitor.ts:89)",
       count: 1,
+      explanation: {
+        cause: "The application is consuming more memory than expected. This could be due to memory leaks, large data processing, or insufficient memory allocation for current workload.",
+        impact: "If memory usage continues to increase, it may cause application crashes, slower performance, or trigger Out of Memory (OOM) errors.",
+        resolution: [
+          "Identify and fix memory leaks using profiling tools",
+          "Review recent code changes that may have introduced memory issues",
+          "Restart the application to free up memory temporarily",
+          "Scale up server memory if consistently hitting limits",
+          "Implement pagination for large data sets"
+        ],
+        prevention: "Regular memory profiling, implement proper cleanup in components, use streaming for large data operations, and set up automated scaling."
+      }
     },
     {
       id: 3,
@@ -29,6 +55,18 @@ export default function AdminSystemMonitoring() {
       message: "API rate limit exceeded",
       stackTrace: "Error: Rate limit exceeded\n  at RateLimiter.check (limiter.ts:34)\n  at API.handler (api.ts:78)",
       count: 12,
+      explanation: {
+        cause: "Too many API requests have been made in a short time period, exceeding the configured rate limits. This could indicate a traffic spike, misconfigured client, or potential abuse.",
+        impact: "Legitimate requests may be blocked, causing service disruption for users. Repeated violations could lead to IP bans or service restrictions.",
+        resolution: [
+          "Identify the source of excessive requests (IP, user, or endpoint)",
+          "Review and adjust rate limits if they are too restrictive",
+          "Implement request queuing or throttling on the client side",
+          "Add caching to reduce redundant API calls",
+          "Consider implementing user-specific rate limits"
+        ],
+        prevention: "Implement progressive rate limiting, add request deduplication, use webhooks instead of polling where possible, and monitor API usage patterns."
+      }
     },
   ];
 
@@ -40,14 +78,34 @@ export default function AdminSystemMonitoring() {
     cpuUsage: { current: 45, cores: 8 },
   };
 
-  // Mock uptime data
+  // Mock uptime data with explanations
   const uptimeData = {
     current: 99.97,
     lastMonth: 99.94,
     last24h: 100.0,
     incidents: [
-      { date: "2025-11-20", duration: "12 min", reason: "Database maintenance" },
-      { date: "2025-11-15", duration: "8 min", reason: "API server restart" },
+      { 
+        date: "2025-11-20", 
+        duration: "12 min", 
+        reason: "Database maintenance",
+        explanation: {
+          cause: "Scheduled database maintenance was performed to apply security patches and optimize performance.",
+          impact: "Brief service interruption during maintenance window. All data remained intact.",
+          resolution: ["Maintenance completed successfully", "Database performance improved by 15%", "Security vulnerabilities patched"],
+          prevention: "Schedule maintenance during low-traffic hours and implement zero-downtime deployment strategies."
+        }
+      },
+      { 
+        date: "2025-11-15", 
+        duration: "8 min", 
+        reason: "API server restart",
+        explanation: {
+          cause: "API server required a restart to apply critical configuration updates and clear accumulated memory.",
+          impact: "API requests failed during restart. Client applications showed temporary errors.",
+          resolution: ["Server restarted successfully", "Memory usage normalized", "Configuration updates applied"],
+          prevention: "Implement rolling restarts with load balancer health checks to achieve zero-downtime updates."
+        }
+      },
     ],
   };
 
@@ -245,12 +303,77 @@ export default function AdminSystemMonitoring() {
                       </span>
                     )}
                   </div>
-                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                  <button
+                    onClick={() => setExpandedExplanation(expandedExplanation === log.id ? null : log.id)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                      expandedExplanation === log.id
+                        ? "bg-[#4CB3FF] text-white"
+                        : "bg-[#4CB3FF]/10 text-[#4CB3FF] hover:bg-[#4CB3FF]/20"
+                    }`}
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    Explain Issue
+                    {expandedExplanation === log.id ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
                 <h3 className="text-white font-medium mb-2">{log.message}</h3>
                 <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-gray-400 whitespace-pre-wrap">
                   {log.stackTrace}
                 </div>
+
+                {/* Explanation Panel */}
+                {expandedExplanation === log.id && (
+                  <div className="mt-4 p-4 bg-gradient-to-br from-[#4CB3FF]/10 to-[#7B68EE]/10 border border-[#4CB3FF]/30 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
+                    {/* Cause */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Info className="w-4 h-4 text-[#4CB3FF]" />
+                        <h4 className="text-sm font-semibold text-[#4CB3FF]">Root Cause</h4>
+                      </div>
+                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.cause}</p>
+                    </div>
+
+                    {/* Impact */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                        <h4 className="text-sm font-semibold text-yellow-400">Impact</h4>
+                      </div>
+                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.impact}</p>
+                    </div>
+
+                    {/* Resolution Steps */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Wrench className="w-4 h-4 text-green-400" />
+                        <h4 className="text-sm font-semibold text-green-400">How to Resolve</h4>
+                      </div>
+                      <ul className="space-y-2">
+                        {log.explanation.resolution.map((step, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-gray-300">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-medium">
+                              {index + 1}
+                            </span>
+                            {step}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Prevention */}
+                    <div className="pt-3 border-t border-white/10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="w-4 h-4 text-[#7B68EE]" />
+                        <h4 className="text-sm font-semibold text-[#7B68EE]">Prevention</h4>
+                      </div>
+                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.prevention}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -436,16 +559,88 @@ export default function AdminSystemMonitoring() {
                 {uptimeData.incidents.map((incident, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all"
+                    className="bg-white/5 rounded-lg hover:bg-white/10 transition-all overflow-hidden"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 rounded-full bg-orange-500" />
-                      <div>
-                        <p className="text-white font-medium">{incident.reason}</p>
-                        <p className="text-sm text-gray-400">{incident.date}</p>
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-2 h-2 rounded-full bg-orange-500" />
+                        <div>
+                          <p className="text-white font-medium">{incident.reason}</p>
+                          <p className="text-sm text-gray-400">{incident.date}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-400">Duration: {incident.duration}</span>
+                        <button
+                          onClick={() => setExpandedIncident(expandedIncident === index ? null : index)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                            expandedIncident === index
+                              ? "bg-[#4CB3FF] text-white"
+                              : "bg-[#4CB3FF]/10 text-[#4CB3FF] hover:bg-[#4CB3FF]/20"
+                          }`}
+                        >
+                          <Lightbulb className="w-4 h-4" />
+                          Explain Issue
+                          {expandedIncident === index ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-400">Duration: {incident.duration}</span>
+
+                    {/* Incident Explanation */}
+                    {expandedIncident === index && (
+                      <div className="px-4 pb-4">
+                        <div className="p-4 bg-gradient-to-br from-[#4CB3FF]/10 to-[#7B68EE]/10 border border-[#4CB3FF]/30 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
+                          {/* Cause */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Info className="w-4 h-4 text-[#4CB3FF]" />
+                              <h4 className="text-sm font-semibold text-[#4CB3FF]">What Happened</h4>
+                            </div>
+                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.cause}</p>
+                          </div>
+
+                          {/* Impact */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                              <h4 className="text-sm font-semibold text-yellow-400">Impact</h4>
+                            </div>
+                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.impact}</p>
+                          </div>
+
+                          {/* Resolution */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Wrench className="w-4 h-4 text-green-400" />
+                              <h4 className="text-sm font-semibold text-green-400">Resolution</h4>
+                            </div>
+                            <ul className="space-y-2">
+                              {incident.explanation.resolution.map((item, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-medium">
+                                    ✓
+                                  </span>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Prevention */}
+                          <div className="pt-3 border-t border-white/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Shield className="w-4 h-4 text-[#7B68EE]" />
+                              <h4 className="text-sm font-semibold text-[#7B68EE]">Prevention</h4>
+                            </div>
+                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.prevention}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
