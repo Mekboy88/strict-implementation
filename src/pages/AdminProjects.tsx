@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProjectDetailsDialog } from "@/components/admin/ProjectDetailsDialog";
 import { TransferOwnershipDialog } from "@/components/admin/TransferOwnershipDialog";
 import { ProjectBulkActionsDialog } from "@/components/admin/ProjectBulkActionsDialog";
+import { ExportProjectDialog } from "@/components/admin/ExportProjectDialog";
 
 interface ProjectData {
   id: string;
@@ -81,6 +82,7 @@ const AdminProjects = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState<"delete" | "archive" | "export" | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
@@ -764,7 +766,10 @@ const AdminProjects = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-white hover:bg-neutral-600 cursor-pointer"
-                          onClick={() => handleExportProject(project.id, project.name)}
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setExportDialogOpen(true);
+                          }}
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Export Project
@@ -878,6 +883,11 @@ const AdminProjects = () => {
         action={bulkAction}
         selectedCount={selectedProjects.size}
         onConfirm={handleBulkAction}
+      />
+      <ExportProjectDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        project={selectedProject}
       />
     </div>
   );
