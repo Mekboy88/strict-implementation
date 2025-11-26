@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
   Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown,
-  CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw, UserX
+  CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw, UserX,
+  Download, UserPlus, MailCheck, LogIn
 } from "lucide-react";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +40,8 @@ import { SuspendUserDialog } from "@/components/admin/SuspendUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
 import { BlacklistPanel } from "@/components/admin/BlacklistPanel";
+import { InviteUserDialog } from "@/components/admin/InviteUserDialog";
+import { BulkActionsDialog } from "@/components/admin/BulkActionsDialog";
 
 interface UserData {
   id: string;
@@ -55,6 +59,7 @@ interface UserData {
 
 type SortField = "email" | "role" | "created_at" | "last_sign_in_at" | "projectCount";
 type SortOrder = "asc" | "desc";
+type StatusFilter = "all" | "active" | "suspended" | "unverified";
 
 const AdminUsers = () => {
   const navigate = useNavigate();
@@ -63,6 +68,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -70,11 +76,18 @@ const AdminUsers = () => {
   const [currentUserRole, setCurrentUserRole] = useState<string>("user");
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Selection states
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
+  
   // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState<"suspend" | "delete" | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const [stats, setStats] = useState({
@@ -253,7 +266,16 @@ const AdminUsers = () => {
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.role.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = roleFilter === "all" || user.role === roleFilter;
-      return matchesSearch && matchesRole;
+      
+      // Status filter
+      const isBanned = user.banned_until && new Date(user.banned_until) > new Date();
+      const isVerified = !!user.email_confirmed_at;
+      let matchesStatus = true;
+      if (statusFilter === "active") matchesStatus = isVerified && !isBanned;
+      else if (statusFilter === "suspended") matchesStatus = !!isBanned;
+      else if (statusFilter === "unverified") matchesStatus = !isVerified;
+      
+      return matchesSearch && matchesRole && matchesStatus;
     });
 
     filtered.sort((a, b) => {
@@ -271,7 +293,7 @@ const AdminUsers = () => {
     });
 
     return filtered;
-  }, [users, searchQuery, roleFilter, sortField, sortOrder]);
+  }, [users, searchQuery, roleFilter, statusFilter, sortField, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedUsers.length / itemsPerPage);
@@ -409,8 +431,161 @@ const AdminUsers = () => {
 
     toast({ 
       title: "Password Reset Sent", 
-      description: `Password reset link has been generated for ${email}. The user will receive an email to reset their password.`
+      description: `Password reset link has been generated for ${email}.`
     });
+  };
+
+  const handleResendVerification = async (userId: string, email: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { error } = await supabase.functions.invoke("admin-update-user", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: { action: "resendVerification", userId }
+    });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to resend verification", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Success", description: `Verification email sent to ${email}` });
+  };
+
+  const handleImpersonate = async (userId: string, email: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase.functions.invoke("admin-update-user", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: { 
+        action: "impersonate", 
+        userId,
+        redirectUrl: window.location.origin
+      }
+    });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to generate impersonation link", variant: "destructive" });
+      return;
+    }
+
+    if (data?.link) {
+      window.open(data.link, "_blank");
+      toast({ 
+        title: "Impersonation Link Opened", 
+        description: `Logged in as ${email} in a new tab. This action has been logged.`
+      });
+    }
+  };
+
+  const handleInviteUser = async (email: string, role: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { error } = await supabase.functions.invoke("admin-update-user", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: { 
+        action: "inviteUser", 
+        email,
+        role,
+        redirectUrl: `${window.location.origin}/register`
+      }
+    });
+
+    if (error) {
+      toast({ title: "Error", description: error.message || "Failed to send invitation", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Success", description: `Invitation sent to ${email}` });
+    fetchUsers();
+  };
+
+  // Bulk actions
+  const handleBulkAction = async (reason: string, duration?: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const selectedUserIds = Array.from(selectedUsers);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const id of selectedUserIds) {
+      const user = users.find(u => u.user_id === id);
+      if (user?.role === "owner") continue; // Skip owners
+
+      const body = bulkAction === "suspend" 
+        ? { action: "suspend", userId: id, banDuration: duration, reason }
+        : { action: "delete", userId: id, reason };
+
+      const { error } = await supabase.functions.invoke("admin-update-user", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body
+      });
+
+      if (error) errorCount++;
+      else successCount++;
+    }
+
+    setSelectedUsers(new Set());
+    setSelectAll(false);
+    fetchUsers();
+
+    toast({ 
+      title: "Bulk Action Completed", 
+      description: `${successCount} user(s) ${bulkAction === "suspend" ? "suspended" : "deleted"}${errorCount > 0 ? `, ${errorCount} failed` : ""}`
+    });
+  };
+
+  // Selection handlers
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (checked) newSelected.add(userId);
+    else newSelected.delete(userId);
+    setSelectedUsers(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      const selectableUsers = paginatedUsers
+        .filter(u => u.role !== "owner")
+        .map(u => u.user_id);
+      setSelectedUsers(new Set(selectableUsers));
+    } else {
+      setSelectedUsers(new Set());
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ["Email", "Role", "Status", "Subscription", "Teams", "Projects", "Last Active", "Joined"];
+    const rows = filteredAndSortedUsers.map(user => {
+      const isBanned = user.banned_until && new Date(user.banned_until) > new Date();
+      const status = isBanned ? "Suspended" : user.email_confirmed_at ? "Active" : "Unverified";
+      return [
+        user.email || "N/A",
+        user.role,
+        status,
+        user.subscription_status || "none",
+        user.team_count || 0,
+        user.projectCount || 0,
+        user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : "Never",
+        new Date(user.created_at).toLocaleDateString()
+      ];
+    });
+
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users-export-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({ title: "Export Complete", description: `Exported ${filteredAndSortedUsers.length} users to CSV` });
   };
 
   if (loading) {
@@ -538,29 +713,86 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-4">
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <Input
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 border h-9 text-sm bg-neutral-700 border-neutral-600 text-white"
-          />
+      {/* Toolbar */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 border h-9 text-sm bg-neutral-700 border-neutral-600 text-white"
+            />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-40 bg-neutral-700 border-neutral-600 text-white">
+              <SelectValue placeholder="Filter by role" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
+              <SelectItem value="all" className="text-white hover:bg-neutral-600">All Roles</SelectItem>
+              <SelectItem value="owner" className="text-white hover:bg-neutral-600">Platform Owner</SelectItem>
+              <SelectItem value="admin" className="text-white hover:bg-neutral-600">Admin</SelectItem>
+              <SelectItem value="moderator" className="text-white hover:bg-neutral-600">Moderator</SelectItem>
+              <SelectItem value="user" className="text-white hover:bg-neutral-600">User</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+            <SelectTrigger className="w-40 bg-neutral-700 border-neutral-600 text-white">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
+              <SelectItem value="all" className="text-white hover:bg-neutral-600">All Status</SelectItem>
+              <SelectItem value="active" className="text-white hover:bg-neutral-600">Active</SelectItem>
+              <SelectItem value="suspended" className="text-white hover:bg-neutral-600">Suspended</SelectItem>
+              <SelectItem value="unverified" className="text-white hover:bg-neutral-600">Unverified</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-40 bg-neutral-700 border-neutral-600 text-white">
-            <SelectValue placeholder="Filter by role" />
-          </SelectTrigger>
-          <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
-            <SelectItem value="all" className="text-white hover:bg-neutral-600">All Roles</SelectItem>
-            <SelectItem value="owner" className="text-white hover:bg-neutral-600">Platform Owner</SelectItem>
-            <SelectItem value="admin" className="text-white hover:bg-neutral-600">Admin</SelectItem>
-            <SelectItem value="moderator" className="text-white hover:bg-neutral-600">Moderator</SelectItem>
-            <SelectItem value="user" className="text-white hover:bg-neutral-600">User</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          {selectedUsers.size > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600">
+                  Bulk Actions ({selectedUsers.size})
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-neutral-700 border-neutral-600">
+                <DropdownMenuItem 
+                  className="text-yellow-400 hover:bg-neutral-600 cursor-pointer"
+                  onClick={() => { setBulkAction("suspend"); setBulkActionDialogOpen(true); }}
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  Suspend Selected
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-red-400 hover:bg-neutral-600 cursor-pointer"
+                  onClick={() => { setBulkAction("delete"); setBulkActionDialogOpen(true); }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={exportToCSV}
+            className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={() => setInviteDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Invite User
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -568,6 +800,13 @@ const AdminUsers = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-neutral-600">
+              <TableHead className="w-12 text-white">
+                <Checkbox
+                  checked={selectAll}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                  className="border-neutral-500"
+                />
+              </TableHead>
               <TableHead 
                 className="text-white cursor-pointer hover:bg-neutral-600"
                 onClick={() => handleSort("email")}
@@ -652,6 +891,15 @@ const AdminUsers = () => {
 
               return (
                 <TableRow key={user.id} className="border-neutral-600 hover:bg-neutral-600/50">
+                  <TableCell>
+                    {user.role !== "owner" && (
+                      <Checkbox
+                        checked={selectedUsers.has(user.user_id)}
+                        onCheckedChange={(checked) => handleSelectUser(user.user_id, !!checked)}
+                        className="border-neutral-500"
+                      />
+                    )}
+                  </TableCell>
                   <TableCell className="text-white font-medium">{user.email}</TableCell>
                   <TableCell>
                     <span
@@ -745,6 +993,22 @@ const AdminUsers = () => {
                           >
                             <Key className="w-4 h-4 mr-2" />
                             Reset Password
+                          </DropdownMenuItem>
+                          {!user.email_confirmed_at && (
+                            <DropdownMenuItem
+                              className="hover:bg-neutral-600 cursor-pointer text-white"
+                              onClick={() => handleResendVerification(user.user_id, user.email || '')}
+                            >
+                              <MailCheck className="w-4 h-4 mr-2" />
+                              Resend Verification
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            className="hover:bg-neutral-600 cursor-pointer text-blue-400"
+                            onClick={() => handleImpersonate(user.user_id, user.email || '')}
+                          >
+                            <LogIn className="w-4 h-4 mr-2" />
+                            Impersonate User
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-neutral-600" />
                           {isBanned ? (
@@ -864,6 +1128,18 @@ const AdminUsers = () => {
         open={userDetailsOpen}
         onOpenChange={setUserDetailsOpen}
         user={selectedUser}
+      />
+      <InviteUserDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        onInvite={handleInviteUser}
+      />
+      <BulkActionsDialog
+        open={bulkActionDialogOpen}
+        onOpenChange={setBulkActionDialogOpen}
+        action={bulkAction}
+        selectedCount={selectedUsers.size}
+        onConfirm={handleBulkAction}
       />
     </div>
   );
