@@ -39,7 +39,7 @@ import { TransferOwnershipDialog } from "@/components/admin/TransferOwnershipDia
 import { ProjectBulkActionsDialog } from "@/components/admin/ProjectBulkActionsDialog";
 import { ExportProjectDialog } from "@/components/admin/ExportProjectDialog";
 import { DeleteProjectDialog } from "@/components/admin/DeleteProjectDialog";
-
+import { ArchiveProjectDialog } from "@/components/admin/ArchiveProjectDialog";
 interface ProjectData {
   id: string;
   name: string;
@@ -52,7 +52,7 @@ interface ProjectData {
   storageSize?: number;
   github_repo_url?: string;
   variant_type?: string;
-  isArchived?: boolean;
+  is_archived?: boolean;
   deploymentUrl?: string;
   deploymentStatus?: string;
 }
@@ -85,6 +85,7 @@ const AdminProjects = () => {
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState<"delete" | "archive" | "export" | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
@@ -167,7 +168,7 @@ const AdminProjects = () => {
           storageSize: storageSizes[project.id] || 0,
           deploymentUrl: deploymentMap[project.id]?.url,
           deploymentStatus: deploymentMap[project.id]?.status,
-          isArchived: false, // Could add an archived field to DB
+          is_archived: project.is_archived || false,
         };
       });
 
@@ -236,9 +237,9 @@ const AdminProjects = () => {
       const isActive = new Date(project.updated_at) >= thirtyDaysAgo;
       
       let matchesStatus = true;
-      if (statusFilter === "active") matchesStatus = isActive && !project.isArchived;
-      else if (statusFilter === "inactive") matchesStatus = !isActive && !project.isArchived;
-      else if (statusFilter === "archived") matchesStatus = !!project.isArchived;
+      if (statusFilter === "active") matchesStatus = isActive && !project.is_archived;
+      else if (statusFilter === "inactive") matchesStatus = !isActive && !project.is_archived;
+      else if (statusFilter === "archived") matchesStatus = !!project.is_archived;
       
       return matchesSearch && matchesOwner && matchesStatus;
     });
@@ -305,6 +306,32 @@ const AdminProjects = () => {
     });
 
     setProjects(projects.filter(p => p.id !== projectId));
+  };
+
+  const handleArchiveProject = async (projectId: string, archive: boolean) => {
+    const { error } = await supabase
+      .from('projects')
+      .update({ is_archived: archive })
+      .eq('id', projectId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: `Failed to ${archive ? "archive" : "restore"} project`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const project = projects.find(p => p.id === projectId);
+    toast({
+      title: archive ? "Project Archived" : "Project Restored",
+      description: `Project "${project?.name}" has been ${archive ? "archived" : "restored"} successfully.`,
+    });
+
+    setProjects(projects.map(p => 
+      p.id === projectId ? { ...p, is_archived: archive } : p
+    ));
   };
 
   const handleTransferOwnership = async (projectId: string, newOwnerEmail: string) => {
@@ -578,6 +605,7 @@ const AdminProjects = () => {
               <SelectItem value="all" className="text-white hover:bg-neutral-600">All Status</SelectItem>
               <SelectItem value="active" className="text-white hover:bg-neutral-600">Active</SelectItem>
               <SelectItem value="inactive" className="text-white hover:bg-neutral-600">Inactive</SelectItem>
+              <SelectItem value="archived" className="text-white hover:bg-neutral-600">Archived</SelectItem>
             </SelectContent>
           </Select>
           <Select value={ownerFilter} onValueChange={setOwnerFilter}>
@@ -721,8 +749,14 @@ const AdminProjects = () => {
                   <TableCell className="text-white">{project.fileCount}</TableCell>
                   <TableCell className="text-white">{formatStorage(project.storageSize || 0)}</TableCell>
                   <TableCell>
-                    <Badge className={isActive ? "bg-green-500/20 text-green-400" : "bg-neutral-500/20 text-neutral-400"}>
-                      {isActive ? "Active" : "Inactive"}
+                    <Badge className={
+                      project.is_archived 
+                        ? "bg-amber-500/20 text-amber-400"
+                        : isActive 
+                          ? "bg-green-500/20 text-green-400" 
+                          : "bg-neutral-500/20 text-neutral-400"
+                    }>
+                      {project.is_archived ? "Archived" : isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -800,6 +834,25 @@ const AdminProjects = () => {
                             View GitHub
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          className={project.is_archived ? "text-green-400 hover:bg-neutral-600 cursor-pointer" : "text-amber-400 hover:bg-neutral-600 cursor-pointer"}
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setArchiveDialogOpen(true);
+                          }}
+                        >
+                          {project.is_archived ? (
+                            <>
+                              <ArchiveRestore className="w-4 h-4 mr-2" />
+                              Restore Project
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archive Project
+                            </>
+                          )}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-neutral-600" />
                         <DropdownMenuItem
                           className="text-red-400 hover:bg-neutral-600 cursor-pointer"
@@ -895,6 +948,12 @@ const AdminProjects = () => {
         onOpenChange={setDeleteDialogOpen}
         project={selectedProject}
         onConfirm={handleDeleteProject}
+      />
+      <ArchiveProjectDialog
+        open={archiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        project={selectedProject}
+        onConfirm={handleArchiveProject}
       />
     </div>
   );
