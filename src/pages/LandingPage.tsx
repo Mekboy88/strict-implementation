@@ -554,9 +554,9 @@ const UrDevLandingPage: React.FC = () => {
                 </span>
                 .
               </h1>
-              <p className="max-w-2xl text-sm text-gray-400 mx-auto">
-                Visual editor for web and mobile screens, native Supabase & GitHub integration, plus AI agents that
-                understand your schema, your files, and your deployments.
+              <p className="max-w-2xl text-sm text-gray-400 mx-auto leading-relaxed">
+                Build production-ready apps in minutes. From pixel-perfect UI design to seamless database integration, 
+                our AI-powered platform handles the complexity while you focus on what matters most.
               </p>
             </div>
 
