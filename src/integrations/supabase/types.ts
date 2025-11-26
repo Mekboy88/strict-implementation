@@ -1267,6 +1267,7 @@ export type Database = {
           description: string | null
           github_repo_url: string | null
           id: string
+          is_archived: boolean
           name: string
           paired_project_id: string | null
           updated_at: string
@@ -1278,6 +1279,7 @@ export type Database = {
           description?: string | null
           github_repo_url?: string | null
           id?: string
+          is_archived?: boolean
           name: string
           paired_project_id?: string | null
           updated_at?: string
@@ -1289,6 +1291,7 @@ export type Database = {
           description?: string | null
           github_repo_url?: string | null
           id?: string
+          is_archived?: boolean
           name?: string
           paired_project_id?: string | null
           updated_at?: string
