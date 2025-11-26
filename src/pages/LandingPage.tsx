@@ -13,6 +13,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ProjectsDropdown, Project } from "@/components/ProjectsDropdown";
 import { PlatformSelector } from "@/components/PlatformSelector";
+import { IntegrationsPanel } from "@/components/IntegrationsPanel";
 const personas = [
   {
     id: "solo",
@@ -206,6 +207,7 @@ const UrDevLandingPage: React.FC = () => {
   const [showPlatformSelector, setShowPlatformSelector] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<"website" | "mobile" | "both" | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [showIntegrationsPanel, setShowIntegrationsPanel] = useState(false);
 
   const handlePlatformSelect = (platform: "website" | "mobile" | "both") => {
     setSelectedPlatform(platform);
@@ -676,7 +678,10 @@ const UrDevLandingPage: React.FC = () => {
                         <span className="text-xs">＋</span>
                         <span>Attach</span>
                       </button>
-                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-purple-400/80 hover:text-purple-100 text-[10px] sm:text-[11px]">
+                      <button 
+                        onClick={() => setShowIntegrationsPanel(true)}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-purple-400/80 hover:text-purple-100 text-[10px] sm:text-[11px]"
+                      >
                         <Plug className="h-3 w-3" />
                         <span>Integration</span>
                       </button>
@@ -1146,6 +1151,12 @@ const UrDevLandingPage: React.FC = () => {
         open={showPlatformSelector}
         onClose={() => setShowPlatformSelector(false)}
         onSelect={handlePlatformSelect}
+      />
+
+      {/* Integrations Panel */}
+      <IntegrationsPanel
+        open={showIntegrationsPanel}
+        onClose={() => setShowIntegrationsPanel(false)}
       />
     </div>
   );
