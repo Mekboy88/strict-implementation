@@ -65,6 +65,7 @@ const AdminUsers = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("user");
   
   // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -88,6 +89,17 @@ const AdminUsers = () => {
       if (!session?.access_token) {
         navigate("/admin/login");
         return;
+      }
+
+      // Fetch current user's role
+      const { data: currentUserRoleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      
+      if (currentUserRoleData) {
+        setCurrentUserRole(currentUserRoleData.role);
       }
 
       // Fetch users from edge function
@@ -236,13 +248,22 @@ const AdminUsers = () => {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "owner":
-        return "bg-blue-500/30 text-blue-400 border-blue-500/50";
+        return "bg-purple-500/30 text-purple-400 border-purple-500/50";
       case "admin":
-        return "bg-green-500/30 text-green-400 border-green-500/50";
+        return "bg-blue-500/30 text-blue-400 border-blue-500/50";
       case "moderator":
         return "bg-yellow-500/30 text-yellow-400 border-yellow-500/50";
       default:
         return "bg-neutral-500/30 text-white border-neutral-500/50";
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case "owner": return "Primary Super Admin";
+      case "admin": return "Admin";
+      case "moderator": return "Moderator";
+      default: return "User";
     }
   };
 
@@ -373,11 +394,11 @@ const AdminUsers = () => {
         <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-neutral-400">Owners</p>
+              <p className="text-xs text-neutral-400">Primary Super Admin</p>
               <p className="text-2xl font-bold text-white">{stats.owners}</p>
             </div>
-            <div className="p-2 rounded-lg bg-blue-500/20">
-              <Shield className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg bg-purple-500/20">
+              <Shield className="w-5 h-5 text-purple-400" />
             </div>
           </div>
         </div>
@@ -446,9 +467,9 @@ const AdminUsers = () => {
           <SelectTrigger className="w-40 bg-neutral-700 border-neutral-600 text-white">
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
-          <SelectContent className="bg-neutral-700 border-neutral-600">
+          <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
             <SelectItem value="all" className="text-white hover:bg-neutral-600">All Roles</SelectItem>
-            <SelectItem value="owner" className="text-white hover:bg-neutral-600">Owner</SelectItem>
+            <SelectItem value="owner" className="text-white hover:bg-neutral-600">Primary Super Admin</SelectItem>
             <SelectItem value="admin" className="text-white hover:bg-neutral-600">Admin</SelectItem>
             <SelectItem value="moderator" className="text-white hover:bg-neutral-600">Moderator</SelectItem>
             <SelectItem value="user" className="text-white hover:bg-neutral-600">User</SelectItem>
@@ -550,7 +571,7 @@ const AdminUsers = () => {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeColor(user.role)}`}
                     >
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      {getRoleDisplayName(user.role)}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -719,6 +740,7 @@ const AdminUsers = () => {
         onOpenChange={setEditDialogOpen}
         user={selectedUser}
         onSave={handleUpdateRole}
+        currentUserRole={currentUserRole}
       />
       <SuspendUserDialog
         open={suspendDialogOpen}
