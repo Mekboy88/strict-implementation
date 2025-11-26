@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
   Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown, UserPlus,
-  CreditCard, Building2, CheckCircle
+  CreditCard, Building2, CheckCircle, Eye, Key
 } from "lucide-react";
 import {
   Table,
@@ -22,6 +22,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -585,7 +587,24 @@ const AdminUsers = () => {
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="border z-50 bg-neutral-700 border-neutral-600">
+                      <DropdownMenuContent align="end" className="border z-50 bg-neutral-700 border-neutral-600 min-w-[180px]">
+                        <DropdownMenuLabel className="text-neutral-400 text-xs">
+                          User Actions
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-neutral-600" />
+                        <DropdownMenuItem
+                          className="hover:bg-neutral-600 cursor-pointer text-white"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            toast({
+                              title: "View Details",
+                              description: `Viewing details for ${user.email}`,
+                            });
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="hover:bg-neutral-600 cursor-pointer text-white"
                           onClick={() => {
@@ -596,6 +615,19 @@ const AdminUsers = () => {
                           <Edit className="w-4 h-4 mr-2" />
                           Edit Role
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="hover:bg-neutral-600 cursor-pointer text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Password Reset",
+                              description: `Password reset email sent to ${user.email}`,
+                            });
+                          }}
+                        >
+                          <Key className="w-4 h-4 mr-2" />
+                          Reset Password
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-neutral-600" />
                         {isBanned ? (
                           <DropdownMenuItem
                             className="hover:bg-neutral-600 cursor-pointer text-green-400"
@@ -616,6 +648,7 @@ const AdminUsers = () => {
                             Suspend User
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuSeparator className="bg-neutral-600" />
                         <DropdownMenuItem
                           className="hover:bg-neutral-600 cursor-pointer text-red-400"
                           onClick={() => {
