@@ -91,6 +91,7 @@ export function ProjectDetailsDialog({
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export function ProjectDetailsDialog({
       fetchProjectDetails();
       setAiMessages([]);
       setSelectedFile(null);
+      setActiveTab("overview");
     }
   }, [open, project]);
 
@@ -243,6 +245,7 @@ export function ProjectDetailsDialog({
         content: data.response,
         timestamp: new Date(),
       }]);
+      setActiveTab("ai-diagnose");
     } catch (error) {
       console.error("AI fix error:", error);
       toast.error("Failed to get AI suggestions");
@@ -320,7 +323,7 @@ export function ProjectDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-neutral-700 border-neutral-600">
             <TabsTrigger value="overview" className="data-[state=active]:bg-neutral-600 text-white">Overview</TabsTrigger>
             <TabsTrigger value="files" className="data-[state=active]:bg-neutral-600 text-white">Files</TabsTrigger>
