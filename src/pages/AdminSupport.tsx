@@ -54,6 +54,8 @@ import {
   Pencil,
   CheckSquare,
   Download,
+  ArrowUpDown,
+  Mail,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -97,6 +99,7 @@ const AdminSupport = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("created_desc");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -169,7 +172,7 @@ const AdminSupport = () => {
               .from("user_profiles")
               .select("full_name")
               .eq("id", ticket.assigned_to)
-              .single();
+              .maybeSingle();
             assignedAdminName = profile?.full_name || "Unknown";
           }
 
@@ -178,8 +181,17 @@ const AdminSupport = () => {
               .from("user_profiles")
               .select("full_name")
               .eq("id", ticket.resolved_by)
-              .single();
+              .maybeSingle();
             resolvedByName = profile?.full_name || "Unknown";
+          }
+
+          if (ticket.user_id) {
+            const { data: profile } = await supabase
+              .from("user_profiles")
+              .select("full_name")
+              .eq("id", ticket.user_id)
+              .maybeSingle();
+            userEmail = profile?.full_name || "Unknown User";
           }
           
           return { ...ticket, projectName, userEmail, assignedAdminName, resolvedByName };
@@ -525,15 +537,40 @@ const AdminSupport = () => {
     }
   };
 
-  const filteredTickets = tickets.filter((ticket) => {
-    const matchesSearch =
-      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.message.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
-    const matchesType = typeFilter === "all" || ticket.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesPriority && matchesType;
-  });
+  const filteredTickets = tickets
+    .filter((ticket) => {
+      const matchesSearch =
+        ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ticket.message.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+      const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
+      const matchesType = typeFilter === "all" || ticket.type === typeFilter;
+      return matchesSearch && matchesStatus && matchesPriority && matchesType;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "created_desc":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "created_asc":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "updated_desc":
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        case "priority_high":
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return (priorityOrder[a.priority as keyof typeof priorityOrder] || 2) - 
+                 (priorityOrder[b.priority as keyof typeof priorityOrder] || 2);
+        case "priority_low":
+          const priorityOrderLow = { low: 0, medium: 1, high: 2 };
+          return (priorityOrderLow[a.priority as keyof typeof priorityOrderLow] || 2) - 
+                 (priorityOrderLow[b.priority as keyof typeof priorityOrderLow] || 2);
+        case "status":
+          const statusOrder = { open: 0, in_progress: 1, resolved: 2, closed: 3 };
+          return (statusOrder[a.status as keyof typeof statusOrder] || 4) - 
+                 (statusOrder[b.status as keyof typeof statusOrder] || 4);
+        default:
+          return 0;
+      }
+    });
 
   // Stats calculations
   const totalTickets = tickets.length;
@@ -738,6 +775,20 @@ const AdminSupport = () => {
               <SelectItem value="feedback">Feedback</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[170px] bg-neutral-700 border-neutral-600 text-white">
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-700 border-neutral-600">
+              <SelectItem value="created_desc">Newest First</SelectItem>
+              <SelectItem value="created_asc">Oldest First</SelectItem>
+              <SelectItem value="updated_desc">Recently Updated</SelectItem>
+              <SelectItem value="priority_high">Priority: High → Low</SelectItem>
+              <SelectItem value="priority_low">Priority: Low → High</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -936,6 +987,27 @@ const AdminSupport = () => {
                         </span>
                       </div>
                     )}
+                    {/* Submitter Info */}
+                    {selectedTicket.userEmail && (
+                      <div className="flex items-center gap-2 mt-2 text-sm">
+                        <Mail className="w-4 h-4 text-neutral-400" />
+                        <span className="text-neutral-400">Submitted by:</span>
+                        <span className="text-white">{selectedTicket.userEmail}</span>
+                      </div>
+                    )}
+                    {/* Timestamps */}
+                    <div className="flex items-center gap-4 mt-2 text-xs text-neutral-500">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Created: {formatDate(selectedTicket.created_at)}
+                      </span>
+                      {selectedTicket.updated_at !== selectedTicket.created_at && (
+                        <span className="flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3" />
+                          Updated: {formatDate(selectedTicket.updated_at)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
