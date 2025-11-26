@@ -96,27 +96,27 @@ const AdminLayout: React.FC = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 rounded-lg bg-neutral-700 text-neutral-200 hover:bg-neutral-600"
+            className="md:hidden p-2 rounded-lg bg-neutral-700 text-white hover:bg-neutral-600"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-neutral-700">
-            <LayoutDashboard className="h-4 w-4 text-neutral-300" />
+            <LayoutDashboard className="h-4 w-4 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-neutral-50">UR-DEV Admin Panel</span>
+            <span className="text-sm font-semibold text-white">UR-DEV Admin Panel</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium bg-neutral-700 text-neutral-300">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium bg-neutral-700 text-white">
               {userEmail.charAt(0).toUpperCase()}
             </div>
-            <span className="text-sm text-neutral-200">{userEmail}</span>
+            <span className="text-sm text-white">{userEmail}</span>
           </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all bg-neutral-700 text-white hover:bg-neutral-600"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden md:inline">Sign Out</span>
@@ -134,7 +134,7 @@ const AdminLayout: React.FC = () => {
         >
           {/* Navigation */}
           <nav className="py-3 text-[14px] overflow-y-auto h-full">
-            <div className="px-5 text-[12px] font-medium uppercase tracking-[0.14em] text-neutral-500 mb-1">
+            <div className="px-5 text-[12px] font-medium uppercase tracking-[0.14em] text-white/50 mb-1">
               Navigation
             </div>
             <ul>
@@ -148,8 +148,8 @@ const AdminLayout: React.FC = () => {
                       onClick={() => setSidebarOpen(false)}
                       className={`group flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors ${
                         isActive
-                          ? "bg-neutral-700 text-neutral-50"
-                          : "text-neutral-300 hover:bg-neutral-700/70 hover:text-neutral-50"
+                          ? "bg-neutral-700 text-white"
+                          : "text-white/70 hover:bg-neutral-700/70 hover:text-white"
                       }`}
                     >
                       <Icon className="h-4 w-4" />

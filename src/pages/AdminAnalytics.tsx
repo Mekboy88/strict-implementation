@@ -80,8 +80,8 @@ export default function AdminAnalytics() {
     <div className="min-h-screen bg-neutral-800 p-6">
       {/* Main Content */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-50 mb-2">Analytics & Reports</h1>
-        <p className="text-neutral-400">Comprehensive platform insights and metrics</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Analytics & Reports</h1>
+        <p className="text-white/70">Comprehensive platform insights and metrics</p>
       </div>
 
       {/* Tabs */}

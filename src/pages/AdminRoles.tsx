@@ -240,10 +240,10 @@ const AdminRoles = () => {
       <div className="border-b border-neutral-700">
         <div className="px-6 py-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-50">
+            <h1 className="text-3xl font-bold text-white">
               Role & Permission Management
             </h1>
-            <p className="text-sm mt-1 text-neutral-400">
+            <p className="text-sm mt-1 text-white/70">
               Define roles, manage permissions, and track admin activities
             </p>
           </div>
@@ -256,53 +256,53 @@ const AdminRoles = () => {
             </DialogTrigger>
             <DialogContent className="max-w-3xl bg-neutral-800 border-neutral-700">
               <DialogHeader>
-                <DialogTitle className="text-neutral-50">
+                <DialogTitle className="text-white">
                   {editingRole ? "Edit Role" : "Create New Role"}
                 </DialogTitle>
-                <DialogDescription className="text-neutral-400">
+                <DialogDescription className="text-white/70">
                   Define role details and set granular permissions
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label className="text-neutral-200">Role Name</Label>
+                  <Label className="text-white">Role Name</Label>
                   <Input
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                     placeholder="e.g., Content Manager"
-                    className="bg-neutral-900 border-neutral-600 text-neutral-50"
+                    className="bg-neutral-900 border-neutral-600 text-white"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-neutral-200">Description</Label>
+                  <Label className="text-white">Description</Label>
                   <Textarea
                     value={roleDescription}
                     onChange={(e) => setRoleDescription(e.target.value)}
                     placeholder="Describe this role's purpose"
                     rows={2}
-                    className="bg-neutral-900 border-neutral-600 text-neutral-50"
+                    className="bg-neutral-900 border-neutral-600 text-white"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-neutral-200">Permissions Matrix</Label>
+                  <Label className="text-white">Permissions Matrix</Label>
                   <div className="rounded-lg border border-neutral-700">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-neutral-700">
-                          <TableHead className="text-neutral-400">Resource</TableHead>
-                          <TableHead className="text-neutral-400 text-center">Create</TableHead>
-                          <TableHead className="text-neutral-400 text-center">Read</TableHead>
-                          <TableHead className="text-neutral-400 text-center">Update</TableHead>
-                          <TableHead className="text-neutral-400 text-center">Delete</TableHead>
+                          <TableHead className="text-white/70">Resource</TableHead>
+                          <TableHead className="text-white/70 text-center">Create</TableHead>
+                          <TableHead className="text-white/70 text-center">Read</TableHead>
+                          <TableHead className="text-white/70 text-center">Update</TableHead>
+                          <TableHead className="text-white/70 text-center">Delete</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {Object.keys(permissions).map((category) => (
                           <TableRow key={category} className="border-neutral-700">
-                            <TableCell className="text-neutral-200 capitalize">
+                            <TableCell className="text-white capitalize">
                               {category}
                             </TableCell>
                             {["create", "read", "update", "delete"].map((action) => (
@@ -331,7 +331,7 @@ const AdminRoles = () => {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsRoleDialogOpen(false)} className="border-neutral-600 text-neutral-300 hover:bg-neutral-700">
+                <Button variant="outline" onClick={() => setIsRoleDialogOpen(false)} className="border-neutral-600 text-white hover:bg-neutral-700">
                   Cancel
                 </Button>
                 <Button
@@ -350,13 +350,13 @@ const AdminRoles = () => {
       <div className="pt-6 overflow-y-auto">
         <Tabs defaultValue="roles" className="w-full">
           <TabsList className="mb-6 bg-neutral-700 border-neutral-600">
-            <TabsTrigger value="roles" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
+            <TabsTrigger value="roles" className="text-white data-[state=active]:bg-neutral-600 data-[state=active]:text-white">
               Roles
             </TabsTrigger>
-            <TabsTrigger value="matrix" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
+            <TabsTrigger value="matrix" className="text-white data-[state=active]:bg-neutral-600 data-[state=active]:text-white">
               Permission Matrix
             </TabsTrigger>
-            <TabsTrigger value="activity" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
+            <TabsTrigger value="activity" className="text-white data-[state=active]:bg-neutral-600 data-[state=active]:text-white">
               Admin Activity Log
             </TabsTrigger>
           </TabsList>
@@ -371,22 +371,22 @@ const AdminRoles = () => {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-neutral-50">
+                      <h3 className="text-lg font-semibold text-white">
                         {role.name}
                       </h3>
-                      <p className="text-sm mt-1 text-neutral-400">
+                      <p className="text-sm mt-1 text-white/70">
                         {role.description}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditRole(role)} className="hover:bg-neutral-600">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditRole(role)} className="hover:bg-neutral-600 text-white">
                         <Edit className="w-4 h-4 text-blue-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteRole(role.id, role.name)}
-                        className="hover:bg-neutral-600"
+                        className="hover:bg-neutral-600 text-white"
                       >
                         <Trash2 className="w-4 h-4 text-red-400" />
                       </Button>
@@ -394,7 +394,7 @@ const AdminRoles = () => {
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-neutral-600">
-                    <p className="text-xs font-medium mb-2 text-neutral-400">
+                    <p className="text-xs font-medium mb-2 text-white/70">
                       Key Permissions
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -404,7 +404,7 @@ const AdminRoles = () => {
                         return (
                           <span
                             key={category}
-                            className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400"
+                            className="text-xs px-2 py-1 rounded bg-blue-500/20 text-white"
                           >
                             {category}
                           </span>
@@ -423,18 +423,18 @@ const AdminRoles = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-neutral-600">
-                    <TableHead className="text-neutral-400">Role</TableHead>
-                    <TableHead className="text-neutral-400 text-center">Users</TableHead>
-                    <TableHead className="text-neutral-400 text-center">Projects</TableHead>
-                    <TableHead className="text-neutral-400 text-center">Settings</TableHead>
-                    <TableHead className="text-neutral-400 text-center">Security</TableHead>
-                    <TableHead className="text-neutral-400 text-center">Roles</TableHead>
+                    <TableHead className="text-white/70">Role</TableHead>
+                    <TableHead className="text-white/70 text-center">Users</TableHead>
+                    <TableHead className="text-white/70 text-center">Projects</TableHead>
+                    <TableHead className="text-white/70 text-center">Settings</TableHead>
+                    <TableHead className="text-white/70 text-center">Security</TableHead>
+                    <TableHead className="text-white/70 text-center">Roles</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {roles.map((role) => (
                     <TableRow key={role.id} className="border-neutral-600">
-                      <TableCell className="text-neutral-50 font-medium">{role.name}</TableCell>
+                      <TableCell className="text-white font-medium">{role.name}</TableCell>
                       {Object.keys(role.permissions).map((category) => {
                         const perms = role.permissions[category as keyof typeof role.permissions];
                         const hasFullAccess = Object.values(perms).every((v) => v);
@@ -467,11 +467,11 @@ const AdminRoles = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-neutral-600">
-                    <TableHead className="text-neutral-400">Timestamp</TableHead>
-                    <TableHead className="text-neutral-400">Admin</TableHead>
-                    <TableHead className="text-neutral-400">Action</TableHead>
-                    <TableHead className="text-neutral-400">Details</TableHead>
-                    <TableHead className="text-neutral-400">Affected User</TableHead>
+                    <TableHead className="text-white/70">Timestamp</TableHead>
+                    <TableHead className="text-white/70">Admin</TableHead>
+                    <TableHead className="text-white/70">Action</TableHead>
+                    <TableHead className="text-white/70">Details</TableHead>
+                    <TableHead className="text-white/70">Affected User</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -480,11 +480,11 @@ const AdminRoles = () => {
                       key={activity.id}
                       className="hover:bg-neutral-600/50 border-neutral-600"
                     >
-                      <TableCell className="text-neutral-200">{activity.timestamp}</TableCell>
-                      <TableCell className="text-neutral-200">{activity.admin}</TableCell>
-                      <TableCell className="text-neutral-200">{activity.action}</TableCell>
-                      <TableCell className="text-neutral-400">{activity.details}</TableCell>
-                      <TableCell className="text-neutral-400">{activity.affectedUser || "-"}</TableCell>
+                      <TableCell className="text-white">{activity.timestamp}</TableCell>
+                      <TableCell className="text-white">{activity.admin}</TableCell>
+                      <TableCell className="text-white">{activity.action}</TableCell>
+                      <TableCell className="text-white/70">{activity.details}</TableCell>
+                      <TableCell className="text-white/70">{activity.affectedUser || "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

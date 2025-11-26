@@ -327,10 +327,10 @@ const AdminAdvanced = () => {
   return (
     <div className="min-h-screen bg-neutral-800 p-6 overflow-y-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-neutral-50">
+        <h1 className="text-3xl font-bold text-white">
           Advanced Features
         </h1>
-        <p className="text-sm mt-2 text-neutral-400">
+        <p className="text-sm mt-2 text-white/70">
           Feature flags, maintenance mode, API management, and integrations
         </p>
       </div>
