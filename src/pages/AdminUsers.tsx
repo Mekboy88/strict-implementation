@@ -333,13 +333,13 @@ const AdminUsers = () => {
     fetchUsers();
   };
 
-  const handleSuspendUser = async (userId: string, duration: string) => {
+  const handleSuspendUser = async (userId: string, duration: string, reason: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const { error } = await supabase.functions.invoke("admin-update-user", {
       headers: { Authorization: `Bearer ${session.access_token}` },
-      body: { action: "suspend", userId, banDuration: duration }
+      body: { action: "suspend", userId, banDuration: duration, reason }
     });
 
     if (error) {
