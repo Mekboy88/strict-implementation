@@ -77,149 +77,56 @@ export default function AdminAnalytics() {
   const COLORS = ["#4CB3FF", "#7B68EE", "#10b981", "#f59e0b"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#06080D] via-[#0B111A] to-[#06080D] text-white">
-      {/* Left Sidebar */}
-      <div className="fixed left-0 top-0 h-screen w-64 bg-[#0A0F17]/80 backdrop-blur-xl border-r border-white/5 p-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-[#4CB3FF] to-[#7B68EE] bg-clip-text text-transparent">
-            Admin Panel
-          </h2>
-          <p className="text-sm text-gray-400 mt-1">System Control Center</p>
-        </div>
-
-        <nav className="space-y-2">
-          <a
-            href="/admin"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span>Dashboard</span>
-          </a>
-          <a
-            href="/admin/users"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Users className="w-5 h-5" />
-            <span>Users</span>
-          </a>
-          <a
-            href="/admin/projects"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <FolderOpen className="w-5 h-5" />
-            <span>Projects</span>
-          </a>
-          <a
-            href="/admin/roles"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <UserCog className="w-5 h-5" />
-            <span>Roles & Permissions</span>
-          </a>
-          <a
-            href="/admin/settings"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Settings className="w-5 h-5" />
-            <span>Settings</span>
-          </a>
-          <a
-            href="/admin/security"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Shield className="w-5 h-5" />
-            <span>Security</span>
-          </a>
-          <a
-            href="/admin/monitoring"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Activity className="w-5 h-5" />
-            <span>Monitoring</span>
-          </a>
-          <a
-            href="/admin/communication"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span>Communication</span>
-          </a>
-          <a
-            href="/admin/analytics"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#4CB3FF]/10 border border-[#4CB3FF]/30 text-[#4CB3FF] transition-all"
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span>Analytics</span>
-          </a>
-          <a
-            href="/admin/advanced"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <ZapIcon className="w-5 h-5" />
-            <span>Advanced</span>
-          </a>
-        </nav>
-
-        <div className="absolute bottom-6 left-6 right-6">
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="w-full px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-all text-sm"
-          >
-            ← Back to Platform
-          </button>
-        </div>
+    <div className="min-h-screen bg-neutral-800 p-6">
+      {/* Main Content */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-neutral-50 mb-2">Analytics & Reports</h1>
+        <p className="text-neutral-400">Comprehensive platform insights and metrics</p>
       </div>
 
-      {/* Main Content */}
-      <div className="ml-64 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Analytics & Reports 📈</h1>
-          <p className="text-gray-400">Comprehensive platform insights and metrics</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-white/10">
-          <button
-            onClick={() => setActiveTab("users")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "users"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            User Analytics
-          </button>
-          <button
-            onClick={() => setActiveTab("revenue")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "revenue"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Revenue Analytics
-          </button>
-          <button
-            onClick={() => setActiveTab("features")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "features"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Feature Usage
-          </button>
-          <button
-            onClick={() => setActiveTab("export")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "export"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Export Reports
-          </button>
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-neutral-700">
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === "users"
+              ? "border-b-2 border-blue-400 text-blue-400"
+              : "text-neutral-400 hover:text-neutral-200"
+          }`}
+        >
+          User Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab("revenue")}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === "revenue"
+              ? "border-b-2 border-blue-400 text-blue-400"
+              : "text-neutral-400 hover:text-neutral-200"
+          }`}
+        >
+          Revenue Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab("features")}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === "features"
+              ? "border-b-2 border-blue-400 text-blue-400"
+              : "text-neutral-400 hover:text-neutral-200"
+          }`}
+        >
+          Feature Usage
+        </button>
+        <button
+          onClick={() => setActiveTab("export")}
+          className={`px-6 py-3 font-medium transition-all ${
+            activeTab === "export"
+              ? "border-b-2 border-blue-400 text-blue-400"
+              : "text-neutral-400 hover:text-neutral-200"
+          }`}
+        >
+          Export Reports
+        </button>
+      </div>
 
         {/* User Analytics Tab */}
         {activeTab === "users" && (
@@ -526,7 +433,6 @@ export default function AdminAnalytics() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

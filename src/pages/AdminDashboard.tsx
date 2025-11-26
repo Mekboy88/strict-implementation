@@ -82,20 +82,20 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: "#4CB3FF" }}></div>
+      <div className="flex items-center justify-center p-12 bg-neutral-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-neutral-800 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>
+        <h1 className="text-3xl font-bold text-neutral-50">
           Platform Dashboard
         </h1>
-        <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>
+        <p className="text-sm mt-1 text-neutral-400">
           Overview of platform statistics and metrics
         </p>
       </div>
