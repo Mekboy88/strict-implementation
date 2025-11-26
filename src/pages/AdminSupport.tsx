@@ -43,7 +43,11 @@ import {
   RefreshCw,
   Filter,
   Trash2,
+  Ticket,
+  TrendingUp,
+  Timer,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface SupportTicket {
   id: string;
@@ -256,6 +260,33 @@ const AdminSupport = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
+  // Stats calculations
+  const totalTickets = tickets.length;
+  const openTickets = tickets.filter((t) => t.status === "open").length;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const resolvedToday = tickets.filter((t) => {
+    if (!t.resolved_at) return false;
+    const resolvedDate = new Date(t.resolved_at);
+    resolvedDate.setHours(0, 0, 0, 0);
+    return resolvedDate.getTime() === today.getTime();
+  }).length;
+
+  const avgResolutionTime = (() => {
+    const resolvedTickets = tickets.filter((t) => t.resolved_at);
+    if (resolvedTickets.length === 0) return "N/A";
+    const totalMs = resolvedTickets.reduce((sum, t) => {
+      const created = new Date(t.created_at).getTime();
+      const resolved = new Date(t.resolved_at!).getTime();
+      return sum + (resolved - created);
+    }, 0);
+    const avgMs = totalMs / resolvedTickets.length;
+    const avgHours = Math.round(avgMs / (1000 * 60 * 60));
+    if (avgHours < 24) return `${avgHours}h`;
+    const avgDays = Math.round(avgHours / 24);
+    return `${avgDays}d`;
+  })();
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "open":
@@ -323,7 +354,61 @@ const AdminSupport = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-4 gap-4 mb-4">
+          <Card className="bg-neutral-700 border-neutral-600">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs uppercase tracking-wide">Total Tickets</p>
+                  <p className="text-2xl font-bold text-white">{totalTickets}</p>
+                </div>
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <Ticket className="w-5 h-5 text-blue-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-neutral-700 border-neutral-600">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs uppercase tracking-wide">Open</p>
+                  <p className="text-2xl font-bold text-yellow-400">{openTickets}</p>
+                </div>
+                <div className="p-2 bg-yellow-500/20 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-yellow-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-neutral-700 border-neutral-600">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs uppercase tracking-wide">Resolved Today</p>
+                  <p className="text-2xl font-bold text-green-400">{resolvedToday}</p>
+                </div>
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-neutral-700 border-neutral-600">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs uppercase tracking-wide">Avg Resolution</p>
+                  <p className="text-2xl font-bold text-purple-400">{avgResolutionTime}</p>
+                </div>
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Timer className="w-5 h-5 text-purple-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         <div className="flex gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
