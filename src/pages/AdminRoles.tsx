@@ -235,78 +235,78 @@ const AdminRoles = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-neutral-800 p-6">
       {/* Header */}
-      <div className="border-b" style={{ borderColor: "#ffffff15" }}>
+      <div className="border-b border-neutral-700">
         <div className="px-6 py-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>
+            <h1 className="text-3xl font-bold text-neutral-50">
               Role & Permission Management
             </h1>
-            <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>
+            <p className="text-sm mt-1 text-neutral-400">
               Define roles, manage permissions, and track admin activities
             </p>
           </div>
           <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetRoleForm} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+              <Button onClick={resetRoleForm} className="bg-blue-500 hover:bg-blue-600 text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Role
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+            <DialogContent className="max-w-3xl bg-neutral-800 border-neutral-700">
               <DialogHeader>
-                <DialogTitle style={{ color: "#D6E4F0" }}>
+                <DialogTitle className="text-neutral-50">
                   {editingRole ? "Edit Role" : "Create New Role"}
                 </DialogTitle>
-                <DialogDescription style={{ color: "#8FA3B7" }}>
+                <DialogDescription className="text-neutral-400">
                   Define role details and set granular permissions
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label style={{ color: "#D6E4F0" }}>Role Name</Label>
+                  <Label className="text-neutral-200">Role Name</Label>
                   <Input
                     value={roleName}
                     onChange={(e) => setRoleName(e.target.value)}
                     placeholder="e.g., Content Manager"
-                    style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                    className="bg-neutral-900 border-neutral-600 text-neutral-50"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label style={{ color: "#D6E4F0" }}>Description</Label>
+                  <Label className="text-neutral-200">Description</Label>
                   <Textarea
                     value={roleDescription}
                     onChange={(e) => setRoleDescription(e.target.value)}
                     placeholder="Describe this role's purpose"
                     rows={2}
-                    style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                    className="bg-neutral-900 border-neutral-600 text-neutral-50"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label style={{ color: "#D6E4F0" }}>Permissions Matrix</Label>
-                  <div className="rounded-lg border" style={{ borderColor: "#ffffff15" }}>
+                  <Label className="text-neutral-200">Permissions Matrix</Label>
+                  <div className="rounded-lg border border-neutral-700">
                     <Table>
                       <TableHeader>
-                        <TableRow style={{ borderColor: "#ffffff15" }}>
-                          <TableHead style={{ color: "#8FA3B7" }}>Resource</TableHead>
-                          <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Create</TableHead>
-                          <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Read</TableHead>
-                          <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Update</TableHead>
-                          <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Delete</TableHead>
+                        <TableRow className="border-neutral-700">
+                          <TableHead className="text-neutral-400">Resource</TableHead>
+                          <TableHead className="text-neutral-400 text-center">Create</TableHead>
+                          <TableHead className="text-neutral-400 text-center">Read</TableHead>
+                          <TableHead className="text-neutral-400 text-center">Update</TableHead>
+                          <TableHead className="text-neutral-400 text-center">Delete</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {Object.keys(permissions).map((category) => (
-                          <TableRow key={category} style={{ borderColor: "#ffffff15" }}>
-                            <TableCell style={{ color: "#D6E4F0", textTransform: "capitalize" }}>
+                          <TableRow key={category} className="border-neutral-700">
+                            <TableCell className="text-neutral-200 capitalize">
                               {category}
                             </TableCell>
                             {["create", "read", "update", "delete"].map((action) => (
-                              <TableCell key={action} style={{ textAlign: "center" }}>
+                              <TableCell key={action} className="text-center">
                                 <Switch
                                   checked={
                                     permissions[category as keyof typeof permissions][
@@ -331,12 +331,12 @@ const AdminRoles = () => {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsRoleDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsRoleDialogOpen(false)} className="border-neutral-600 text-neutral-300 hover:bg-neutral-700">
                   Cancel
                 </Button>
                 <Button
                   onClick={editingRole ? handleUpdateRole : handleCreateRole}
-                  style={{ background: "#4CB3FF", color: "#ffffff" }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
                 >
                   {editingRole ? "Update Role" : "Create Role"}
                 </Button>
@@ -349,14 +349,14 @@ const AdminRoles = () => {
       {/* Content */}
       <div className="pt-6 overflow-y-auto">
         <Tabs defaultValue="roles" className="w-full">
-          <TabsList className="mb-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-            <TabsTrigger value="roles" style={{ color: "#D6E4F0" }}>
+          <TabsList className="mb-6 bg-neutral-700 border-neutral-600">
+            <TabsTrigger value="roles" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
               Roles
             </TabsTrigger>
-            <TabsTrigger value="matrix" style={{ color: "#D6E4F0" }}>
+            <TabsTrigger value="matrix" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
               Permission Matrix
             </TabsTrigger>
-            <TabsTrigger value="activity" style={{ color: "#D6E4F0" }}>
+            <TabsTrigger value="activity" className="text-neutral-200 data-[state=active]:bg-neutral-600 data-[state=active]:text-neutral-50">
               Admin Activity Log
             </TabsTrigger>
           </TabsList>
@@ -367,34 +367,34 @@ const AdminRoles = () => {
               {roles.map((role) => (
                 <div
                   key={role.id}
-                  className="rounded-lg border p-5"
-                  style={{ background: "#0B111A", borderColor: "#ffffff15" }}
+                  className="rounded-lg border p-5 bg-neutral-700 border-neutral-600"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-semibold" style={{ color: "#D6E4F0" }}>
+                      <h3 className="text-lg font-semibold text-neutral-50">
                         {role.name}
                       </h3>
-                      <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>
+                      <p className="text-sm mt-1 text-neutral-400">
                         {role.description}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditRole(role)}>
-                        <Edit className="w-4 h-4" style={{ color: "#4CB3FF" }} />
+                      <Button variant="ghost" size="sm" onClick={() => handleEditRole(role)} className="hover:bg-neutral-600">
+                        <Edit className="w-4 h-4 text-blue-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteRole(role.id, role.name)}
+                        className="hover:bg-neutral-600"
                       >
-                        <Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} />
+                        <Trash2 className="w-4 h-4 text-red-400" />
                       </Button>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t" style={{ borderColor: "#ffffff15" }}>
-                    <p className="text-xs font-medium mb-2" style={{ color: "#8FA3B7" }}>
+                  <div className="mt-4 pt-4 border-t border-neutral-600">
+                    <p className="text-xs font-medium mb-2 text-neutral-400">
                       Key Permissions
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -404,8 +404,7 @@ const AdminRoles = () => {
                         return (
                           <span
                             key={category}
-                            className="text-xs px-2 py-1 rounded"
-                            style={{ background: "#4CB3FF20", color: "#4CB3FF" }}
+                            className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400"
                           >
                             {category}
                           </span>
@@ -420,37 +419,37 @@ const AdminRoles = () => {
 
           {/* Permission Matrix */}
           <TabsContent value="matrix">
-            <div className="rounded-lg border overflow-hidden" style={{ borderColor: "#ffffff15" }}>
+            <div className="rounded-lg border overflow-hidden border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Role</TableHead>
-                    <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Users</TableHead>
-                    <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Projects</TableHead>
-                    <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Settings</TableHead>
-                    <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Security</TableHead>
-                    <TableHead style={{ color: "#8FA3B7", textAlign: "center" }}>Roles</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-neutral-400">Role</TableHead>
+                    <TableHead className="text-neutral-400 text-center">Users</TableHead>
+                    <TableHead className="text-neutral-400 text-center">Projects</TableHead>
+                    <TableHead className="text-neutral-400 text-center">Settings</TableHead>
+                    <TableHead className="text-neutral-400 text-center">Security</TableHead>
+                    <TableHead className="text-neutral-400 text-center">Roles</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {roles.map((role) => (
-                    <TableRow key={role.id} style={{ borderColor: "#ffffff15" }}>
-                      <TableCell style={{ color: "#D6E4F0", fontWeight: 500 }}>{role.name}</TableCell>
+                    <TableRow key={role.id} className="border-neutral-600">
+                      <TableCell className="text-neutral-50 font-medium">{role.name}</TableCell>
                       {Object.keys(role.permissions).map((category) => {
                         const perms = role.permissions[category as keyof typeof role.permissions];
                         const hasFullAccess = Object.values(perms).every((v) => v);
                         const hasPartialAccess = Object.values(perms).some((v) => v);
 
                         return (
-                          <TableCell key={category} style={{ textAlign: "center" }}>
+                          <TableCell key={category} className="text-center">
                             {hasFullAccess ? (
-                              <Check className="w-5 h-5 mx-auto" style={{ color: "#10b981" }} />
+                              <Check className="w-5 h-5 mx-auto text-green-500" />
                             ) : hasPartialAccess ? (
-                              <span className="text-xs" style={{ color: "#4CB3FF" }}>
+                              <span className="text-xs text-blue-400">
                                 Partial
                               </span>
                             ) : (
-                              <X className="w-5 h-5 mx-auto" style={{ color: "#6b7280" }} />
+                              <X className="w-5 h-5 mx-auto text-neutral-500" />
                             )}
                           </TableCell>
                         );
@@ -464,29 +463,28 @@ const AdminRoles = () => {
 
           {/* Admin Activity Log */}
           <TabsContent value="activity">
-            <div className="rounded-lg border overflow-hidden" style={{ borderColor: "#ffffff15" }}>
+            <div className="rounded-lg border overflow-hidden border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Timestamp</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Admin</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Action</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Details</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Affected User</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-neutral-400">Timestamp</TableHead>
+                    <TableHead className="text-neutral-400">Admin</TableHead>
+                    <TableHead className="text-neutral-400">Action</TableHead>
+                    <TableHead className="text-neutral-400">Details</TableHead>
+                    <TableHead className="text-neutral-400">Affected User</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {adminActivities.map((activity) => (
                     <TableRow
                       key={activity.id}
-                      className="hover:bg-[#ffffff05]"
-                      style={{ borderColor: "#ffffff15" }}
+                      className="hover:bg-neutral-600/50 border-neutral-600"
                     >
-                      <TableCell style={{ color: "#D6E4F0" }}>{activity.timestamp}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{activity.admin}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{activity.action}</TableCell>
-                      <TableCell style={{ color: "#8FA3B7" }}>{activity.details}</TableCell>
-                      <TableCell style={{ color: "#8FA3B7" }}>{activity.affectedUser || "-"}</TableCell>
+                      <TableCell className="text-neutral-200">{activity.timestamp}</TableCell>
+                      <TableCell className="text-neutral-200">{activity.admin}</TableCell>
+                      <TableCell className="text-neutral-200">{activity.action}</TableCell>
+                      <TableCell className="text-neutral-400">{activity.details}</TableCell>
+                      <TableCell className="text-neutral-400">{activity.affectedUser || "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

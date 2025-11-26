@@ -148,19 +148,19 @@ const AdminSecurity = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(180deg, #06080D, #0B111A)" }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: "#4CB3FF" }}></div>
+      <div className="min-h-screen flex items-center justify-center bg-neutral-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
+    <div className="min-h-screen bg-neutral-800 p-6 overflow-y-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold" style={{ color: "#D6E4F0" }}>
-          Security & Compliance 🔒
+        <h1 className="text-3xl font-bold text-neutral-50">
+          Security & Compliance
         </h1>
-        <p className="text-sm mt-2" style={{ color: "#8FA3B7" }}>
+        <p className="text-sm mt-2 text-neutral-400">
           Manage security settings, audit logs, and compliance features
         </p>
       </div>
