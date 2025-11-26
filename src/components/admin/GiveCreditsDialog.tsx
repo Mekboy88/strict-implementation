@@ -52,20 +52,20 @@ export function GiveCreditsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-neutral-800 border-neutral-600 text-white">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Coins className="h-5 w-5 text-amber-400" />
             Give AI Credits
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-neutral-400">
             Grant AI/Token credits to {user?.full_name || user?.email}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Credit Amount</Label>
+              <Label htmlFor="amount" className="text-white">Credit Amount</Label>
               <Input
                 id="amount"
                 type="number"
@@ -74,6 +74,7 @@ export function GiveCreditsDialog({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
               />
               <div className="flex gap-2 flex-wrap">
                 {presetAmounts.map((preset) => (
@@ -83,7 +84,7 @@ export function GiveCreditsDialog({
                     variant="outline"
                     size="sm"
                     onClick={() => setAmount(preset.toString())}
-                    className="text-xs"
+                    className="text-xs border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
                   >
                     +{preset}
                   </Button>
@@ -91,13 +92,14 @@ export function GiveCreditsDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reason">Reason (optional)</Label>
+              <Label htmlFor="reason" className="text-white">Reason (optional)</Label>
               <Textarea
                 id="reason"
                 placeholder="e.g., Welcome bonus, Support compensation..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
               />
             </div>
           </div>
@@ -107,10 +109,11 @@ export function GiveCreditsDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
+              className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !amount}>
+            <Button type="submit" disabled={isLoading || !amount} className="bg-amber-600 hover:bg-amber-700 text-white">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
