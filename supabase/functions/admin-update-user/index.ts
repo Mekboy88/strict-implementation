@@ -349,6 +349,100 @@ serve(async (req) => {
         });
       }
 
+      case "giveCredits": {
+        const { amount, creditReason } = await req.json().catch(() => ({}));
+        
+        // Parse amount from the original request body
+        const requestBody = await req.clone().json();
+        const creditAmount = requestBody.amount;
+        const creditDescription = requestBody.creditReason || "Admin credit grant";
+
+        if (!creditAmount || creditAmount <= 0) {
+          return new Response(JSON.stringify({ error: "Invalid credit amount" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Get or create user credits record
+        const { data: existingCredits } = await supabaseAdmin
+          .from("user_credits")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (existingCredits) {
+          // Update existing credits
+          const { error: updateError } = await supabaseAdmin
+            .from("user_credits")
+            .update({
+              balance: existingCredits.balance + creditAmount,
+              total_earned: existingCredits.total_earned + creditAmount,
+              updated_at: new Date().toISOString()
+            })
+            .eq("user_id", userId);
+
+          if (updateError) throw updateError;
+        } else {
+          // Create new credits record
+          const { error: insertError } = await supabaseAdmin
+            .from("user_credits")
+            .insert({
+              user_id: userId,
+              balance: creditAmount,
+              total_earned: creditAmount,
+              total_spent: 0
+            });
+
+          if (insertError) throw insertError;
+        }
+
+        // Record transaction
+        const { error: transactionError } = await supabaseAdmin
+          .from("credit_transactions")
+          .insert({
+            user_id: userId,
+            amount: creditAmount,
+            type: "admin_grant",
+            description: creditDescription,
+            granted_by: requestingUser.id
+          });
+
+        if (transactionError) {
+          console.error("Error recording transaction:", transactionError);
+        }
+
+        // Get user email for notification
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+        const userEmail = userData?.user?.email;
+
+        // Create in-app notification
+        const { error: notificationError } = await supabaseAdmin
+          .from("notifications")
+          .insert({
+            user_id: userId,
+            type: "credits",
+            title: "Credits Received!",
+            message: `You have received ${creditAmount} AI credits. ${creditDescription}`,
+            action_url: "/account"
+          });
+
+        if (notificationError) {
+          console.error("Error creating notification:", notificationError);
+        }
+
+        console.log(`Admin ${requestingUser.email} granted ${creditAmount} credits to user ${userId}`);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          credits: creditAmount,
+          email: userEmail,
+          message: `${creditAmount} credits granted successfully`
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Invalid action" }), {
           status: 400,
