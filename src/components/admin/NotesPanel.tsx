@@ -105,6 +105,12 @@ export const NotesPanel = () => {
     }
   };
 
+  // Fetch notes on mount to show badge count
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  // Refresh notes when panel opens
   useEffect(() => {
     if (isOpen) {
       fetchNotes();
