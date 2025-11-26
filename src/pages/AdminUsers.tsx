@@ -406,9 +406,13 @@ const AdminUsers = () => {
         </div>
         <div className="flex items-center gap-2">
           <Button 
+            type="button"
             variant="outline" 
             size="sm"
-            onClick={handleManualRefresh}
+            onClick={() => {
+              console.log('Refresh clicked');
+              fetchUsers(true);
+            }}
             disabled={isRefreshing}
             className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
           >
