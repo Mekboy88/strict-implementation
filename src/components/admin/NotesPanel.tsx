@@ -39,12 +39,12 @@ interface Note {
 }
 
 const NOTE_COLORS = [
-  { value: "default", bg: "bg-neutral-700", border: "border-neutral-600" },
-  { value: "yellow", bg: "bg-yellow-900/30", border: "border-yellow-700/50" },
-  { value: "green", bg: "bg-green-900/30", border: "border-green-700/50" },
-  { value: "blue", bg: "bg-blue-900/30", border: "border-blue-700/50" },
-  { value: "purple", bg: "bg-purple-900/30", border: "border-purple-700/50" },
-  { value: "red", bg: "bg-red-900/30", border: "border-red-700/50" },
+  { value: "default", bg: "bg-neutral-500", border: "border-neutral-400", picker: "bg-neutral-400" },
+  { value: "yellow", bg: "bg-yellow-900/30", border: "border-yellow-700/50", picker: "bg-yellow-400" },
+  { value: "green", bg: "bg-green-900/30", border: "border-green-700/50", picker: "bg-green-400" },
+  { value: "blue", bg: "bg-blue-900/30", border: "border-blue-700/50", picker: "bg-blue-400" },
+  { value: "purple", bg: "bg-purple-900/30", border: "border-purple-700/50", picker: "bg-purple-400" },
+  { value: "red", bg: "bg-red-900/30", border: "border-red-700/50", picker: "bg-red-400" },
 ];
 
 export const NotesPanel = () => {
@@ -259,9 +259,9 @@ export const NotesPanel = () => {
                   <button
                     key={color.value}
                     onClick={() => setNewNote({ ...newNote, color: color.value })}
-                    className={`h-6 w-6 rounded-full ${color.bg} border-2 ${
+                    className={`h-6 w-6 rounded-full ${color.picker} border-2 ${
                       newNote.color === color.value
-                        ? "border-white"
+                        ? "border-white ring-2 ring-white/50"
                         : "border-transparent"
                     }`}
                   />
@@ -331,9 +331,9 @@ export const NotesPanel = () => {
                             onClick={() =>
                               setEditForm({ ...editForm, color: color.value })
                             }
-                            className={`h-6 w-6 rounded-full ${color.bg} border-2 ${
+                            className={`h-6 w-6 rounded-full ${color.picker} border-2 ${
                               editForm.color === color.value
-                                ? "border-white"
+                                ? "border-white ring-2 ring-white/50"
                                 : "border-transparent"
                             }`}
                           />
