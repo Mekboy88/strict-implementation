@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, MessageSquare, Users, Settings, Shield, LayoutDashboard, FolderOpen, UserCog, BarChart3, Zap as ZapIcon, Info, ChevronDown, ChevronUp, Lightbulb, Wrench } from "lucide-react";
+import { Activity, AlertTriangle, Bell, Clock, Cpu, Database, HardDrive, Zap, Info, ChevronDown, ChevronUp, Lightbulb, Wrench, Shield, RefreshCw, Download, Search } from "lucide-react";
 
 export default function AdminSystemMonitoring() {
   const [activeTab, setActiveTab] = useState<"errors" | "performance" | "uptime" | "alerts">("errors");
@@ -123,145 +123,128 @@ export default function AdminSystemMonitoring() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#06080D] via-[#0B111A] to-[#06080D] text-white">
-      {/* Left Sidebar */}
-      <div className="fixed left-0 top-0 h-screen w-64 bg-[#0A0F17]/80 backdrop-blur-xl border-r border-white/5 p-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-[#4CB3FF] to-[#7B68EE] bg-clip-text text-transparent">
-            Admin Panel
-          </h2>
-          <p className="text-sm text-gray-400 mt-1">System Control Center</p>
+    <div className="min-h-screen" style={{ background: "#0a0f18" }}>
+      {/* Top Bar */}
+      <div className="sticky top-0 z-10 h-16 flex items-center justify-between px-6" style={{ background: "#0d1421", borderBottom: "1px solid #ffffff10" }}>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#6B728020" }}>
+              <Activity className="h-5 w-5" style={{ color: "#9CA3AF" }} />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>System Monitoring</h1>
+              <p className="text-xs" style={{ color: "#6B7280" }}>Real-time health & performance</p>
+            </div>
+          </div>
         </div>
-
-        <nav className="space-y-2">
-          <a
-            href="/admin"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span>Dashboard</span>
-          </a>
-          <a
-            href="/admin/users"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Users className="w-5 h-5" />
-            <span>Users</span>
-          </a>
-          <a
-            href="/admin/projects"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <FolderOpen className="w-5 h-5" />
-            <span>Projects</span>
-          </a>
-          <a
-            href="/admin/roles"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <UserCog className="w-5 h-5" />
-            <span>Roles & Permissions</span>
-          </a>
-          <a
-            href="/admin/settings"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Settings className="w-5 h-5" />
-            <span>Settings</span>
-          </a>
-          <a
-            href="/admin/security"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Shield className="w-5 h-5" />
-            <span>Security</span>
-          </a>
-          <a
-            href="/admin/monitoring"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#4CB3FF]/10 border border-[#4CB3FF]/30 text-[#4CB3FF] transition-all"
-          >
-            <Activity className="w-5 h-5" />
-            <span>Monitoring</span>
-          </a>
-          <a
-            href="/admin/communication"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span>Communication</span>
-          </a>
-          <a
-            href="/admin/analytics"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span>Analytics</span>
-          </a>
-          <a
-            href="/admin/advanced"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/5 transition-all"
-          >
-            <Zap className="w-5 h-5" />
-            <span>Advanced</span>
-          </a>
-        </nav>
-
-        <div className="absolute bottom-6 left-6 right-6">
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="w-full px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-all text-sm"
-          >
-            ← Back to Platform
+        
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#6B7280" }} />
+            <input
+              type="text"
+              placeholder="Search logs..."
+              className="h-9 w-64 rounded-lg pl-9 pr-4 text-sm outline-none"
+              style={{ background: "#1a2332", border: "1px solid #ffffff10", color: "#D1D5DB" }}
+            />
+          </div>
+          
+          {/* Refresh Button */}
+          <button className="h-9 px-3 rounded-lg flex items-center gap-2 text-sm transition-all" style={{ background: "#1a2332", border: "1px solid #ffffff10", color: "#9CA3AF" }}>
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+          
+          {/* Export Button */}
+          <button className="h-9 px-3 rounded-lg flex items-center gap-2 text-sm transition-all" style={{ background: "#6B728020", color: "#9CA3AF" }}>
+            <Download className="h-4 w-4" />
+            Export
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">System Monitoring 🖥️</h1>
-          <p className="text-gray-400">Real-time system health and performance monitoring</p>
+      <div className="p-6">
+        {/* Stats Summary */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="rounded-xl p-4" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "#EF444420" }}>
+                <AlertTriangle className="h-4 w-4" style={{ color: "#EF4444" }} />
+              </div>
+              <span className="text-sm" style={{ color: "#6B7280" }}>Active Errors</span>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: "#EF4444" }}>3</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "#F5990020" }}>
+                <Clock className="h-4 w-4" style={{ color: "#F59900" }} />
+              </div>
+              <span className="text-sm" style={{ color: "#6B7280" }}>Avg Latency</span>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: "#D1D5DB" }}>145ms</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "#22C55E20" }}>
+                <Activity className="h-4 w-4" style={{ color: "#22C55E" }} />
+              </div>
+              <span className="text-sm" style={{ color: "#6B7280" }}>Uptime</span>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: "#22C55E" }}>99.97%</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "#6B728020" }}>
+                <Cpu className="h-4 w-4" style={{ color: "#9CA3AF" }} />
+              </div>
+              <span className="text-sm" style={{ color: "#6B7280" }}>CPU Usage</span>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: "#D1D5DB" }}>45%</p>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-white/10">
+        <div className="flex gap-2 mb-6" style={{ borderBottom: "1px solid #ffffff10" }}>
           <button
             onClick={() => setActiveTab("errors")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "errors"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
+            className="px-6 py-3 font-medium transition-all"
+            style={{
+              borderBottom: activeTab === "errors" ? "2px solid #9CA3AF" : "2px solid transparent",
+              color: activeTab === "errors" ? "#D1D5DB" : "#6B7280"
+            }}
           >
             Error Logs
           </button>
           <button
             onClick={() => setActiveTab("performance")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "performance"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
+            className="px-6 py-3 font-medium transition-all"
+            style={{
+              borderBottom: activeTab === "performance" ? "2px solid #9CA3AF" : "2px solid transparent",
+              color: activeTab === "performance" ? "#D1D5DB" : "#6B7280"
+            }}
           >
             Performance Metrics
           </button>
           <button
             onClick={() => setActiveTab("uptime")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "uptime"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
+            className="px-6 py-3 font-medium transition-all"
+            style={{
+              borderBottom: activeTab === "uptime" ? "2px solid #9CA3AF" : "2px solid transparent",
+              color: activeTab === "uptime" ? "#D1D5DB" : "#6B7280"
+            }}
           >
             Uptime Monitor
           </button>
           <button
             onClick={() => setActiveTab("alerts")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "alerts"
-                ? "border-b-2 border-[#4CB3FF] text-[#4CB3FF]"
-                : "text-gray-400 hover:text-white"
-            }`}
+            className="px-6 py-3 font-medium transition-all"
+            style={{
+              borderBottom: activeTab === "alerts" ? "2px solid #9CA3AF" : "2px solid transparent",
+              color: activeTab === "alerts" ? "#D1D5DB" : "#6B7280"
+            }}
           >
             Alert Configuration
           </button>
@@ -271,8 +254,8 @@ export default function AdminSystemMonitoring() {
         {activeTab === "errors" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Real-Time Error Tracking</h2>
-              <button className="px-4 py-2 rounded-lg bg-[#4CB3FF]/10 text-[#4CB3FF] hover:bg-[#4CB3FF]/20 transition-all text-sm">
+              <h2 className="text-xl font-semibold" style={{ color: "#D1D5DB" }}>Real-Time Error Tracking</h2>
+              <button className="px-4 py-2 rounded-lg text-sm transition-all" style={{ background: "#6B728020", color: "#9CA3AF" }}>
                 Clear All Logs
               </button>
             </div>
@@ -280,7 +263,8 @@ export default function AdminSystemMonitoring() {
             {errorLogs.map((log) => (
               <div
                 key={log.id}
-                className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6 hover:border-[#4CB3FF]/30 transition-all"
+                className="rounded-xl p-6 transition-all"
+                style={{ background: "#0d1421", border: "1px solid #ffffff10" }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -305,11 +289,11 @@ export default function AdminSystemMonitoring() {
                   </div>
                   <button
                     onClick={() => setExpandedExplanation(expandedExplanation === log.id ? null : log.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      expandedExplanation === log.id
-                        ? "bg-[#4CB3FF] text-white"
-                        : "bg-[#4CB3FF]/10 text-[#4CB3FF] hover:bg-[#4CB3FF]/20"
-                    }`}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                    style={{
+                      background: expandedExplanation === log.id ? "#6B7280" : "#6B728020",
+                      color: expandedExplanation === log.id ? "#ffffff" : "#9CA3AF"
+                    }}
                   >
                     <Lightbulb className="w-4 h-4" />
                     Explain Issue
@@ -320,21 +304,21 @@ export default function AdminSystemMonitoring() {
                     )}
                   </button>
                 </div>
-                <h3 className="text-white font-medium mb-2">{log.message}</h3>
-                <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-gray-400 whitespace-pre-wrap">
+                <h3 className="font-medium mb-2" style={{ color: "#D1D5DB" }}>{log.message}</h3>
+                <div className="rounded-lg p-3 font-mono text-xs whitespace-pre-wrap" style={{ background: "#0a0f18", color: "#6B7280" }}>
                   {log.stackTrace}
                 </div>
 
                 {/* Explanation Panel */}
                 {expandedExplanation === log.id && (
-                  <div className="mt-4 p-4 bg-gradient-to-br from-[#4CB3FF]/10 to-[#7B68EE]/10 border border-[#4CB3FF]/30 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="mt-4 p-4 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200" style={{ background: "#1a2332", border: "1px solid #ffffff15" }}>
                     {/* Cause */}
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <Info className="w-4 h-4 text-[#4CB3FF]" />
-                        <h4 className="text-sm font-semibold text-[#4CB3FF]">Root Cause</h4>
+                        <Info className="w-4 h-4" style={{ color: "#9CA3AF" }} />
+                        <h4 className="text-sm font-semibold" style={{ color: "#9CA3AF" }}>Root Cause</h4>
                       </div>
-                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.cause}</p>
+                      <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{log.explanation.cause}</p>
                     </div>
 
                     {/* Impact */}
@@ -343,7 +327,7 @@ export default function AdminSystemMonitoring() {
                         <AlertTriangle className="w-4 h-4 text-yellow-400" />
                         <h4 className="text-sm font-semibold text-yellow-400">Impact</h4>
                       </div>
-                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.impact}</p>
+                      <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{log.explanation.impact}</p>
                     </div>
 
                     {/* Resolution Steps */}
@@ -354,7 +338,7 @@ export default function AdminSystemMonitoring() {
                       </div>
                       <ul className="space-y-2">
                         {log.explanation.resolution.map((step, index) => (
-                          <li key={index} className="flex items-start gap-2 text-sm text-gray-300">
+                          <li key={index} className="flex items-start gap-2 text-sm" style={{ color: "#D1D5DB" }}>
                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-medium">
                               {index + 1}
                             </span>
@@ -365,12 +349,12 @@ export default function AdminSystemMonitoring() {
                     </div>
 
                     {/* Prevention */}
-                    <div className="pt-3 border-t border-white/10">
+                    <div className="pt-3" style={{ borderTop: "1px solid #ffffff10" }}>
                       <div className="flex items-center gap-2 mb-2">
-                        <Shield className="w-4 h-4 text-[#7B68EE]" />
-                        <h4 className="text-sm font-semibold text-[#7B68EE]">Prevention</h4>
+                        <Shield className="w-4 h-4" style={{ color: "#9CA3AF" }} />
+                        <h4 className="text-sm font-semibold" style={{ color: "#9CA3AF" }}>Prevention</h4>
                       </div>
-                      <p className="text-sm text-gray-300 leading-relaxed">{log.explanation.prevention}</p>
+                      <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{log.explanation.prevention}</p>
                     </div>
                   </div>
                 )}
@@ -383,136 +367,131 @@ export default function AdminSystemMonitoring() {
         {activeTab === "performance" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* API Latency */}
-            <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+            <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
               <div className="flex items-center gap-3 mb-4">
-                <Zap className="w-6 h-6 text-[#4CB3FF]" />
-                <h3 className="text-lg font-semibold">API Latency</h3>
+                <Zap className="w-6 h-6" style={{ color: "#9CA3AF" }} />
+                <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>API Latency</h3>
               </div>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Current</span>
-                    <span className="text-white font-semibold">{performanceMetrics.apiLatency.current}ms</span>
+                    <span style={{ color: "#6B7280" }}>Current</span>
+                    <span className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.apiLatency.current}ms</span>
                   </div>
-                  <div className="w-full bg-white/5 rounded-full h-2">
+                  <div className="w-full rounded-full h-2" style={{ background: "#1a2332" }}>
                     <div
-                      className="bg-gradient-to-r from-green-500 to-[#4CB3FF] h-2 rounded-full"
-                      style={{ width: `${(performanceMetrics.apiLatency.current / 300) * 100}%` }}
+                      className="h-2 rounded-full"
+                      style={{ background: "linear-gradient(to right, #22C55E, #9CA3AF)", width: `${(performanceMetrics.apiLatency.current / 300) * 100}%` }}
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5">
+                <div className="grid grid-cols-2 gap-4 pt-3" style={{ borderTop: "1px solid #ffffff08" }}>
                   <div>
-                    <p className="text-xs text-gray-500">Average</p>
-                    <p className="text-white font-semibold">{performanceMetrics.apiLatency.average}ms</p>
+                    <p className="text-xs" style={{ color: "#6B7280" }}>Average</p>
+                    <p className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.apiLatency.average}ms</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Peak</p>
-                    <p className="text-white font-semibold">{performanceMetrics.apiLatency.peak}ms</p>
+                    <p className="text-xs" style={{ color: "#6B7280" }}>Peak</p>
+                    <p className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.apiLatency.peak}ms</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Database Query Performance */}
-            <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+            <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
               <div className="flex items-center gap-3 mb-4">
-                <Database className="w-6 h-6 text-[#4CB3FF]" />
-                <h3 className="text-lg font-semibold">Database Query Time</h3>
+                <Database className="w-6 h-6" style={{ color: "#9CA3AF" }} />
+                <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>Database Query Time</h3>
               </div>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Current</span>
-                    <span className="text-white font-semibold">{performanceMetrics.dbQueryTime.current}ms</span>
+                    <span style={{ color: "#6B7280" }}>Current</span>
+                    <span className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.dbQueryTime.current}ms</span>
                   </div>
-                  <div className="w-full bg-white/5 rounded-full h-2">
+                  <div className="w-full rounded-full h-2" style={{ background: "#1a2332" }}>
                     <div
-                      className="bg-gradient-to-r from-green-500 to-[#4CB3FF] h-2 rounded-full"
-                      style={{ width: `${(performanceMetrics.dbQueryTime.current / 100) * 100}%` }}
+                      className="h-2 rounded-full"
+                      style={{ background: "linear-gradient(to right, #22C55E, #9CA3AF)", width: `${(performanceMetrics.dbQueryTime.current / 100) * 100}%` }}
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5">
+                <div className="grid grid-cols-2 gap-4 pt-3" style={{ borderTop: "1px solid #ffffff08" }}>
                   <div>
-                    <p className="text-xs text-gray-500">Average</p>
-                    <p className="text-white font-semibold">{performanceMetrics.dbQueryTime.average}ms</p>
+                    <p className="text-xs" style={{ color: "#6B7280" }}>Average</p>
+                    <p className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.dbQueryTime.average}ms</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Peak</p>
-                    <p className="text-white font-semibold">{performanceMetrics.dbQueryTime.peak}ms</p>
+                    <p className="text-xs" style={{ color: "#6B7280" }}>Peak</p>
+                    <p className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.dbQueryTime.peak}ms</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Memory Usage */}
-            <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+            <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
               <div className="flex items-center gap-3 mb-4">
-                <HardDrive className="w-6 h-6 text-[#4CB3FF]" />
-                <h3 className="text-lg font-semibold">Memory Usage</h3>
+                <HardDrive className="w-6 h-6" style={{ color: "#9CA3AF" }} />
+                <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>Memory Usage</h3>
               </div>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Current Usage</span>
-                    <span className="text-white font-semibold">
+                    <span style={{ color: "#6B7280" }}>Current Usage</span>
+                    <span className="font-semibold" style={{ color: "#D1D5DB" }}>
                       {performanceMetrics.memoryUsage.current}GB / {performanceMetrics.memoryUsage.total}GB
                     </span>
                   </div>
-                  <div className="w-full bg-white/5 rounded-full h-2">
+                  <div className="w-full rounded-full h-2" style={{ background: "#1a2332" }}>
                     <div
-                      className={`h-2 rounded-full ${
-                        performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total > 0.8
-                          ? "bg-gradient-to-r from-red-500 to-orange-500"
-                          : "bg-gradient-to-r from-green-500 to-[#4CB3FF]"
-                      }`}
+                      className="h-2 rounded-full"
                       style={{
-                        width: `${
-                          (performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total) * 100
-                        }%`,
+                        background: performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total > 0.8
+                          ? "linear-gradient(to right, #EF4444, #F59900)"
+                          : "linear-gradient(to right, #22C55E, #9CA3AF)",
+                        width: `${(performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total) * 100}%`
                       }}
                     />
                   </div>
                 </div>
-                <div className="pt-3 border-t border-white/5">
-                  <p className="text-xs text-gray-500">Percentage</p>
-                  <p className="text-white font-semibold text-2xl">
-                    {Math.round(
-                      (performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total) * 100
-                    )}
-                    %
+                <div className="pt-3" style={{ borderTop: "1px solid #ffffff08" }}>
+                  <p className="text-xs" style={{ color: "#6B7280" }}>Percentage</p>
+                  <p className="font-semibold text-2xl" style={{ color: "#D1D5DB" }}>
+                    {Math.round((performanceMetrics.memoryUsage.current / performanceMetrics.memoryUsage.total) * 100)}%
                   </p>
                 </div>
               </div>
             </div>
 
             {/* CPU Usage */}
-            <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+            <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
               <div className="flex items-center gap-3 mb-4">
-                <Cpu className="w-6 h-6 text-[#4CB3FF]" />
-                <h3 className="text-lg font-semibold">CPU Usage</h3>
+                <Cpu className="w-6 h-6" style={{ color: "#9CA3AF" }} />
+                <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>CPU Usage</h3>
               </div>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Current Usage</span>
-                    <span className="text-white font-semibold">{performanceMetrics.cpuUsage.current}%</span>
+                    <span style={{ color: "#6B7280" }}>Current Usage</span>
+                    <span className="font-semibold" style={{ color: "#D1D5DB" }}>{performanceMetrics.cpuUsage.current}%</span>
                   </div>
-                  <div className="w-full bg-white/5 rounded-full h-2">
+                  <div className="w-full rounded-full h-2" style={{ background: "#1a2332" }}>
                     <div
-                      className={`h-2 rounded-full ${
-                        performanceMetrics.cpuUsage.current > 80
-                          ? "bg-gradient-to-r from-red-500 to-orange-500"
-                          : "bg-gradient-to-r from-green-500 to-[#4CB3FF]"
-                      }`}
-                      style={{ width: `${performanceMetrics.cpuUsage.current}%` }}
+                      className="h-2 rounded-full"
+                      style={{
+                        background: performanceMetrics.cpuUsage.current > 80
+                          ? "linear-gradient(to right, #EF4444, #F59900)"
+                          : "linear-gradient(to right, #22C55E, #9CA3AF)",
+                        width: `${performanceMetrics.cpuUsage.current}%`
+                      }}
                     />
                   </div>
                 </div>
-                <div className="pt-3 border-t border-white/5">
-                  <p className="text-xs text-gray-500">CPU Cores</p>
-                  <p className="text-white font-semibold text-2xl">{performanceMetrics.cpuUsage.cores}</p>
+                <div className="pt-3" style={{ borderTop: "1px solid #ffffff08" }}>
+                  <p className="text-xs" style={{ color: "#6B7280" }}>CPU Cores</p>
+                  <p className="font-semibold text-2xl" style={{ color: "#D1D5DB" }}>{performanceMetrics.cpuUsage.cores}</p>
                 </div>
               </div>
             </div>
@@ -524,60 +503,61 @@ export default function AdminSystemMonitoring() {
           <div className="space-y-6">
             {/* Current Uptime Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+              <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
                 <div className="flex items-center gap-3 mb-3">
                   <Clock className="w-6 h-6 text-green-400" />
-                  <h3 className="text-lg font-semibold">Current Uptime</h3>
+                  <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>Current Uptime</h3>
                 </div>
                 <p className="text-4xl font-bold text-green-400">{uptimeData.current}%</p>
-                <p className="text-sm text-gray-400 mt-2">Service availability</p>
+                <p className="text-sm mt-2" style={{ color: "#6B7280" }}>Service availability</p>
               </div>
 
-              <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+              <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <Activity className="w-6 h-6 text-[#4CB3FF]" />
-                  <h3 className="text-lg font-semibold">Last 30 Days</h3>
+                  <Activity className="w-6 h-6" style={{ color: "#9CA3AF" }} />
+                  <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>Last 30 Days</h3>
                 </div>
-                <p className="text-4xl font-bold text-[#4CB3FF]">{uptimeData.lastMonth}%</p>
-                <p className="text-sm text-gray-400 mt-2">Monthly average</p>
+                <p className="text-4xl font-bold" style={{ color: "#D1D5DB" }}>{uptimeData.lastMonth}%</p>
+                <p className="text-sm mt-2" style={{ color: "#6B7280" }}>Monthly average</p>
               </div>
 
-              <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
+              <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-6 h-6 text-yellow-400" />
-                  <h3 className="text-lg font-semibold">Last 24 Hours</h3>
+                  <h3 className="text-lg font-semibold" style={{ color: "#D1D5DB" }}>Last 24 Hours</h3>
                 </div>
                 <p className="text-4xl font-bold text-yellow-400">{uptimeData.last24h}%</p>
-                <p className="text-sm text-gray-400 mt-2">Perfect uptime</p>
+                <p className="text-sm mt-2" style={{ color: "#6B7280" }}>Perfect uptime</p>
               </div>
             </div>
 
             {/* Incident History */}
-            <div className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-4">Recent Incidents</h3>
+            <div className="rounded-xl p-6" style={{ background: "#0d1421", border: "1px solid #ffffff10" }}>
+              <h3 className="text-xl font-semibold mb-4" style={{ color: "#D1D5DB" }}>Recent Incidents</h3>
               <div className="space-y-3">
                 {uptimeData.incidents.map((incident, index) => (
                   <div
                     key={index}
-                    className="bg-white/5 rounded-lg hover:bg-white/10 transition-all overflow-hidden"
+                    className="rounded-lg transition-all overflow-hidden"
+                    style={{ background: "#1a2332" }}
                   >
                     <div className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-4">
                         <div className="w-2 h-2 rounded-full bg-orange-500" />
                         <div>
-                          <p className="text-white font-medium">{incident.reason}</p>
-                          <p className="text-sm text-gray-400">{incident.date}</p>
+                          <p className="font-medium" style={{ color: "#D1D5DB" }}>{incident.reason}</p>
+                          <p className="text-sm" style={{ color: "#6B7280" }}>{incident.date}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-400">Duration: {incident.duration}</span>
+                        <span className="text-sm" style={{ color: "#6B7280" }}>Duration: {incident.duration}</span>
                         <button
                           onClick={() => setExpandedIncident(expandedIncident === index ? null : index)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                            expandedIncident === index
-                              ? "bg-[#4CB3FF] text-white"
-                              : "bg-[#4CB3FF]/10 text-[#4CB3FF] hover:bg-[#4CB3FF]/20"
-                          }`}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                          style={{
+                            background: expandedIncident === index ? "#6B7280" : "#6B728020",
+                            color: expandedIncident === index ? "#ffffff" : "#9CA3AF"
+                          }}
                         >
                           <Lightbulb className="w-4 h-4" />
                           Explain Issue
@@ -593,14 +573,14 @@ export default function AdminSystemMonitoring() {
                     {/* Incident Explanation */}
                     {expandedIncident === index && (
                       <div className="px-4 pb-4">
-                        <div className="p-4 bg-gradient-to-br from-[#4CB3FF]/10 to-[#7B68EE]/10 border border-[#4CB3FF]/30 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="p-4 rounded-xl space-y-4 animate-in slide-in-from-top-2 duration-200" style={{ background: "#0d1421", border: "1px solid #ffffff15" }}>
                           {/* Cause */}
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <Info className="w-4 h-4 text-[#4CB3FF]" />
-                              <h4 className="text-sm font-semibold text-[#4CB3FF]">What Happened</h4>
+                              <Info className="w-4 h-4" style={{ color: "#9CA3AF" }} />
+                              <h4 className="text-sm font-semibold" style={{ color: "#9CA3AF" }}>What Happened</h4>
                             </div>
-                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.cause}</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{incident.explanation.cause}</p>
                           </div>
 
                           {/* Impact */}
@@ -609,7 +589,7 @@ export default function AdminSystemMonitoring() {
                               <AlertTriangle className="w-4 h-4 text-yellow-400" />
                               <h4 className="text-sm font-semibold text-yellow-400">Impact</h4>
                             </div>
-                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.impact}</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{incident.explanation.impact}</p>
                           </div>
 
                           {/* Resolution */}
@@ -620,7 +600,7 @@ export default function AdminSystemMonitoring() {
                             </div>
                             <ul className="space-y-2">
                               {incident.explanation.resolution.map((item, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                                <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "#D1D5DB" }}>
                                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-medium">
                                     ✓
                                   </span>
@@ -631,12 +611,12 @@ export default function AdminSystemMonitoring() {
                           </div>
 
                           {/* Prevention */}
-                          <div className="pt-3 border-t border-white/10">
+                          <div className="pt-3" style={{ borderTop: "1px solid #ffffff10" }}>
                             <div className="flex items-center gap-2 mb-2">
-                              <Shield className="w-4 h-4 text-[#7B68EE]" />
-                              <h4 className="text-sm font-semibold text-[#7B68EE]">Prevention</h4>
+                              <Shield className="w-4 h-4" style={{ color: "#9CA3AF" }} />
+                              <h4 className="text-sm font-semibold" style={{ color: "#9CA3AF" }}>Prevention</h4>
                             </div>
-                            <p className="text-sm text-gray-300 leading-relaxed">{incident.explanation.prevention}</p>
+                            <p className="text-sm leading-relaxed" style={{ color: "#D1D5DB" }}>{incident.explanation.prevention}</p>
                           </div>
                         </div>
                       </div>
@@ -652,8 +632,8 @@ export default function AdminSystemMonitoring() {
         {activeTab === "alerts" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Email Alert Rules</h2>
-              <button className="px-4 py-2 rounded-lg bg-[#4CB3FF] hover:bg-[#3DA0E8] text-white transition-all text-sm">
+              <h2 className="text-xl font-semibold" style={{ color: "#D1D5DB" }}>Email Alert Rules</h2>
+              <button className="px-4 py-2 rounded-lg text-sm transition-all" style={{ background: "#6B7280", color: "#ffffff" }}>
                 + Add New Alert
               </button>
             </div>
@@ -661,21 +641,23 @@ export default function AdminSystemMonitoring() {
             {alerts.map((alert) => (
               <div
                 key={alert.id}
-                className="bg-[#0A0F17]/60 backdrop-blur-xl border border-white/10 rounded-xl p-6 hover:border-[#4CB3FF]/30 transition-all"
+                className="rounded-xl p-6 transition-all"
+                style={{ background: "#0d1421", border: "1px solid #ffffff10" }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Bell className={`w-5 h-5 ${alert.enabled ? "text-[#4CB3FF]" : "text-gray-500"}`} />
+                    <Bell className="w-5 h-5" style={{ color: alert.enabled ? "#9CA3AF" : "#4B5563" }} />
                     <div>
-                      <h3 className="text-white font-medium">{alert.name}</h3>
-                      <p className="text-sm text-gray-400 mt-1">{alert.condition}</p>
+                      <h3 className="font-medium" style={{ color: "#D1D5DB" }}>{alert.name}</h3>
+                      <p className="text-sm mt-1" style={{ color: "#6B7280" }}>{alert.condition}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">Email Alerts:</span>
+                      <span className="text-sm" style={{ color: "#6B7280" }}>Email Alerts:</span>
                       <span
-                        className={`text-sm font-medium ${alert.email ? "text-green-400" : "text-gray-500"}`}
+                        className={`text-sm font-medium ${alert.email ? "text-green-400" : ""}`}
+                        style={{ color: alert.email ? undefined : "#4B5563" }}
                       >
                         {alert.email ? "ON" : "OFF"}
                       </span>
@@ -685,8 +667,9 @@ export default function AdminSystemMonitoring() {
                       className={`px-4 py-2 rounded-lg transition-all text-sm ${
                         alert.enabled
                           ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
+                          : ""
                       }`}
+                      style={!alert.enabled ? { background: "#1a2332", color: "#6B7280" } : undefined}
                     >
                       {alert.enabled ? "Enabled" : "Disabled"}
                     </button>
