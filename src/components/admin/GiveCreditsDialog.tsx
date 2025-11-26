@@ -74,7 +74,7 @@ export function GiveCreditsDialog({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-neutral-500"
               />
               <div className="flex gap-2 flex-wrap">
                 {presetAmounts.map((preset) => (
@@ -99,7 +99,7 @@ export function GiveCreditsDialog({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
-                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-neutral-500"
               />
             </div>
           </div>
