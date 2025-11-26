@@ -1,11 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
   Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown, UserPlus,
-  CreditCard, Building2, CheckCircle, Eye, Key
+  CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw
 } from "lucide-react";
 import {
   Table,
@@ -66,6 +66,8 @@ const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [currentUserRole, setCurrentUserRole] = useState<string>("user");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   
   // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -83,7 +85,8 @@ const AdminUsers = () => {
     suspended: 0,
   });
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (showRefreshIndicator = false) => {
+    if (showRefreshIndicator) setIsRefreshing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -184,12 +187,15 @@ const AdminUsers = () => {
       });
 
       setLoading(false);
+      setIsRefreshing(false);
     } catch (error) {
       console.error("Error fetching users:", error);
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, [navigate, toast]);
 
+  // Initial load and access check
   useEffect(() => {
     const checkAccess = async () => {
       const adminAuth = sessionStorage.getItem("admin_authenticated");
@@ -201,7 +207,36 @@ const AdminUsers = () => {
     };
 
     checkAccess();
-  }, [navigate, toast]);
+  }, [navigate, fetchUsers]);
+
+  // Real-time subscription for user_roles changes
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const channel = supabase
+      .channel('user-roles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        () => {
+          console.log('User roles changed, refreshing...');
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [autoRefresh, fetchUsers]);
+
+  const handleManualRefresh = () => {
+    fetchUsers(true);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -371,10 +406,30 @@ const AdminUsers = () => {
             Manage all registered users and their roles
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <UserPlus className="w-4 h-4 mr-2" />
-          Add User
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="border-neutral-600 text-white hover:bg-neutral-700"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button 
+            variant={autoRefresh ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={autoRefresh ? "bg-green-600 hover:bg-green-700" : "border-neutral-600 text-white hover:bg-neutral-700"}
+          >
+            {autoRefresh ? "Auto-Refresh: ON" : "Auto-Refresh: OFF"}
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
