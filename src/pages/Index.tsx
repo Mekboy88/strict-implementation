@@ -45,6 +45,7 @@ import { extractTasksFromResponse, hasExtractableTasks, ExtractedTask } from "@/
 import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
+import { PlanWizard, PlanData } from "@/components/PlanWizard";
 
 
 interface FileItem {
@@ -195,6 +196,7 @@ function UrDevEditorPage() {
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const [showUsePlanButton, setShowUsePlanButton] = useState(false);
   const [planContent, setPlanContent] = useState("");
+  const [showPlanWizard, setShowPlanWizard] = useState(false);
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -540,6 +542,31 @@ Rules:
   const handleModifyPlan = () => {
     setAssistantInput("I'd like to modify the plan. Please adjust it to: ");
     setShowTaskPrompt(false);
+  };
+
+  const handleGeneratePlanFromWizard = (planData: PlanData) => {
+    const featuresList = planData.features.length > 0 
+      ? `Key features needed: ${planData.features.join(", ")}.` 
+      : "";
+    
+    const additionalInfo = planData.additionalDetails.trim() 
+      ? `Additional requirements: ${planData.additionalDetails}` 
+      : "";
+
+    const prompt = `Please create a detailed development plan for my project:
+
+**Project Name:** ${planData.projectName}
+**Project Type:** ${planData.projectType}
+${featuresList}
+${additionalInfo}
+
+Please provide a comprehensive, step-by-step plan with actionable tasks that I can follow to build this project. Include setup, development phases, and any best practices.`;
+
+    setAssistantInput(prompt);
+    // Auto-send the message after a brief delay
+    setTimeout(() => {
+      handleSendChat();
+    }, 100);
   };
 
   const handleConnectDatabase = () => {
@@ -1343,9 +1370,7 @@ Rules:
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setAssistantInput("Describe your project idea and I'll generate a comprehensive development plan with actionable tasks organized in your To-do list.");
-                      }}
+                      onClick={() => setShowPlanWizard(true)}
                       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors bg-sky-500/20 text-sky-300 hover:bg-sky-500/30"
                     >
                       <ListTodo className="h-3 w-3" />
@@ -1663,6 +1688,13 @@ Rules:
         onLoadProject={handleLoadProject}
         onDeleteProject={removeProject}
         currentProjectId={currentProject?.id}
+      />
+      
+      {/* Plan Wizard */}
+      <PlanWizard
+        open={showPlanWizard}
+        onClose={() => setShowPlanWizard(false)}
+        onGeneratePlan={handleGeneratePlanFromWizard}
       />
     </div>
   );

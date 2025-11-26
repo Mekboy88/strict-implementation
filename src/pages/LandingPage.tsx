@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCard, Briefcase, Bell, ListTodo } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { PlanWizard, PlanData } from "@/components/PlanWizard";
 
 const personas = [
   {
@@ -200,6 +201,7 @@ const UrDevLandingPage: React.FC = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showPlanWizard, setShowPlanWizard] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -627,10 +629,7 @@ const UrDevLandingPage: React.FC = () => {
                         <span>Attach</span>
                       </button>
                       <button 
-                        onClick={() => {
-                          setPrompt("Describe your project idea and I'll generate a comprehensive development plan with actionable tasks organised in your To-do list.");
-                          setPromptStatus("Ready to plan");
-                        }}
+                        onClick={() => setShowPlanWizard(true)}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
                       >
                         <ListTodo className="h-3 w-3" />
@@ -1063,6 +1062,30 @@ const UrDevLandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Plan Wizard */}
+      <PlanWizard
+        open={showPlanWizard}
+        onClose={() => setShowPlanWizard(false)}
+        onGeneratePlan={(planData: PlanData) => {
+          const featuresList = planData.features.length > 0 
+            ? `Key features: ${planData.features.join(", ")}. ` 
+            : "";
+          
+          const additionalInfo = planData.additionalDetails.trim() 
+            ? `Requirements: ${planData.additionalDetails}` 
+            : "";
+
+          const generatedPrompt = `Build a ${planData.projectType} project called "${planData.projectName}". ${featuresList}${additionalInfo}`;
+          
+          setPrompt(generatedPrompt);
+          setPromptStatus("Plan ready");
+          setShowPlanWizard(false);
+          
+          // Navigate to editor with the plan
+          navigate('/editor');
+        }}
+      />
     </div>
   );
 };
