@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Edit, Trash2, Check, X, Search, Download, Users, 
   ChevronLeft, ChevronRight, UserPlus, RefreshCw, Calendar,
-  UserMinus, CheckSquare, Square, BarChart3
+  UserMinus, CheckSquare, Square, BarChart3, AlertTriangle, Shield
 } from "lucide-react";
 import {
   Table,
@@ -26,6 +26,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -144,11 +154,18 @@ const ROLE_COLORS: Record<AppRole, string> = {
 const AdminRoles = () => {
   const { toast } = useToast();
   
+  // Current user state
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<AppRole | null>(null);
+  
   // State
   const [roles, setRoles] = useState<RoleConfig[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
+  
+  // Owner count for protection
+  const [ownerCount, setOwnerCount] = useState(0);
   
   // Search/Filter
   const [roleSearch, setRoleSearch] = useState("");
@@ -181,6 +198,35 @@ const AdminRoles = () => {
   const [selectedRoleForView, setSelectedRoleForView] = useState<AppRole | null>(null);
   const [usersWithRole, setUsersWithRole] = useState<UserWithRole[]>([]);
   const [viewUsersLoading, setViewUsersLoading] = useState(false);
+  
+  // Quick User Lookup
+  const [quickSearchQuery, setQuickSearchQuery] = useState("");
+  const [quickSearchResults, setQuickSearchResults] = useState<UserForAssignment[]>([]);
+  const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
+  const [selectedQuickUser, setSelectedQuickUser] = useState<UserForAssignment | null>(null);
+  const [quickRoleChange, setQuickRoleChange] = useState<AppRole>("user");
+  
+  // Self-demotion warning
+  const [showSelfDemotionWarning, setShowSelfDemotionWarning] = useState(false);
+  const [pendingSelfDemotion, setPendingSelfDemotion] = useState<{ userId: string; newRole: AppRole } | null>(null);
+
+  // Fetch current user info
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentUserId(user.id);
+      
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (roleData) {
+        setCurrentUserRole(roleData.role as AppRole);
+      }
+    }
+  };
 
   // Fetch role counts from user_roles table
   const fetchRoleCounts = async () => {
@@ -200,6 +246,10 @@ const AdminRoles = () => {
       });
       
       const counts = await Promise.all(countsPromises);
+      
+      // Store owner count for protection
+      const ownerCountResult = counts.find(c => c.role === "owner")?.count || 0;
+      setOwnerCount(ownerCountResult);
       
       // Build roles array with counts
       const rolesWithCounts: RoleConfig[] = roleNames.map((roleName) => {
@@ -382,9 +432,97 @@ const AdminRoles = () => {
     }
   };
 
+  // Check if action would remove the last owner
+  const isLastOwner = (userId: string, currentRole: AppRole): boolean => {
+    return currentRole === "owner" && ownerCount <= 1;
+  };
+
+  // Check if this is a self-demotion
+  const isSelfDemotion = (userId: string, newRole: AppRole): boolean => {
+    if (userId !== currentUserId) return false;
+    if (!currentUserRole) return false;
+    
+    const roleHierarchy: AppRole[] = ["owner", "admin", "moderator", "user"];
+    const currentIndex = roleHierarchy.indexOf(currentUserRole);
+    const newIndex = roleHierarchy.indexOf(newRole);
+    
+    return newIndex > currentIndex;
+  };
+
+  // Handle role change with safety checks
+  const handleRoleChangeWithChecks = async (userId: string, newRole: AppRole, currentRole: AppRole | null) => {
+    // Check last owner protection
+    if (currentRole === "owner" && newRole !== "owner" && isLastOwner(userId, currentRole)) {
+      toast({
+        title: "Cannot Change Role",
+        description: "You cannot demote the last owner. Promote another user to owner first.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Check self-demotion
+    if (isSelfDemotion(userId, newRole)) {
+      setPendingSelfDemotion({ userId, newRole });
+      setShowSelfDemotionWarning(true);
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Confirm self-demotion
+  const confirmSelfDemotion = async () => {
+    if (!pendingSelfDemotion) return;
+    
+    const { userId, newRole } = pendingSelfDemotion;
+    
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("activity_logs").insert({
+        user_id: userData.user?.id,
+        action: "self_demoted",
+        entity_type: "role",
+        entity_id: userId,
+        metadata: { from_role: currentUserRole, to_role: newRole },
+      });
+      
+      toast({
+        title: "Role Changed",
+        description: `Your role has been changed to ${newRole}.`,
+      });
+      
+      setCurrentUserRole(newRole);
+      fetchRoleCounts();
+      fetchActivityLogs();
+      fetchUsersForAssignment();
+    } catch (error) {
+      console.error("Error changing role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to change role",
+        variant: "destructive",
+      });
+    } finally {
+      setShowSelfDemotionWarning(false);
+      setPendingSelfDemotion(null);
+    }
+  };
+
   // Assign role to user
   const handleAssignRole = async () => {
     if (!selectedUserId || !selectedRole) return;
+    
+    const targetUser = usersForAssignment.find(u => u.id === selectedUserId);
+    const canProceed = await handleRoleChangeWithChecks(selectedUserId, selectedRole, targetUser?.current_role || null);
+    if (!canProceed) return;
     
     try {
       setAssignmentLoading(true);
@@ -457,6 +595,29 @@ const AdminRoles = () => {
   const handleBulkAssignRole = async () => {
     if (selectedUserIds.length === 0 || !selectedRole) return;
     
+    // Check for last owner in bulk selection
+    for (const userId of selectedUserIds) {
+      const user = usersForAssignment.find(u => u.id === userId);
+      if (user?.current_role === "owner" && selectedRole !== "owner" && isLastOwner(userId, "owner")) {
+        toast({
+          title: "Cannot Change Role",
+          description: "Cannot demote the last owner in bulk operation.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // Check for self-demotion in bulk
+    if (currentUserId && selectedUserIds.includes(currentUserId) && isSelfDemotion(currentUserId, selectedRole)) {
+      toast({
+        title: "Warning",
+        description: "Remove yourself from selection to demote your own role, or do it separately.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setAssignmentLoading(true);
       
@@ -516,6 +677,25 @@ const AdminRoles = () => {
 
   // Remove role from user
   const handleRemoveRole = async (userId: string, roleName: string) => {
+    // Check last owner protection
+    if (roleName === "owner" && isLastOwner(userId, "owner")) {
+      toast({
+        title: "Cannot Remove Role",
+        description: "You cannot remove the last owner. Promote another user to owner first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check self-removal warning
+    if (userId === currentUserId) {
+      toast({
+        title: "Warning",
+        description: "You are about to remove your own role. You may lose access to this page.",
+        variant: "destructive",
+      });
+    }
+    
     try {
       const { error } = await supabase
         .from("user_roles")
@@ -572,6 +752,23 @@ const AdminRoles = () => {
     
     const newRole = roleHierarchy[currentIndex + 1];
     
+    // Check last owner protection
+    if (currentRole === "owner" && isLastOwner(userId, currentRole)) {
+      toast({
+        title: "Cannot Downgrade",
+        description: "You cannot downgrade the last owner. Promote another user to owner first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check self-demotion
+    if (userId === currentUserId) {
+      setPendingSelfDemotion({ userId, newRole });
+      setShowSelfDemotionWarning(true);
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from("user_roles")
@@ -605,6 +802,108 @@ const AdminRoles = () => {
       toast({
         title: "Error",
         description: "Failed to downgrade role",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Quick search for users
+  const handleQuickSearch = async (query: string) => {
+    setQuickSearchQuery(query);
+    
+    if (query.length < 2) {
+      setQuickSearchResults([]);
+      return;
+    }
+    
+    try {
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .ilike("full_name", `%${query}%`)
+        .limit(10);
+      
+      if (profiles) {
+        const { data: userRoles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", profiles.map(p => p.id));
+        
+        const roleMap = new Map(userRoles?.map(r => [r.user_id, r.role as AppRole]) || []);
+        
+        const results: UserForAssignment[] = profiles.map(p => ({
+          id: p.id,
+          email: "",
+          full_name: p.full_name,
+          current_role: roleMap.get(p.id) || null,
+        }));
+        
+        setQuickSearchResults(results);
+      }
+    } catch (error) {
+      console.error("Error searching users:", error);
+    }
+  };
+
+  // Handle quick role change
+  const handleQuickRoleChange = async () => {
+    if (!selectedQuickUser) return;
+    
+    const canProceed = await handleRoleChangeWithChecks(
+      selectedQuickUser.id, 
+      quickRoleChange, 
+      selectedQuickUser.current_role
+    );
+    if (!canProceed) return;
+    
+    try {
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", selectedQuickUser.id)
+        .maybeSingle();
+      
+      if (existingRole) {
+        await supabase
+          .from("user_roles")
+          .update({ role: quickRoleChange, updated_at: new Date().toISOString() })
+          .eq("user_id", selectedQuickUser.id);
+      } else {
+        await supabase
+          .from("user_roles")
+          .insert({ user_id: selectedQuickUser.id, role: quickRoleChange });
+      }
+      
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("activity_logs").insert({
+        user_id: userData.user?.id,
+        action: "quick_role_change",
+        entity_type: "role",
+        entity_id: selectedQuickUser.id,
+        metadata: { 
+          from_role: selectedQuickUser.current_role, 
+          to_role: quickRoleChange,
+          target_user_id: selectedQuickUser.id 
+        },
+      });
+      
+      toast({
+        title: "Role Updated",
+        description: `${selectedQuickUser.full_name}'s role changed to ${quickRoleChange}.`,
+      });
+      
+      setSelectedQuickUser(null);
+      setQuickSearchQuery("");
+      setQuickSearchResults([]);
+      setIsQuickSearchOpen(false);
+      
+      fetchRoleCounts();
+      fetchActivityLogs();
+    } catch (error) {
+      console.error("Error changing role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to change role",
         variant: "destructive",
       });
     }
@@ -746,6 +1045,7 @@ const AdminRoles = () => {
   };
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchRoleCounts();
     fetchActivityLogs();
   }, []);
@@ -773,6 +1073,41 @@ const AdminRoles = () => {
 
   return (
     <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
+      {/* Self-Demotion Warning Dialog */}
+      <AlertDialog open={showSelfDemotionWarning} onOpenChange={setShowSelfDemotionWarning}>
+        <AlertDialogContent className="bg-neutral-800 border-neutral-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              Warning: Self-Demotion
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/70">
+              You are about to demote yourself to <strong>{pendingSelfDemotion?.newRole}</strong>. 
+              This action will reduce your permissions and you may lose access to this admin page.
+              <br /><br />
+              Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowSelfDemotionWarning(false);
+                setPendingSelfDemotion(null);
+              }}
+              className="border-neutral-600 text-white hover:bg-neutral-700"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSelfDemotion}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              Yes, Demote Myself
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div className="border-b border-neutral-700">
         <div className="px-6 py-6 flex items-center justify-between">
@@ -785,6 +1120,136 @@ const AdminRoles = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            {/* Quick User Lookup */}
+            <Dialog open={isQuickSearchOpen} onOpenChange={setIsQuickSearchOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-neutral-600 text-white hover:bg-neutral-700">
+                  <Search className="w-4 h-4 mr-2" />
+                  Quick Lookup
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md bg-neutral-800 border-neutral-700">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Quick User Lookup</DialogTitle>
+                  <DialogDescription className="text-white/70">
+                    Search for a user and quickly change their role
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 py-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <Input
+                      value={quickSearchQuery}
+                      onChange={(e) => handleQuickSearch(e.target.value)}
+                      placeholder="Search by name..."
+                      className="pl-9 bg-neutral-900 border-neutral-600 text-white"
+                    />
+                  </div>
+                  
+                  {quickSearchResults.length > 0 && !selectedQuickUser && (
+                    <div className="border border-neutral-600 rounded-md max-h-48 overflow-y-auto">
+                      {quickSearchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => {
+                            setSelectedQuickUser(user);
+                            setQuickRoleChange(user.current_role || "user");
+                          }}
+                          className="p-3 hover:bg-neutral-700 cursor-pointer flex items-center justify-between"
+                        >
+                          <span className="text-white">{user.full_name || "Unnamed User"}</span>
+                          {user.current_role ? (
+                            <Badge 
+                              variant="outline" 
+                              style={{ 
+                                borderColor: ROLE_COLORS[user.current_role],
+                                color: ROLE_COLORS[user.current_role]
+                              }}
+                            >
+                              {user.current_role}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-neutral-400">No Role</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {selectedQuickUser && (
+                    <div className="space-y-4 p-4 bg-neutral-700 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">{selectedQuickUser.full_name}</p>
+                          <p className="text-sm text-white/70">
+                            Current: {selectedQuickUser.current_role || "No Role"}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedQuickUser(null)}
+                          className="text-white/70 hover:text-white"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      {selectedQuickUser.current_role === "owner" && ownerCount <= 1 && (
+                        <div className="flex items-center gap-2 p-2 bg-red-500/20 rounded text-red-400 text-sm">
+                          <Shield className="w-4 h-4" />
+                          This is the last owner - cannot change role
+                        </div>
+                      )}
+                      
+                      {selectedQuickUser.id === currentUserId && (
+                        <div className="flex items-center gap-2 p-2 bg-yellow-500/20 rounded text-yellow-400 text-sm">
+                          <AlertTriangle className="w-4 h-4" />
+                          This is your account
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <Label className="text-white">Change Role To</Label>
+                        <Select 
+                          value={quickRoleChange} 
+                          onValueChange={(v) => setQuickRoleChange(v as AppRole)}
+                          disabled={selectedQuickUser.current_role === "owner" && ownerCount <= 1}
+                        >
+                          <SelectTrigger className="bg-neutral-900 border-neutral-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-neutral-800 border-neutral-600">
+                            {Object.values(ROLE_DEFINITIONS).map((role) => (
+                              <SelectItem 
+                                key={role.name} 
+                                value={role.name}
+                                className="text-white hover:bg-neutral-700"
+                              >
+                                {role.displayName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <Button
+                        onClick={handleQuickRoleChange}
+                        disabled={
+                          quickRoleChange === selectedQuickUser.current_role ||
+                          (selectedQuickUser.current_role === "owner" && ownerCount <= 1)
+                        }
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Update Role
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+            
             <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-green-600 hover:bg-green-700 text-white">
@@ -866,6 +1331,9 @@ const AdminRoles = () => {
                                 {user.current_role}
                               </Badge>
                             )}
+                            {user.id === currentUserId && (
+                              <span className="text-xs text-yellow-400">(You)</span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -890,6 +1358,9 @@ const AdminRoles = () => {
                                   <Badge variant="outline" className="text-xs">
                                     {user.current_role}
                                   </Badge>
+                                )}
+                                {user.id === currentUserId && (
+                                  <span className="text-xs text-yellow-400">(You)</span>
                                 )}
                               </div>
                             </SelectItem>
@@ -961,6 +1432,12 @@ const AdminRoles = () => {
             <DialogTitle className="text-white flex items-center gap-2">
               <Users className="w-5 h-5" />
               Users with {selectedRoleForView && ROLE_DEFINITIONS[selectedRoleForView].displayName} Role
+              {selectedRoleForView === "owner" && ownerCount <= 1 && (
+                <Badge className="bg-red-500/20 text-red-400 border-red-500">
+                  <Shield className="w-3 h-3 mr-1" />
+                  Protected
+                </Badge>
+              )}
             </DialogTitle>
             <DialogDescription className="text-white/70">
               Manage users assigned to this role
@@ -983,40 +1460,61 @@ const AdminRoles = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {usersWithRole.map((user) => (
-                      <TableRow key={user.id} className="border-neutral-600">
-                        <TableCell className="text-white font-medium">
-                          {user.full_name || "Unknown User"}
-                        </TableCell>
-                        <TableCell className="text-white/70">
-                          {user.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "N/A"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {selectedRoleForView !== "user" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDowngradeRole(user.user_id, user.role)}
-                                className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/20"
-                              >
-                                <ChevronLeft className="w-3 h-3 mr-1" />
-                                Downgrade
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRemoveRole(user.user_id, user.role)}
-                              className="border-red-600 text-red-400 hover:bg-red-600/20"
-                            >
-                              <UserMinus className="w-3 h-3 mr-1" />
-                              Remove
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {usersWithRole.map((user) => {
+                      const isCurrentUser = user.user_id === currentUserId;
+                      const isProtectedOwner = user.role === "owner" && ownerCount <= 1;
+                      
+                      return (
+                        <TableRow key={user.id} className="border-neutral-600">
+                          <TableCell className="text-white font-medium">
+                            <div className="flex items-center gap-2">
+                              {user.full_name || "Unknown User"}
+                              {isCurrentUser && (
+                                <Badge className="bg-yellow-500/20 text-yellow-400 text-xs">You</Badge>
+                              )}
+                              {isProtectedOwner && (
+                                <Badge className="bg-red-500/20 text-red-400 text-xs">
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Last Owner
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-white/70">
+                            {user.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {selectedRoleForView !== "user" && !isProtectedOwner && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDowngradeRole(user.user_id, user.role)}
+                                  className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/20"
+                                >
+                                  <ChevronLeft className="w-3 h-3 mr-1" />
+                                  Downgrade
+                                </Button>
+                              )}
+                              {!isProtectedOwner && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRemoveRole(user.user_id, user.role)}
+                                  className="border-red-600 text-red-400 hover:bg-red-600/20"
+                                >
+                                  <UserMinus className="w-3 h-3 mr-1" />
+                                  Remove
+                                </Button>
+                              )}
+                              {isProtectedOwner && (
+                                <span className="text-xs text-neutral-500">Protected</span>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -1110,9 +1608,17 @@ const AdminRoles = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
-                          {role.displayName}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-white">
+                            {role.displayName}
+                          </h3>
+                          {role.name === "owner" && role.userCount <= 1 && (
+                            <Badge className="bg-red-500/20 text-red-400 text-xs">
+                              <Shield className="w-3 h-3 mr-1" />
+                              Protected
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm mt-1 text-white/70">
                           {role.description}
                         </p>
@@ -1420,7 +1926,7 @@ const AdminRoles = () => {
                             className={
                               activity.action.includes("delete") || activity.action.includes("remove") ? "text-red-400 border-red-400" :
                               activity.action.includes("create") || activity.action.includes("assign") ? "text-green-400 border-green-400" :
-                              activity.action.includes("downgrade") ? "text-yellow-400 border-yellow-400" :
+                              activity.action.includes("downgrade") || activity.action.includes("self_demoted") ? "text-yellow-400 border-yellow-400" :
                               "text-blue-400 border-blue-400"
                             }
                           >
