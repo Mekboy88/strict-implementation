@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -118,12 +118,25 @@ const AdminDashboard = () => {
     ipBlocks: 0,
     userBlocks: 0,
     recentBlocks: 0,
+    // Notification Metrics
+    totalNotifications: 0,
+    unreadNotifications: 0,
+    notificationsToday: 0,
+    notificationsThisWeek: 0,
+    notificationsByType: {} as Record<string, number>,
+    topNotificationType: 'N/A',
+    totalNotificationPrefs: 0,
+    emailEnabledUsers: 0,
+    pushEnabledUsers: 0,
+    securityAlertsEnabled: 0,
+    billingAlertsEnabled: 0,
+    projectUpdatesEnabled: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -148,6 +161,8 @@ const AdminDashboard = () => {
         supabase.from('security_events').select('*'),
         supabase.from('security_audit').select('*'),
         supabase.from('security_blocks').select('*'),
+        supabase.from('notifications').select('*'),
+        supabase.from('notification_preferences').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -174,6 +189,8 @@ const AdminDashboard = () => {
       const securityEvents = securityEventsRes.data || [];
       const securityAudit = securityAuditRes.data || [];
       const securityBlocks = securityBlocksRes.data || [];
+      const notifications = notificationsRes.data || [];
+      const notificationPrefs = notificationPrefsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -343,6 +360,29 @@ const AdminDashboard = () => {
       const ipBlocks = securityBlocks.filter(b => b.ip_address).length;
       const userBlocks = securityBlocks.filter(b => b.user_id).length;
       const recentBlocks = securityBlocks.filter(b => new Date(b.created_at) >= sevenDaysAgo).length;
+
+      // Calculate Notification metrics
+      const totalNotifications = notifications.length;
+      const unreadNotifications = notifications.filter(n => !n.is_read).length;
+      const notificationsToday = notifications.filter(n => new Date(n.created_at) >= today).length;
+      const notificationsThisWeek = notifications.filter(n => new Date(n.created_at) >= sevenDaysAgo).length;
+      
+      // Count notifications by type
+      const notificationsByType: Record<string, number> = {};
+      notifications.forEach(n => {
+        const type = n.type || 'unknown';
+        notificationsByType[type] = (notificationsByType[type] || 0) + 1;
+      });
+      const topNotificationType = Object.entries(notificationsByType)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
+      // Calculate Notification Preferences metrics
+      const totalNotificationPrefs = notificationPrefs.length;
+      const emailEnabledUsers = notificationPrefs.filter(p => p.email_enabled).length;
+      const pushEnabledUsers = notificationPrefs.filter(p => p.push_enabled).length;
+      const securityAlertsEnabled = notificationPrefs.filter(p => p.security_alerts).length;
+      const billingAlertsEnabled = notificationPrefs.filter(p => p.billing_alerts).length;
+      const projectUpdatesEnabled = notificationPrefs.filter(p => p.project_updates).length;
 
       const activities: ActivityItem[] = [];
       
@@ -520,6 +560,19 @@ const AdminDashboard = () => {
         ipBlocks,
         userBlocks,
         recentBlocks,
+        // Notifications
+        totalNotifications,
+        unreadNotifications,
+        notificationsToday,
+        notificationsThisWeek,
+        notificationsByType,
+        topNotificationType,
+        totalNotificationPrefs,
+        emailEnabledUsers,
+        pushEnabledUsers,
+        securityAlertsEnabled,
+        billingAlertsEnabled,
+        projectUpdatesEnabled,
       });
 
       setLoading(false);
@@ -1349,6 +1402,98 @@ const AdminDashboard = () => {
             </div>
             <p className="text-3xl font-bold text-cyan-400">+{stats.recentBlocks}</p>
             <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Notifications Stats Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Bell className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-xl font-semibold text-white">Notifications Stats</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Notifications */}
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Inbox className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Notifications</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalNotifications}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.notificationsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <BellRing className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Unread</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.unreadNotifications}</p>
+            <p className="text-xs mt-1 text-white/70">Pending attention</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.notificationsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Top Type</p>
+            </div>
+            <p className="text-lg font-bold text-purple-400 truncate">{stats.topNotificationType}</p>
+            <p className="text-xs mt-1 text-white/70">Most common notification</p>
+          </div>
+          {/* Notification Preferences */}
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Settings2 className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Users with Preferences</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-400">{stats.totalNotificationPrefs}</p>
+            <p className="text-xs mt-1 text-white/70">Configured preferences</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Email Enabled</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.emailEnabledUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with email on</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <BellRing className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Push Enabled</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.pushEnabledUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with push on</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Security Alerts On</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.securityAlertsEnabled}</p>
+            <p className="text-xs mt-1 text-white/70">Security notifications</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Billing Alerts On</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.billingAlertsEnabled}</p>
+            <p className="text-xs mt-1 text-white/70">Billing notifications</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-indigo-400" />
+              <p className="text-sm text-white">Project Updates On</p>
+            </div>
+            <p className="text-3xl font-bold text-indigo-400">{stats.projectUpdatesEnabled}</p>
+            <p className="text-xs mt-1 text-white/70">Project notifications</p>
           </div>
         </div>
       </div>
