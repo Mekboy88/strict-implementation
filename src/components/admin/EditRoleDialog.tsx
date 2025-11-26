@@ -156,7 +156,7 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRo
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
-            className="border-neutral-600 text-white hover:bg-neutral-700 focus:ring-0 focus:ring-offset-0 focus:outline-none"
+            className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600 focus:ring-0 focus:ring-offset-0 focus:outline-none"
           >
             Cancel
           </Button>
