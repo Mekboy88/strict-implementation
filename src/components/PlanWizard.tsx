@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -18,7 +19,50 @@ import {
   Search,
   MessageSquare,
   Image,
-  Calendar
+  Calendar,
+  Hotel,
+  UtensilsCrossed,
+  GraduationCap,
+  Dumbbell,
+  Home,
+  Stethoscope,
+  Plane,
+  Car,
+  Music,
+  Gamepad2,
+  Heart,
+  Baby,
+  Dog,
+  Flower2,
+  Scissors,
+  Hammer,
+  Scale,
+  Building2,
+  Landmark,
+  Church,
+  Newspaper,
+  Radio,
+  Film,
+  Camera,
+  Palette,
+  BookOpen,
+  Truck,
+  Package,
+  Coffee,
+  Wine,
+  Shirt,
+  Watch,
+  Gem,
+  Smartphone,
+  Tv,
+  Laptop,
+  Headphones,
+  Globe,
+  MapPin,
+  Ticket,
+  Gift,
+  Sparkle,
+  Zap
 } from "lucide-react";
 
 interface PlanWizardProps {
@@ -35,11 +79,81 @@ export interface PlanData {
 }
 
 const projectTypes = [
+  // E-commerce & Retail
   { id: "ecommerce", label: "E-commerce Store", icon: ShoppingCart, description: "Online shop with products & checkout" },
-  { id: "blog", label: "Blog / CMS", icon: FileText, description: "Content management & articles" },
-  { id: "dashboard", label: "Dashboard / Admin", icon: LayoutDashboard, description: "Data visualisation & management" },
+  { id: "marketplace", label: "Marketplace", icon: Building2, description: "Multi-vendor platform" },
+  { id: "fashion", label: "Fashion & Apparel", icon: Shirt, description: "Clothing & accessories store" },
+  { id: "jewelry", label: "Jewelry & Luxury", icon: Gem, description: "High-end products & accessories" },
+  { id: "electronics", label: "Electronics Store", icon: Smartphone, description: "Gadgets & tech products" },
+  
+  // Food & Hospitality
+  { id: "restaurant", label: "Restaurant", icon: UtensilsCrossed, description: "Food ordering & reservations" },
+  { id: "hotel", label: "Hotel & Hospitality", icon: Hotel, description: "Room booking & management" },
+  { id: "cafe", label: "Cafe & Coffee Shop", icon: Coffee, description: "Menu & online ordering" },
+  { id: "bar", label: "Bar & Nightclub", icon: Wine, description: "Events & reservations" },
+  { id: "fooddelivery", label: "Food Delivery", icon: Truck, description: "Delivery platform & tracking" },
+  
+  // Health & Wellness
+  { id: "healthcare", label: "Healthcare & Medical", icon: Stethoscope, description: "Patient management & appointments" },
+  { id: "fitness", label: "Fitness & Gym", icon: Dumbbell, description: "Memberships & workout tracking" },
+  { id: "spa", label: "Spa & Wellness", icon: Sparkle, description: "Booking & treatments" },
+  { id: "pharmacy", label: "Pharmacy", icon: Heart, description: "Medicine & prescriptions" },
+  
+  // Education & Learning
+  { id: "education", label: "Education Platform", icon: GraduationCap, description: "Courses & learning management" },
+  { id: "school", label: "School & University", icon: BookOpen, description: "Student & course management" },
+  { id: "tutoring", label: "Tutoring & Coaching", icon: Users, description: "1-on-1 learning sessions" },
+  
+  // Real Estate & Property
+  { id: "realestate", label: "Real Estate", icon: Home, description: "Property listings & management" },
+  { id: "rental", label: "Rental Platform", icon: Building2, description: "Short & long-term rentals" },
+  { id: "propertymanagement", label: "Property Management", icon: Landmark, description: "Building & tenant management" },
+  
+  // Travel & Transportation
+  { id: "travel", label: "Travel & Tourism", icon: Plane, description: "Bookings & trip planning" },
+  { id: "carservice", label: "Car Service & Rental", icon: Car, description: "Vehicle booking & fleet management" },
+  { id: "logistics", label: "Logistics & Shipping", icon: Package, description: "Delivery & tracking" },
+  
+  // Professional Services
+  { id: "saas", label: "SaaS Product", icon: Zap, description: "Software as a service" },
+  { id: "agency", label: "Agency & Consulting", icon: Briefcase, description: "Client & project management" },
+  { id: "legal", label: "Legal Services", icon: Scale, description: "Case & client management" },
+  { id: "accounting", label: "Accounting & Finance", icon: CreditCard, description: "Financial management" },
+  
+  // Entertainment & Media
   { id: "social", label: "Social Platform", icon: Users, description: "User profiles & social features" },
-  { id: "portfolio", label: "Portfolio / Landing", icon: Briefcase, description: "Showcase work & services" },
+  { id: "streaming", label: "Streaming & Media", icon: Film, description: "Video/audio content platform" },
+  { id: "gaming", label: "Gaming Platform", icon: Gamepad2, description: "Games & community" },
+  { id: "music", label: "Music Platform", icon: Music, description: "Audio streaming & artists" },
+  { id: "podcast", label: "Podcast Platform", icon: Radio, description: "Audio content & subscriptions" },
+  { id: "news", label: "News & Magazine", icon: Newspaper, description: "Articles & subscriptions" },
+  
+  // Creative & Arts
+  { id: "portfolio", label: "Portfolio & Landing", icon: Palette, description: "Showcase work & services" },
+  { id: "photography", label: "Photography", icon: Camera, description: "Gallery & booking" },
+  { id: "art", label: "Art & Gallery", icon: Image, description: "Artworks & exhibitions" },
+  
+  // Local Services
+  { id: "salon", label: "Salon & Beauty", icon: Scissors, description: "Appointments & services" },
+  { id: "repair", label: "Repair & Maintenance", icon: Hammer, description: "Service booking & tracking" },
+  { id: "cleaning", label: "Cleaning Services", icon: Sparkle, description: "Booking & scheduling" },
+  { id: "petservices", label: "Pet Services", icon: Dog, description: "Pet care & grooming" },
+  { id: "florist", label: "Florist & Garden", icon: Flower2, description: "Products & delivery" },
+  { id: "childcare", label: "Childcare & Daycare", icon: Baby, description: "Booking & management" },
+  
+  // Events & Tickets
+  { id: "events", label: "Events Platform", icon: Ticket, description: "Event management & ticketing" },
+  { id: "wedding", label: "Wedding & Planning", icon: Heart, description: "Event planning & vendors" },
+  { id: "church", label: "Church & Religious", icon: Church, description: "Community & events" },
+  
+  // Content & Publishing
+  { id: "blog", label: "Blog / CMS", icon: FileText, description: "Content management & articles" },
+  { id: "dashboard", label: "Dashboard / Admin", icon: LayoutDashboard, description: "Data visualization & management" },
+  
+  // Other
+  { id: "nonprofit", label: "Non-profit & Charity", icon: Gift, description: "Donations & volunteering" },
+  { id: "directory", label: "Directory & Listings", icon: MapPin, description: "Business listings & reviews" },
+  { id: "booking", label: "Booking Platform", icon: Calendar, description: "General appointment booking" },
   { id: "custom", label: "Custom Project", icon: Code, description: "Something unique" },
 ];
 
@@ -101,7 +215,7 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] bg-neutral-900 border-white/10 p-0 gap-0">
+      <DialogContent className="sm:max-w-[700px] bg-neutral-900 border-white/10 p-0 gap-0">
         {/* Progress indicator */}
         <div className="px-6 pt-6">
           <div className="flex items-center justify-between mb-2">
@@ -121,43 +235,45 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
         </div>
 
         {/* Step content */}
-        <div className="px-6 py-6 min-h-[320px]">
+        <div className="px-6 py-6">
           {/* Step 1: Project Type */}
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-white mb-1">What type of project?</h3>
-                <p className="text-xs text-slate-400">Select the category that best describes your project</p>
+                <h3 className="text-base font-semibold text-white mb-1">What type of project?</h3>
+                <p className="text-sm text-slate-400">Select the category that best describes your project</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {projectTypes.map((type) => {
-                  const Icon = type.icon;
-                  const isSelected = projectType === type.id;
-                  return (
-                    <button
-                      key={type.id}
-                      onClick={() => setProjectType(type.id)}
-                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
-                        isSelected 
-                          ? 'border-sky-500 bg-sky-500/10' 
-                          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? 'bg-sky-500/20' : 'bg-white/10'
-                      }`}>
-                        <Icon className={`w-4 h-4 ${isSelected ? 'text-sky-400' : 'text-slate-400'}`} />
-                      </div>
-                      <div>
-                        <p className={`text-sm font-medium ${isSelected ? 'text-sky-300' : 'text-white'}`}>
-                          {type.label}
-                        </p>
-                        <p className="text-xs text-slate-400">{type.description}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {projectTypes.map((type) => {
+                    const Icon = type.icon;
+                    const isSelected = projectType === type.id;
+                    return (
+                      <button
+                        key={type.id}
+                        onClick={() => setProjectType(type.id)}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all text-left ${
+                          isSelected 
+                            ? 'border-sky-500 bg-sky-500/10' 
+                            : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'bg-sky-500/20' : 'bg-white/10'
+                        }`}>
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-sky-400' : 'text-slate-400'}`} />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${isSelected ? 'text-sky-300' : 'text-white'}`}>
+                            {type.label}
+                          </p>
+                          <p className="text-xs text-slate-400">{type.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </div>
           )}
 
