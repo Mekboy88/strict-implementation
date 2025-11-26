@@ -12,6 +12,7 @@ import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCar
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ProjectsDropdown, Project } from "@/components/ProjectsDropdown";
+import { PlatformSelector } from "@/components/PlatformSelector";
 const personas = [
   {
     id: "solo",
@@ -202,7 +203,22 @@ const UrDevLandingPage: React.FC = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showPlanWizard, setShowPlanWizard] = useState(false);
+  const [showPlatformSelector, setShowPlatformSelector] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<"website" | "mobile" | "both" | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+
+  const handlePlatformSelect = (platform: "website" | "mobile" | "both") => {
+    setSelectedPlatform(platform);
+    setShowPlatformSelector(false);
+    setShowPlanWizard(true);
+    
+    // Update prompt mode based on selection
+    if (platform === "website") {
+      setPromptMode("website");
+    } else if (platform === "mobile") {
+      setPromptMode("mobile");
+    }
+  };
 
   const handleCreateProject = (planData: PlanData) => {
     const newProject: Project = {
@@ -402,7 +418,7 @@ const UrDevLandingPage: React.FC = () => {
             {projects.length > 0 && (
               <ProjectsDropdown
                 projects={projects}
-                onNewProject={() => setShowPlanWizard(true)}
+                onNewProject={() => setShowPlatformSelector(true)}
                 onSelectProject={handleSelectProject}
               />
             )}
@@ -665,7 +681,7 @@ const UrDevLandingPage: React.FC = () => {
                         <span>Integration</span>
                       </button>
                       <button 
-                        onClick={() => setShowPlanWizard(true)}
+                        onClick={() => setShowPlatformSelector(true)}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
                       >
                         <ListTodo className="h-3 w-3" />
@@ -1123,6 +1139,13 @@ const UrDevLandingPage: React.FC = () => {
           // Navigate to editor with the plan
           navigate('/editor');
         }}
+      />
+
+      {/* Platform Selector */}
+      <PlatformSelector
+        open={showPlatformSelector}
+        onClose={() => setShowPlatformSelector(false)}
+        onSelect={handlePlatformSelect}
       />
     </div>
   );
