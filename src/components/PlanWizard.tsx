@@ -371,15 +371,28 @@ const projectCategories = [
 // Flatten for backward compatibility and searching
 const allProjectTypes = projectCategories.flatMap(cat => cat.items);
 
-const featureOptions = [
-  { id: "auth", label: "User Authentication", icon: Lock },
-  { id: "database", label: "Database Integration", icon: Database },
-  { id: "payments", label: "Payment Processing", icon: CreditCard },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "search", label: "Search Functionality", icon: Search },
-  { id: "chat", label: "Chat / Messaging", icon: MessageSquare },
-  { id: "media", label: "Media Upload", icon: Image },
-  { id: "scheduling", label: "Scheduling / Calendar", icon: Calendar },
+// Required backend features - automatically included in every project
+const requiredBackendFeatures = [
+  { id: "auth", label: "User Authentication", icon: Lock, description: "Signup, login, logout, password reset, session management" },
+  { id: "user_profiles", label: "User Profiles", icon: Users, description: "User data storage with secure profile management" },
+  { id: "database", label: "Database Schema", icon: Database, description: "Structured tables with proper relationships & indexes" },
+  { id: "rls", label: "Row Level Security", icon: Shield, description: "Data access policies to protect user information" },
+  { id: "validation", label: "Input Validation", icon: Check, description: "Data sanitization & validation on all inputs" },
+  { id: "error_handling", label: "Error Handling", icon: Zap, description: "Graceful error handling & logging system" },
+  { id: "api_security", label: "API Security", icon: Key, description: "Rate limiting, CORS, and secure endpoints" },
+  { id: "crud", label: "CRUD Operations", icon: Server, description: "Create, Read, Update, Delete for all entities" },
+];
+
+// Optional extra features - user can choose
+const optionalFeatureOptions = [
+  { id: "payments", label: "Payment Processing", icon: CreditCard, description: "Stripe/PayPal integration for payments" },
+  { id: "notifications", label: "Notifications", icon: Bell, description: "Push, email & in-app notifications" },
+  { id: "search", label: "Advanced Search", icon: Search, description: "Full-text search with filters" },
+  { id: "chat", label: "Chat / Messaging", icon: MessageSquare, description: "Real-time messaging system" },
+  { id: "media", label: "Media Upload", icon: Image, description: "Image, video & file storage" },
+  { id: "scheduling", label: "Scheduling / Calendar", icon: Calendar, description: "Appointments & event management" },
+  { id: "analytics", label: "Analytics Dashboard", icon: TrendingUp, description: "Usage stats & reporting" },
+  { id: "admin_panel", label: "Admin Panel", icon: LayoutDashboard, description: "Backend management interface" },
 ];
 
 export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGeneratePlan }) => {
@@ -426,10 +439,16 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
   };
 
   const handleGenerate = () => {
+    // Combine required backend features with optional selected features
+    const allFeatures = [
+      ...requiredBackendFeatures.map(f => f.id),
+      ...selectedFeatures
+    ];
+    
     onGeneratePlan({
       projectType,
       projectName,
-      features: selectedFeatures,
+      features: allFeatures,
       additionalDetails,
     });
     handleClose();
@@ -569,40 +588,93 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
 
           {/* Step 3: Features */}
           {step === 3 && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+              {/* Required Backend Features Section */}
               <div>
-                <h3 className="text-sm font-medium text-white mb-1">Select key features</h3>
-                <p className="text-xs text-slate-400">Choose the features you want in your project</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {featureOptions.map((feature) => {
-                  const Icon = feature.icon;
-                  const isSelected = selectedFeatures.includes(feature.id);
-                  return (
-                    <button
-                      key={feature.id}
-                      onClick={() => toggleFeature(feature.id)}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all ${
-                        isSelected 
-                          ? 'border-sky-500 bg-sky-500/10' 
-                          : 'border-white/10 bg-white/5 hover:border-white/20'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded flex items-center justify-center ${
-                        isSelected ? 'bg-sky-500' : 'bg-white/10'
-                      }`}>
-                        {isSelected ? (
-                          <Check className="w-3 h-3 text-white" />
-                        ) : (
-                          <Icon className="w-3 h-3 text-slate-400" />
-                        )}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-white">Required Backend Features</h3>
+                    <p className="text-xs text-slate-400">Automatically included in your project</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {requiredBackendFeatures.map((feature) => {
+                    const Icon = feature.icon;
+                    return (
+                      <div
+                        key={feature.id}
+                        className="flex items-start gap-2 px-3 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5"
+                      >
+                        <div className="w-5 h-5 rounded flex items-center justify-center bg-emerald-500/20 flex-shrink-0 mt-0.5">
+                          <Icon className="w-3 h-3 text-emerald-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm text-emerald-300 font-medium">{feature.label}</span>
+                            <LockIcon className="w-3 h-3 text-emerald-500/50" />
+                          </div>
+                          <p className="text-xs text-slate-500 truncate">{feature.description}</p>
+                        </div>
                       </div>
-                      <span className={`text-sm ${isSelected ? 'text-sky-300' : 'text-slate-300'}`}>
-                        {feature.label}
-                      </span>
-                    </button>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-xs text-slate-500">Optional Extras</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              {/* Optional Features Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-white">Choose Extra Features</h3>
+                    <p className="text-xs text-slate-400">Select additional features for your project</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {optionalFeatureOptions.map((feature) => {
+                    const Icon = feature.icon;
+                    const isSelected = selectedFeatures.includes(feature.id);
+                    return (
+                      <button
+                        key={feature.id}
+                        onClick={() => toggleFeature(feature.id)}
+                        className={`flex items-start gap-2 px-3 py-2.5 rounded-lg border transition-all text-left ${
+                          isSelected 
+                            ? 'border-sky-500 bg-sky-500/10' 
+                            : 'border-white/10 bg-white/5 hover:border-white/20'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          isSelected ? 'bg-sky-500' : 'bg-white/10'
+                        }`}>
+                          {isSelected ? (
+                            <Check className="w-3 h-3 text-white" />
+                          ) : (
+                            <Icon className="w-3 h-3 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className={`text-sm ${isSelected ? 'text-sky-300' : 'text-slate-300'}`}>
+                            {feature.label}
+                          </span>
+                          <p className="text-xs text-slate-500 truncate">{feature.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -634,9 +706,13 @@ export const PlanWizard: React.FC<PlanWizardProps> = ({ open, onClose, onGenerat
                     {projectName}
                   </p>
                   <p>
-                    <span className="text-slate-500">Features:</span>{" "}
+                    <span className="text-slate-500">Required:</span>{" "}
+                    <span className="text-emerald-400">{requiredBackendFeatures.length} core backend features</span>
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Extras:</span>{" "}
                     {selectedFeatures.length > 0 
-                      ? selectedFeatures.map(f => featureOptions.find(fo => fo.id === f)?.label).join(", ")
+                      ? selectedFeatures.map(f => optionalFeatureOptions.find(fo => fo.id === f)?.label).join(", ")
                       : "None selected"}
                   </p>
                 </div>
