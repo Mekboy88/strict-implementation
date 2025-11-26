@@ -17,52 +17,63 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle } from "lucide-react";
+import { Shield, Crown, UserCog, Users, User as UserIcon, AlertTriangle } from "lucide-react";
 
 interface EditRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: { id: string; user_id: string; email?: string; role: string } | null;
   onSave: (userId: string, newRole: string) => Promise<void>;
+  currentUserRole?: string; // The role of the logged-in admin user
 }
 
-const ASSIGNABLE_ROLES = [
+const ALL_ROLES = [
   { 
-    value: "user", 
-    label: "User", 
-    description: "Basic access with limited permissions",
-    color: "bg-neutral-500/30 text-neutral-300"
+    value: "owner", 
+    label: "Primary Super Admin", 
+    description: "Full platform control - highest level access",
+    color: "bg-purple-500/30 text-purple-400 border-purple-500/50",
+    icon: Crown
+  },
+  { 
+    value: "admin", 
+    label: "Admin", 
+    description: "Full administrative access to manage platform",
+    color: "bg-blue-500/30 text-blue-400 border-blue-500/50",
+    icon: Shield
   },
   { 
     value: "moderator", 
     label: "Moderator", 
     description: "Can moderate content and manage users",
-    color: "bg-yellow-500/30 text-yellow-400"
+    color: "bg-yellow-500/30 text-yellow-400 border-yellow-500/50",
+    icon: UserCog
   },
   { 
-    value: "admin", 
-    label: "Admin", 
-    description: "Full administrative access",
-    color: "bg-blue-500/30 text-blue-400"
+    value: "user", 
+    label: "User", 
+    description: "Basic access with limited permissions",
+    color: "bg-neutral-500/30 text-neutral-300 border-neutral-500/50",
+    icon: UserIcon
   },
 ];
 
-export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDialogProps) => {
+export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRole = "user" }: EditRoleDialogProps) => {
   const [selectedRole, setSelectedRole] = useState(user?.role || "user");
   const [loading, setLoading] = useState(false);
+
+  // Check if current logged-in user is the platform owner
+  const isCurrentUserOwner = currentUserRole === "owner";
 
   // Reset selected role when user changes
   useEffect(() => {
     if (user) {
-      // If user is owner, default to admin since owner can't be assigned
-      setSelectedRole(user.role === "owner" ? "admin" : user.role);
+      setSelectedRole(user.role);
     }
   }, [user]);
 
-  const isOwner = user?.role === "owner";
-
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !isCurrentUserOwner) return;
     setLoading(true);
     try {
       await onSave(user.user_id, selectedRole);
@@ -72,9 +83,12 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDia
     }
   };
 
-  const getSelectedRoleInfo = () => {
-    return ASSIGNABLE_ROLES.find(r => r.value === selectedRole);
+  const getRoleInfo = (roleValue: string) => {
+    return ALL_ROLES.find(r => r.value === roleValue);
   };
+
+  const currentRoleInfo = getRoleInfo(user?.role || "user");
+  const selectedRoleInfo = getRoleInfo(selectedRole);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,14 +103,14 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDia
           </DialogDescription>
         </DialogHeader>
 
-        {/* Warning if user is Primary Super Admin */}
-        {isOwner && (
-          <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-            <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+        {/* Warning if current user is NOT the platform owner */}
+        {!isCurrentUserOwner && (
+          <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5" />
             <div>
-              <p className="text-yellow-400 font-medium text-sm">Primary Super Admin</p>
-              <p className="text-yellow-400/70 text-xs mt-1">
-                This user is the Primary Super Admin. This role cannot be changed or reassigned through this interface.
+              <p className="text-red-400 font-medium text-sm">Permission Denied</p>
+              <p className="text-red-400/70 text-xs mt-1">
+                Only the Primary Super Admin can grant or change user roles.
               </p>
             </div>
           </div>
@@ -104,49 +118,61 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDia
 
         {/* Current Role Display */}
         <div className="py-2">
-          <Label className="text-neutral-400 text-xs mb-1 block">Current Role</Label>
-          <Badge className={`${
-            user?.role === "owner" ? "bg-purple-500/30 text-purple-400 border-purple-500/50" :
-            user?.role === "admin" ? "bg-blue-500/30 text-blue-400 border-blue-500/50" :
-            user?.role === "moderator" ? "bg-yellow-500/30 text-yellow-400 border-yellow-500/50" :
-            "bg-neutral-500/30 text-neutral-300 border-neutral-500/50"
-          } border`}>
-            {user?.role === "owner" ? "Primary Super Admin" : 
-             user?.role === "admin" ? "Admin" :
-             user?.role === "moderator" ? "Moderator" : "User"}
-          </Badge>
-        </div>
-
-        {!isOwner && (
-          <div className="py-2">
-            <Label className="text-white mb-2 block">New Role</Label>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
-                {ASSIGNABLE_ROLES.map((role) => (
-                  <SelectItem 
-                    key={role.value} 
-                    value={role.value} 
-                    className="text-white hover:bg-neutral-600 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{role.label}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {/* Role Description */}
-            {getSelectedRoleInfo() && (
-              <p className="text-neutral-400 text-xs mt-2">
-                {getSelectedRoleInfo()?.description}
-              </p>
+          <Label className="text-neutral-400 text-xs mb-2 block">Current Role</Label>
+          <div className="flex items-center gap-2">
+            {currentRoleInfo && (
+              <>
+                <Badge className={`${currentRoleInfo.color} border flex items-center gap-1`}>
+                  <currentRoleInfo.icon className="w-3 h-3" />
+                  {currentRoleInfo.label}
+                </Badge>
+              </>
             )}
           </div>
-        )}
+        </div>
+
+        {/* Role Selection - Only enabled for platform owner */}
+        <div className="py-2">
+          <Label className="text-white mb-2 block">Select New Role</Label>
+          <Select 
+            value={selectedRole} 
+            onValueChange={setSelectedRole}
+            disabled={!isCurrentUserOwner}
+          >
+            <SelectTrigger className={`bg-neutral-700 border-neutral-600 text-white ${!isCurrentUserOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <SelectValue>
+                {selectedRoleInfo && (
+                  <div className="flex items-center gap-2">
+                    <selectedRoleInfo.icon className="w-4 h-4" />
+                    <span>{selectedRoleInfo.label}</span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
+              {ALL_ROLES.map((role) => (
+                <SelectItem 
+                  key={role.value} 
+                  value={role.value} 
+                  className="text-white hover:bg-neutral-600 cursor-pointer py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <role.icon className={`w-4 h-4 ${
+                      role.value === "owner" ? "text-purple-400" :
+                      role.value === "admin" ? "text-blue-400" :
+                      role.value === "moderator" ? "text-yellow-400" :
+                      "text-neutral-400"
+                    }`} />
+                    <div>
+                      <p className="font-medium">{role.label}</p>
+                      <p className="text-neutral-400 text-xs">{role.description}</p>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <DialogFooter>
           <Button 
@@ -156,7 +182,7 @@ export const EditRoleDialog = ({ open, onOpenChange, user, onSave }: EditRoleDia
           >
             Cancel
           </Button>
-          {!isOwner && (
+          {isCurrentUserOwner && (
             <Button 
               onClick={handleSave} 
               disabled={loading || selectedRole === user?.role} 
