@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -103,12 +103,27 @@ const AdminDashboard = () => {
     activeStripeIntegrations: 0,
     stripeWithWebhooks: 0,
     recentStripeConnections: 0,
+    // Security Metrics
+    totalSecurityEvents: 0,
+    securityEventsToday: 0,
+    securityEventsThisWeek: 0,
+    loginAttempts: 0,
+    failedLogins: 0,
+    suspiciousActivity: 0,
+    totalAuditLogs: 0,
+    auditLogsToday: 0,
+    uniqueAuditActions: 0,
+    totalSecurityBlocks: 0,
+    activeBlocks: 0,
+    ipBlocks: 0,
+    userBlocks: 0,
+    recentBlocks: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -130,6 +145,9 @@ const AdminDashboard = () => {
         supabase.from('api_access').select('*'),
         supabase.from('integrations_supabase').select('*'),
         supabase.from('integrations_stripe').select('*'),
+        supabase.from('security_events').select('*'),
+        supabase.from('security_audit').select('*'),
+        supabase.from('security_blocks').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -153,6 +171,9 @@ const AdminDashboard = () => {
       const apiAccess = apiAccessRes.data || [];
       const supabaseIntegrations = supabaseIntegrationsRes.data || [];
       const stripeIntegrations = stripeIntegrationsRes.data || [];
+      const securityEvents = securityEventsRes.data || [];
+      const securityAudit = securityAuditRes.data || [];
+      const securityBlocks = securityBlocksRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -297,6 +318,31 @@ const AdminDashboard = () => {
       const activeStripeIntegrations = stripeIntegrations.filter(i => i.is_active).length;
       const stripeWithWebhooks = stripeIntegrations.filter(i => i.webhook_secret).length;
       const recentStripeConnections = stripeIntegrations.filter(i => new Date(i.connected_at) >= sevenDaysAgo).length;
+
+      // Calculate Security metrics
+      const totalSecurityEvents = securityEvents.length;
+      const securityEventsToday = securityEvents.filter(e => new Date(e.created_at) >= today).length;
+      const securityEventsThisWeek = securityEvents.filter(e => new Date(e.created_at) >= sevenDaysAgo).length;
+      const loginAttempts = securityEvents.filter(e => e.event_type === 'login' || e.event_type === 'login_attempt').length;
+      const failedLogins = securityEvents.filter(e => e.event_type === 'failed_login' || e.event_type === 'login_failed').length;
+      const suspiciousActivity = securityEvents.filter(e => 
+        e.event_type === 'suspicious' || 
+        e.event_type === 'suspicious_activity' || 
+        e.event_type === 'rate_limit' ||
+        e.event_type === 'unauthorized'
+      ).length;
+
+      // Calculate Audit metrics
+      const totalAuditLogs = securityAudit.length;
+      const auditLogsToday = securityAudit.filter(a => new Date(a.created_at) >= today).length;
+      const uniqueAuditActions = new Set(securityAudit.map(a => a.action)).size;
+
+      // Calculate Security blocks metrics
+      const totalSecurityBlocks = securityBlocks.length;
+      const activeBlocks = securityBlocks.filter(b => !b.expires_at || new Date(b.expires_at) > now).length;
+      const ipBlocks = securityBlocks.filter(b => b.ip_address).length;
+      const userBlocks = securityBlocks.filter(b => b.user_id).length;
+      const recentBlocks = securityBlocks.filter(b => new Date(b.created_at) >= sevenDaysAgo).length;
 
       const activities: ActivityItem[] = [];
       
@@ -459,6 +505,21 @@ const AdminDashboard = () => {
         activeStripeIntegrations,
         stripeWithWebhooks,
         recentStripeConnections,
+        // Security
+        totalSecurityEvents,
+        securityEventsToday,
+        securityEventsThisWeek,
+        loginAttempts,
+        failedLogins,
+        suspiciousActivity,
+        totalAuditLogs,
+        auditLogsToday,
+        uniqueAuditActions,
+        totalSecurityBlocks,
+        activeBlocks,
+        ipBlocks,
+        userBlocks,
+        recentBlocks,
       });
 
       setLoading(false);
@@ -1178,6 +1239,115 @@ const AdminDashboard = () => {
               <p className="text-sm text-white">Recent Connections</p>
             </div>
             <p className="text-3xl font-bold text-cyan-400">+{stats.recentStripeConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Security Stats Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <ShieldAlert className="w-5 h-5 text-red-400" />
+          <h2 className="text-xl font-semibold text-white">Security Stats</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Security Events */}
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Security Events</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalSecurityEvents}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.securityEventsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Events This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.securityEventsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Login Attempts</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.loginAttempts}</p>
+            <p className="text-xs mt-1 text-white/70">Total login events</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Failed Logins</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.failedLogins}</p>
+            <p className="text-xs mt-1 text-white/70">Authentication failures</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileWarning className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Suspicious Activity</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.suspiciousActivity}</p>
+            <p className="text-xs mt-1 text-white/70">Flagged events</p>
+          </div>
+          {/* Audit Logs */}
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Total Audit Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.totalAuditLogs}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.auditLogsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-indigo-400" />
+              <p className="text-sm text-white">Unique Actions</p>
+            </div>
+            <p className="text-3xl font-bold text-indigo-400">{stats.uniqueAuditActions}</p>
+            <p className="text-xs mt-1 text-white/70">Different action types</p>
+          </div>
+          {/* Security Blocks */}
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Ban className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Total Blocks</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.totalSecurityBlocks}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.activeBlocks} currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active Blocks</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeBlocks}</p>
+            <p className="text-xs mt-1 text-white/70">Currently enforced</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Server className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">IP Blocks</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.ipBlocks}</p>
+            <p className="text-xs mt-1 text-white/70">Blocked IP addresses</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">User Blocks</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.userBlocks}</p>
+            <p className="text-xs mt-1 text-white/70">Blocked users</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Recent Blocks</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">+{stats.recentBlocks}</p>
             <p className="text-xs mt-1 text-white/70">Last 7 days</p>
           </div>
         </div>
