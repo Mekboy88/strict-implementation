@@ -70,6 +70,7 @@ interface SupportTicket {
   project_id: string | null;
   user_id: string | null;
   assigned_to: string | null;
+  resolved_by: string | null;
   attachments: string[] | null;
   created_at: string;
   updated_at: string;
@@ -77,6 +78,7 @@ interface SupportTicket {
   projectName?: string;
   userEmail?: string;
   assignedAdminName?: string;
+  resolvedByName?: string;
 }
 
 interface AIMessage {
@@ -139,12 +141,13 @@ const AdminSupport = () => {
       toast.error("Failed to fetch support tickets");
       console.error(error);
     } else {
-      // Fetch project names and assigned admin names
+      // Fetch project names, assigned admin names, and resolved by names
       const ticketsWithDetails = await Promise.all(
         (data || []).map(async (ticket) => {
           let projectName = "";
           let userEmail = "";
           let assignedAdminName = "";
+          let resolvedByName = "";
           
           if (ticket.project_id) {
             const { data: project } = await supabase
@@ -163,8 +166,17 @@ const AdminSupport = () => {
               .single();
             assignedAdminName = profile?.full_name || "Unknown";
           }
+
+          if (ticket.resolved_by) {
+            const { data: profile } = await supabase
+              .from("user_profiles")
+              .select("full_name")
+              .eq("id", ticket.resolved_by)
+              .single();
+            resolvedByName = profile?.full_name || "Unknown";
+          }
           
-          return { ...ticket, projectName, userEmail, assignedAdminName };
+          return { ...ticket, projectName, userEmail, assignedAdminName, resolvedByName };
         })
       );
       setTickets(ticketsWithDetails);
@@ -249,9 +261,13 @@ const AdminSupport = () => {
   };
 
   const updateTicketStatus = async (ticketId: string, status: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const currentUserId = userData?.user?.id;
+    
     const updates: Record<string, any> = { status };
     if (status === "resolved") {
       updates.resolved_at = new Date().toISOString();
+      updates.resolved_by = currentUserId;
     }
 
     const { error } = await supabase
@@ -265,7 +281,12 @@ const AdminSupport = () => {
       toast.success("Ticket updated");
       fetchTickets();
       if (selectedTicket?.id === ticketId) {
-        setSelectedTicket({ ...selectedTicket, status, resolved_at: updates.resolved_at });
+        setSelectedTicket({ 
+          ...selectedTicket, 
+          status, 
+          resolved_at: updates.resolved_at,
+          resolved_by: updates.resolved_by 
+        });
       }
     }
   };
@@ -695,6 +716,18 @@ const AdminSupport = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {/* Resolved By Info */}
+                    {selectedTicket.status === "resolved" && selectedTicket.resolved_at && (
+                      <div className="flex items-center gap-2 mt-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span className="text-green-400">
+                          Resolved by {selectedTicket.resolvedByName || "Unknown"}
+                        </span>
+                        <span className="text-neutral-500">
+                          on {formatDate(selectedTicket.resolved_at)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
