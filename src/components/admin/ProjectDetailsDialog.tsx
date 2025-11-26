@@ -15,8 +15,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FolderOpen, User, Calendar, HardDrive, FileCode, 
-  Users, GitBranch, Globe, Clock, Bot, Send 
+  Users, GitBranch, Globe, Clock, Bot, Send, X, Eye 
 } from "lucide-react";
+import Editor from "@monaco-editor/react";
 
 interface ProjectDetailsDialogProps {
   open: boolean;
@@ -74,6 +75,10 @@ export function ProjectDetailsDialog({
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [loading, setLoading] = useState(false);
   
+  // Code viewer state
+  const [selectedFile, setSelectedFile] = useState<{ path: string; content: string } | null>(null);
+  const [loadingFile, setLoadingFile] = useState(false);
+  
   // AI Diagnose state
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [aiInput, setAiInput] = useState("");
@@ -84,8 +89,50 @@ export function ProjectDetailsDialog({
     if (open && project) {
       fetchProjectDetails();
       setAiMessages([]);
+      setSelectedFile(null);
     }
   }, [open, project]);
+
+  const fetchFileContent = async (filePath: string) => {
+    if (!project) return;
+    setLoadingFile(true);
+    
+    const { data, error } = await supabase
+      .from("project_files")
+      .select("file_content")
+      .eq("project_id", project.id)
+      .eq("file_path", filePath)
+      .single();
+    
+    if (error) {
+      toast.error("Failed to load file content");
+      setLoadingFile(false);
+      return;
+    }
+    
+    setSelectedFile({ path: filePath, content: data.file_content });
+    setLoadingFile(false);
+  };
+
+  const getLanguageFromPath = (filePath: string): string => {
+    const ext = filePath.split(".").pop()?.toLowerCase();
+    const languageMap: Record<string, string> = {
+      ts: "typescript",
+      tsx: "typescript",
+      js: "javascript",
+      jsx: "javascript",
+      json: "json",
+      css: "css",
+      html: "html",
+      md: "markdown",
+      sql: "sql",
+      py: "python",
+      toml: "toml",
+      yaml: "yaml",
+      yml: "yaml",
+    };
+    return languageMap[ext || ""] || "plaintext";
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -270,27 +317,74 @@ export function ProjectDetailsDialog({
           </TabsContent>
 
           <TabsContent value="files" className="mt-4">
-            <ScrollArea className="h-[300px]">
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+            {selectedFile ? (
+              <div className="h-[350px] flex flex-col">
+                <div className="flex items-center justify-between mb-2 p-2 bg-neutral-700 rounded">
+                  <div className="flex items-center gap-2">
+                    <FileCode className="w-4 h-4 text-blue-400" />
+                    <span className="text-white text-sm font-mono">{selectedFile.path}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedFile(null)}
+                    className="text-neutral-400 hover:text-white hover:bg-neutral-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-              ) : files.length === 0 ? (
-                <p className="text-neutral-400 text-center py-8">No files found</p>
-              ) : (
-                <div className="space-y-2">
-                  {files.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-2 bg-neutral-700 rounded">
-                      <div className="flex items-center gap-2">
-                        <FileCode className="w-4 h-4 text-blue-400" />
-                        <span className="text-white text-sm font-mono">{file.file_path}</span>
+                <div className="flex-1 rounded overflow-hidden border border-neutral-600">
+                  <Editor
+                    height="100%"
+                    language={getLanguageFromPath(selectedFile.path)}
+                    value={selectedFile.content}
+                    theme="vs-dark"
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      fontSize: 12,
+                      scrollBeyondLastLine: false,
+                      wordWrap: "on",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px]">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+                  </div>
+                ) : files.length === 0 ? (
+                  <p className="text-neutral-400 text-center py-8">No files found</p>
+                ) : (
+                  <div className="space-y-2">
+                    {files.map((file) => (
+                      <div 
+                        key={file.id} 
+                        className="flex items-center justify-between p-2 bg-neutral-700 rounded hover:bg-neutral-600 cursor-pointer transition-colors"
+                        onClick={() => fetchFileContent(file.file_path)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileCode className="w-4 h-4 text-blue-400" />
+                          <span className="text-white text-sm font-mono">{file.file_path}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-neutral-400 text-xs">{formatDate(file.updated_at)}</span>
+                          <Eye className="w-4 h-4 text-neutral-400" />
+                        </div>
                       </div>
-                      <span className="text-neutral-400 text-xs">{formatDate(file.updated_at)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+                    ))}
+                    {loadingFile && (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                        <span className="text-neutral-400 text-sm ml-2">Loading file...</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </ScrollArea>
+            )}
           </TabsContent>
 
           <TabsContent value="members" className="mt-4">
