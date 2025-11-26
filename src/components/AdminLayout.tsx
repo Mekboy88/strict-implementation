@@ -31,6 +31,7 @@ const MENU_ITEMS = [
   { id: "dashboard", path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "users", path: "/admin/users", label: "Users", icon: Users },
   { id: "projects", path: "/admin/projects", label: "Projects", icon: FolderGit2 },
+  { id: "support", path: "/admin/support", label: "Support", icon: MessageCircle },
   { id: "roles", path: "/admin/roles", label: "Roles", icon: Layers },
   { id: "security", path: "/admin/security", label: "Security", icon: Shield },
   { id: "system", path: "/admin/system-monitoring", label: "System", icon: Activity },

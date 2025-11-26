@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +9,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   FolderOpen, User, Calendar, HardDrive, FileCode, 
-  Users, GitBranch, Globe, Clock 
+  Users, GitBranch, Globe, Clock, Bot, Send 
 } from "lucide-react";
 
 interface ProjectDetailsDialogProps {
@@ -55,6 +58,12 @@ interface ProjectFile {
   updated_at: string;
 }
 
+interface AIMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
 export function ProjectDetailsDialog({
   open,
   onOpenChange,
@@ -64,12 +73,23 @@ export function ProjectDetailsDialog({
   const [deployments, setDeployments] = useState<ProjectDeployment[]>([]);
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // AI Diagnose state
+  const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open && project) {
       fetchProjectDetails();
+      setAiMessages([]);
     }
   }, [open, project]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [aiMessages]);
 
   const fetchProjectDetails = async () => {
     if (!project) return;
@@ -103,6 +123,42 @@ export function ProjectDetailsDialog({
     setLoading(false);
   };
 
+  const sendAIMessage = async () => {
+    if (!aiInput.trim() || !project) return;
+
+    const userMessage: AIMessage = {
+      role: "user",
+      content: aiInput,
+      timestamp: new Date(),
+    };
+    setAiMessages((prev) => [...prev, userMessage]);
+    setAiInput("");
+    setAiLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-diagnose", {
+        body: {
+          projectId: project.id,
+          message: aiInput,
+        },
+      });
+
+      if (error) throw error;
+
+      const assistantMessage: AIMessage = {
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+      };
+      setAiMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("AI error:", error);
+      toast.error("Failed to get AI response");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -125,7 +181,7 @@ export function ProjectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] bg-neutral-800 border-neutral-600 text-white">
+      <DialogContent className="sm:max-w-[800px] max-h-[85vh] bg-neutral-800 border-neutral-600 text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <FolderOpen className="h-5 w-5 text-blue-400" />
@@ -142,6 +198,10 @@ export function ProjectDetailsDialog({
             <TabsTrigger value="files" className="data-[state=active]:bg-neutral-600 text-white">Files</TabsTrigger>
             <TabsTrigger value="members" className="data-[state=active]:bg-neutral-600 text-white">Members</TabsTrigger>
             <TabsTrigger value="deployments" className="data-[state=active]:bg-neutral-600 text-white">Deployments</TabsTrigger>
+            <TabsTrigger value="ai-diagnose" className="data-[state=active]:bg-neutral-600 text-white flex items-center gap-1">
+              <Bot className="w-4 h-4" />
+              AI Diagnose
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
@@ -295,6 +355,102 @@ export function ProjectDetailsDialog({
                 </div>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="ai-diagnose" className="mt-4">
+            <div className="flex flex-col h-[350px]">
+              <ScrollArea className="flex-1 mb-3">
+                {aiMessages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bot className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                    <p className="text-neutral-400">Ask the AI to help diagnose issues with this project.</p>
+                    <p className="text-neutral-500 text-sm mt-1">
+                      The AI has access to project files, deployments, and error logs.
+                    </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+                        onClick={() => setAiInput("What are the recent errors in this project?")}
+                      >
+                        Check recent errors
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+                        onClick={() => setAiInput("Analyze the project structure and suggest improvements")}
+                      >
+                        Analyze structure
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+                        onClick={() => setAiInput("Why might deployments be failing?")}
+                      >
+                        Deployment issues
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pr-2">
+                    {aiMessages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[85%] p-3 rounded-lg ${
+                            msg.role === "user"
+                              ? "bg-blue-600 text-white"
+                              : "bg-neutral-700 text-white"
+                          }`}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex items-center gap-2 mb-2 text-blue-400">
+                              <Bot className="w-4 h-4" />
+                              <span className="text-xs font-medium">AI Assistant</span>
+                            </div>
+                          )}
+                          <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {aiLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-neutral-700 p-3 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                            <span className="text-neutral-400 text-sm">Analyzing...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+                )}
+              </ScrollArea>
+
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ask AI about this project..."
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendAIMessage()}
+                  className="flex-1 bg-neutral-700 border-neutral-600 text-white"
+                  disabled={aiLoading}
+                />
+                <Button
+                  onClick={sendAIMessage}
+                  disabled={aiLoading || !aiInput.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
