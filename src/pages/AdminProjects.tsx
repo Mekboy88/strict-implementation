@@ -38,6 +38,7 @@ import { ProjectDetailsDialog } from "@/components/admin/ProjectDetailsDialog";
 import { TransferOwnershipDialog } from "@/components/admin/TransferOwnershipDialog";
 import { ProjectBulkActionsDialog } from "@/components/admin/ProjectBulkActionsDialog";
 import { ExportProjectDialog } from "@/components/admin/ExportProjectDialog";
+import { DeleteProjectDialog } from "@/components/admin/DeleteProjectDialog";
 
 interface ProjectData {
   id: string;
@@ -83,6 +84,7 @@ const AdminProjects = () => {
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState<"delete" | "archive" | "export" | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
@@ -283,10 +285,6 @@ const AdminProjects = () => {
   };
 
   const handleDeleteProject = async (projectId: string, projectName: string) => {
-    if (!confirm(`Are you sure you want to delete project "${projectName}"? This action cannot be undone.`)) {
-      return;
-    }
-
     const { error } = await supabase
       .from('projects')
       .delete()
@@ -805,7 +803,10 @@ const AdminProjects = () => {
                         <DropdownMenuSeparator className="bg-neutral-600" />
                         <DropdownMenuItem
                           className="text-red-400 hover:bg-neutral-600 cursor-pointer"
-                          onClick={() => handleDeleteProject(project.id, project.name)}
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setDeleteDialogOpen(true);
+                          }}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete Project
@@ -888,6 +889,12 @@ const AdminProjects = () => {
         open={exportDialogOpen}
         onOpenChange={setExportDialogOpen}
         project={selectedProject}
+      />
+      <DeleteProjectDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        project={selectedProject}
+        onConfirm={handleDeleteProject}
       />
     </div>
   );
