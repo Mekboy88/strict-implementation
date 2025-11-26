@@ -52,14 +52,67 @@ serve(async (req) => {
       });
     }
 
-    const { action, userId, role, banDuration, redirectUrl, reason } = await req.json();
+    const { action, userId, role, banDuration, redirectUrl, reason, email: inviteEmail } = await req.json();
+
+    // Actions that don't require userId validation
+    if (action === "inviteUser") {
+      if (!inviteEmail) {
+        return new Response(JSON.stringify({ error: "Email is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check if email is blacklisted
+      const { data: blacklisted } = await supabaseAdmin
+        .from("deleted_user_blacklist")
+        .select("email")
+        .eq("email", inviteEmail)
+        .maybeSingle();
+
+      if (blacklisted) {
+        return new Response(JSON.stringify({ 
+          error: "This email is blacklisted and cannot be invited",
+          code: "EMAIL_BLACKLISTED"
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Create invite link
+      const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(inviteEmail, {
+        redirectTo: redirectUrl || `${Deno.env.get("SUPABASE_URL")}/auth/v1/callback`,
+        data: { invited_by: requestingUser.id, assigned_role: role || "user" }
+      });
+
+      if (error) throw error;
+
+      // Create user role entry for the invited user
+      if (data?.user) {
+        await supabaseAdmin.from("user_roles").upsert({
+          user_id: data.user.id,
+          role: role || "user"
+        }, { onConflict: "user_id" });
+      }
+
+      console.log(`Invitation sent to ${inviteEmail} by admin ${requestingUser.email}`);
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        email: inviteEmail,
+        message: "Invitation sent successfully"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // CRITICAL: Check if target user is owner - NEVER allow changes to owner
     const { data: targetUserRole } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     // Protection: Cannot modify owner role in any way
     if (targetUserRole?.role === "owner") {
@@ -206,6 +259,91 @@ serve(async (req) => {
           success: true, 
           email: userData.user.email,
           message: "Password reset link generated"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "resendVerification": {
+        // Get user email first
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userError || !userData?.user?.email) {
+          throw new Error("Could not find user email");
+        }
+
+        // Use invite to resend verification - this will send a new email
+        const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(userData.user.email, {
+          redirectTo: redirectUrl || `${Deno.env.get("SUPABASE_URL")}/auth/v1/callback`,
+        });
+
+        if (error) {
+          // If user already exists, try to generate a magic link instead
+          const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: "magiclink",
+            email: userData.user.email,
+          });
+          
+          if (linkError) throw linkError;
+          
+          console.log(`Magic link generated for verification: ${userData.user.email}`);
+          
+          return new Response(JSON.stringify({ 
+            success: true, 
+            email: userData.user.email,
+            message: "Verification link generated"
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        console.log(`Verification email resent to: ${userData.user.email}`);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          email: userData.user.email,
+          message: "Verification email resent"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "impersonate": {
+        // Get user email first
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userError || !userData?.user?.email) {
+          throw new Error("Could not find user email");
+        }
+
+        // Generate magic link for impersonation
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: "magiclink",
+          email: userData.user.email,
+          options: {
+            redirectTo: redirectUrl || "/",
+          },
+        });
+
+        if (error) throw error;
+
+        console.log(`SECURITY: Admin ${requestingUser.email} generated impersonation link for ${userData.user.email}`);
+
+        // Log this security event
+        await supabaseAdmin.from("activity_logs").insert({
+          user_id: requestingUser.id,
+          action: "admin_impersonate",
+          entity_type: "user",
+          entity_id: userId,
+          metadata: { 
+            target_email: userData.user.email,
+            admin_email: requestingUser.email 
+          }
+        });
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          email: userData.user.email,
+          link: data.properties?.action_link,
+          message: "Impersonation link generated"
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
