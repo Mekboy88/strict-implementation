@@ -20,6 +20,7 @@ import AdminSystemMonitoring from "./pages/AdminSystemMonitoring";
 import AdminCommunication from "./pages/AdminCommunication";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminAdvanced from "./pages/AdminAdvanced";
+import AdminSupport from "./pages/AdminSupport";
 import Index from "./pages/Index";
 import { GitHubCallback } from "./pages/GitHubCallback";
 import NotFound from "./pages/NotFound";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="projects" element={<AdminProjects />} />
+            <Route path="support" element={<AdminSupport />} />
             <Route path="roles" element={<AdminRoles />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="security" element={<AdminSecurity />} />
