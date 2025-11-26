@@ -85,6 +85,7 @@ const AdminSupport = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({
@@ -322,7 +323,8 @@ const AdminSupport = () => {
       ticket.message.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesType = typeFilter === "all" || ticket.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesPriority && matchesType;
   });
 
   // Stats calculations
@@ -505,6 +507,18 @@ const AdminSupport = () => {
               <SelectItem value="high">High</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="low">Low</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[150px] bg-neutral-700 border-neutral-600 text-white">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-700 border-neutral-600">
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="support">Support</SelectItem>
+              <SelectItem value="bug">Bug</SelectItem>
+              <SelectItem value="feature">Feature</SelectItem>
+              <SelectItem value="feedback">Feedback</SelectItem>
             </SelectContent>
           </Select>
         </div>
