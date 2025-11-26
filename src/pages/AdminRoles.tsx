@@ -759,7 +759,7 @@ const AdminRoles = () => {
                     value={activitySearch}
                     onChange={(e) => setActivitySearch(e.target.value)}
                     placeholder="Search activity logs..."
-                    className="pl-9 bg-neutral-900 border-neutral-600 text-white"
+                    className="pl-9 bg-neutral-600 border-neutral-500 text-white placeholder:text-neutral-300"
                   />
                 </div>
                 <Select value={activityFilter} onValueChange={setActivityFilter}>
