@@ -631,7 +631,7 @@ const AdminRoles = () => {
                 <Button 
                   variant="outline" 
                   onClick={fetchRoleCounts}
-                  className="border-neutral-600 text-white hover:bg-neutral-700"
+                  className="bg-neutral-600 border-neutral-500 text-white hover:bg-neutral-500"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh
@@ -639,7 +639,7 @@ const AdminRoles = () => {
                 <Button 
                   variant="outline" 
                   onClick={exportRolesToCSV}
-                  className="border-neutral-600 text-white hover:bg-neutral-700"
+                  className="bg-neutral-600 border-neutral-500 text-white hover:bg-neutral-500"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
