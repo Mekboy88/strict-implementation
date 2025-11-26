@@ -226,7 +226,7 @@ export function ExportProjectDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+            className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           >
             Cancel
           </Button>
