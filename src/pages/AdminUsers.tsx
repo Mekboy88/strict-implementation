@@ -114,13 +114,13 @@ const AdminUsers = () => {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'owner':
-        return { bg: '#4CB3FF30', text: '#4CB3FF', border: '#4CB3FF50' };
+        return 'bg-blue-500/30 text-blue-400 border-blue-500/50';
       case 'admin':
-        return { bg: '#10B98130', text: '#10B981', border: '#10B98150' };
+        return 'bg-green-500/30 text-green-400 border-green-500/50';
       case 'moderator':
-        return { bg: '#F59E0B30', text: '#F59E0B', border: '#F59E0B50' };
+        return 'bg-yellow-500/30 text-yellow-400 border-yellow-500/50';
       default:
-        return { bg: '#6B728030', text: '#9CA3AF', border: '#6B728050' };
+        return 'bg-neutral-500/30 text-white border-neutral-500/50';
     }
   };
 
@@ -143,65 +143,65 @@ const AdminUsers = () => {
         <h1 className="text-3xl font-bold text-white">
           User Management
         </h1>
-        <p className="text-sm mt-1 text-white/70">
+        <p className="text-sm mt-1 text-white">
           Manage all registered users and their roles
         </p>
       </div>
 
       <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Total Users</p>
-                <p className="text-2xl font-bold mt-1" style={{ color: "#D6E4F0" }}>
+                <p className="text-sm text-white">Total Users</p>
+                <p className="text-2xl font-bold mt-1 text-white">
                   {stats.totalUsers}
                 </p>
               </div>
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <Users className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <Users className="w-5 h-5 text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Owners</p>
-                <p className="text-2xl font-bold mt-1" style={{ color: "#D6E4F0" }}>
+                <p className="text-sm text-white">Owners</p>
+                <p className="text-2xl font-bold mt-1 text-white">
                   {stats.owners}
                 </p>
               </div>
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <Shield className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <Shield className="w-5 h-5 text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Admins</p>
-                <p className="text-2xl font-bold mt-1" style={{ color: "#D6E4F0" }}>
+                <p className="text-sm text-white">Admins</p>
+                <p className="text-2xl font-bold mt-1 text-white">
                   {stats.admins}
                 </p>
               </div>
-              <div className="p-2 rounded-lg" style={{ background: "#10B98120" }}>
-                <Shield className="w-5 h-5" style={{ color: "#10B981" }} />
+              <div className="p-2 rounded-lg bg-green-500/20">
+                <Shield className="w-5 h-5 text-green-400" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Regular Users</p>
-                <p className="text-2xl font-bold mt-1" style={{ color: "#D6E4F0" }}>
+                <p className="text-sm text-white">Regular Users</p>
+                <p className="text-2xl font-bold mt-1 text-white">
                   {stats.regular}
                 </p>
               </div>
-              <div className="p-2 rounded-lg" style={{ background: "#6B728020" }}>
-                <Users className="w-5 h-5" style={{ color: "#9CA3AF" }} />
+              <div className="p-2 rounded-lg bg-neutral-500/20">
+                <Users className="w-5 h-5 text-white" />
               </div>
             </div>
           </div>
@@ -210,58 +210,56 @@ const AdminUsers = () => {
 
       <div className="mb-6">
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: "#8FA3B7" }} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white" />
           <Input
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 border h-9 text-sm"
-            style={{ background: "#0B111A", borderColor: "#ffffff15", color: "#D6E4F0" }}
+            className="pl-9 border h-9 text-sm bg-neutral-700 border-neutral-600 text-white"
           />
         </div>
       </div>
 
-      <div className="rounded-lg border overflow-hidden" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+      <div className="rounded-lg border overflow-hidden bg-neutral-700 border-neutral-600">
         <Table>
           <TableHeader>
-            <TableRow style={{ borderColor: "#ffffff15" }}>
-              <TableHead style={{ color: "#8FA3B7" }}>
+            <TableRow className="border-neutral-600">
+              <TableHead className="text-white">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email
                 </div>
               </TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>
+              <TableHead className="text-white">
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   Role
                 </div>
               </TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>
+              <TableHead className="text-white">
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4" />
                   Status
                 </div>
               </TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Projects</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>
+              <TableHead className="text-white">Projects</TableHead>
+              <TableHead className="text-white">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Last Active
                 </div>
               </TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>
+              <TableHead className="text-white">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   Joined
                 </div>
               </TableHead>
-              <TableHead style={{ color: "#8FA3B7" }} className="text-right">Actions</TableHead>
+              <TableHead className="text-white text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredUsers.map((user) => {
-              const roleColors = getRoleBadgeColor(user.role);
               const isActive = user.email_confirmed_at;
               const lastActive = user.last_sign_in_at 
                 ? new Date(user.last_sign_in_at).toLocaleDateString('en-US', {
@@ -272,18 +270,13 @@ const AdminUsers = () => {
                 : 'Never';
               
               return (
-                <TableRow key={user.id} style={{ borderColor: "#ffffff15" }} className="hover:bg-[#ffffff05]">
-                  <TableCell style={{ color: "#D6E4F0" }} className="font-medium">
+                <TableRow key={user.id} className="border-neutral-600 hover:bg-neutral-600/50">
+                  <TableCell className="text-white font-medium">
                     {user.email}
                   </TableCell>
                   <TableCell>
                     <span
-                      className="px-3 py-1 rounded-full text-xs font-medium border"
-                      style={{
-                        background: roleColors.bg,
-                        color: roleColors.text,
-                        borderColor: roleColors.border,
-                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeColor(user.role)}`}
                     >
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </span>
@@ -291,21 +284,20 @@ const AdminUsers = () => {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: isActive ? "#10B981" : "#6B7280" }}
+                        className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-neutral-500'}`}
                       />
-                      <span style={{ color: isActive ? "#10B981" : "#6B7280" }} className="text-sm">
+                      <span className={`text-sm ${isActive ? 'text-green-400' : 'text-white'}`}>
                         {isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell style={{ color: "#8FA3B7" }}>
+                  <TableCell className="text-white">
                     {user.projectCount}
                   </TableCell>
-                  <TableCell style={{ color: "#8FA3B7" }} className="text-sm">
+                  <TableCell className="text-white text-sm">
                     {lastActive}
                   </TableCell>
-                  <TableCell style={{ color: "#8FA3B7" }} className="text-sm">
+                  <TableCell className="text-white text-sm">
                     {new Date(user.created_at).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
@@ -318,34 +310,29 @@ const AdminUsers = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="hover:bg-[#ffffff10]"
-                          style={{ color: "#D6E4F0" }}
+                          className="hover:bg-neutral-600 text-white"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="border z-50"
-                        style={{ background: "#0B111A", borderColor: "#ffffff15" }}
+                        className="border z-50 bg-neutral-700 border-neutral-600"
                       >
                         <DropdownMenuItem
-                          className="hover:bg-[#ffffff10] cursor-pointer"
-                          style={{ color: "#D6E4F0" }}
+                          className="hover:bg-neutral-600 cursor-pointer text-white"
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Edit Role
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="hover:bg-[#ffffff10] cursor-pointer"
-                          style={{ color: "#F59E0B" }}
+                          className="hover:bg-neutral-600 cursor-pointer text-yellow-400"
                         >
                           <Ban className="w-4 h-4 mr-2" />
                           Suspend User
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="hover:bg-[#ffffff10] cursor-pointer"
-                          style={{ color: "#EF4444" }}
+                          className="hover:bg-neutral-600 cursor-pointer text-red-400"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete User
@@ -361,8 +348,8 @@ const AdminUsers = () => {
 
         {filteredUsers.length === 0 && (
           <div className="text-center py-12">
-            <Users className="w-12 h-12 mx-auto mb-4" style={{ color: "#8FA3B7" }} />
-            <p style={{ color: "#8FA3B7" }}>
+            <Users className="w-12 h-12 mx-auto mb-4 text-white" />
+            <p className="text-white">
               {searchQuery ? "No users found matching your search" : "No users found"}
             </p>
           </div>

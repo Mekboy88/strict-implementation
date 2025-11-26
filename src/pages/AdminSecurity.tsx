@@ -160,17 +160,17 @@ const AdminSecurity = () => {
         <h1 className="text-3xl font-bold text-white">
           Security & Compliance
         </h1>
-        <p className="text-sm mt-2 text-white/70">
+        <p className="text-sm mt-2 text-white">
           Manage security settings, audit logs, and compliance features
         </p>
       </div>
 
       <Tabs defaultValue="audit" className="w-full">
-        <TabsList className="mb-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-          <TabsTrigger value="audit" style={{ color: "#D6E4F0" }}>Audit Logs</TabsTrigger>
-          <TabsTrigger value="settings" style={{ color: "#D6E4F0" }}>Security Settings</TabsTrigger>
-          <TabsTrigger value="privacy" style={{ color: "#D6E4F0" }}>Data Privacy</TabsTrigger>
-          <TabsTrigger value="backup" style={{ color: "#D6E4F0" }}>Backup Management</TabsTrigger>
+        <TabsList className="mb-6 bg-neutral-700 border-neutral-600">
+          <TabsTrigger value="audit" className="text-white data-[state=active]:bg-neutral-600">Audit Logs</TabsTrigger>
+          <TabsTrigger value="settings" className="text-white data-[state=active]:bg-neutral-600">Security Settings</TabsTrigger>
+          <TabsTrigger value="privacy" className="text-white data-[state=active]:bg-neutral-600">Data Privacy</TabsTrigger>
+          <TabsTrigger value="backup" className="text-white data-[state=active]:bg-neutral-600">Backup Management</TabsTrigger>
         </TabsList>
 
         {/* Audit Logs Tab */}
@@ -178,31 +178,31 @@ const AdminSecurity = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Complete Activity Log</h2>
-                <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>View all administrative and user actions</p>
+                <h2 className="text-xl font-semibold text-white">Complete Activity Log</h2>
+                <p className="text-sm mt-1 text-white">View all administrative and user actions</p>
               </div>
-              <Button variant="outline" onClick={handleExportData}>
+              <Button variant="outline" onClick={handleExportData} className="border-neutral-600 text-white hover:bg-neutral-700">
                 <Download className="w-4 h-4 mr-2" />
                 Export Logs
               </Button>
             </div>
 
-            <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
+            <div className="rounded-lg border bg-neutral-700 border-neutral-600">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Timestamp</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>User</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Action</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Details</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>IP Address</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Timestamp</TableHead>
+                    <TableHead className="text-white">User</TableHead>
+                    <TableHead className="text-white">Action</TableHead>
+                    <TableHead className="text-white">Details</TableHead>
+                    <TableHead className="text-white">IP Address</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {auditLogs.map((log) => (
-                    <TableRow key={log.id} style={{ borderColor: "#ffffff15" }}>
-                      <TableCell style={{ color: "#D6E4F0" }}>{log.timestamp}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{log.user}</TableCell>
+                    <TableRow key={log.id} className="border-neutral-600">
+                      <TableCell className="text-white">{log.timestamp}</TableCell>
+                      <TableCell className="text-white">{log.user}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded text-xs ${
                           log.action.includes('Failed') ? 'bg-red-500/20 text-red-400' :
@@ -212,8 +212,8 @@ const AdminSecurity = () => {
                           {log.action}
                         </span>
                       </TableCell>
-                      <TableCell style={{ color: "#8FA3B7" }}>{log.details}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{log.ip}</TableCell>
+                      <TableCell className="text-white">{log.details}</TableCell>
+                      <TableCell className="text-white">{log.ip}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -224,14 +224,14 @@ const AdminSecurity = () => {
 
         {/* Security Settings Tab */}
         <TabsContent value="settings">
-          <div className="rounded-lg border p-6 space-y-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-            <div className="flex items-start gap-4 p-4 rounded-lg" style={{ background: "#4CB3FF20", borderColor: "#4CB3FF", borderWidth: "1px" }}>
-              <Shield className="w-6 h-6 mt-0.5" style={{ color: "#4CB3FF" }} />
+          <div className="rounded-lg border p-6 space-y-6 bg-neutral-700 border-neutral-600">
+            <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-500/20 border border-blue-500">
+              <Shield className="w-6 h-6 mt-0.5 text-blue-400" />
               <div className="flex-1">
-                <h3 className="font-semibold mb-1" style={{ color: "#D6E4F0" }}>
+                <h3 className="font-semibold mb-1 text-white">
                   Security Configuration
                 </h3>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>
+                <p className="text-sm text-white">
                   Configure IP restrictions, rate limiting, CORS, and API authentication
                 </p>
               </div>
@@ -239,63 +239,63 @@ const AdminSecurity = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>IP Whitelist</Label>
+                <Label className="text-white">IP Whitelist</Label>
                 <Textarea
                   value={ipWhitelist}
                   onChange={(e) => setIpWhitelist(e.target.value)}
                   rows={3}
                   placeholder="Enter IP addresses (one per line)..."
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>IP Blacklist</Label>
+                <Label className="text-white">IP Blacklist</Label>
                 <Textarea
                   value={ipBlacklist}
                   onChange={(e) => setIpBlacklist(e.target.value)}
                   rows={3}
                   placeholder="Enter blocked IP addresses (one per line)..."
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label style={{ color: "#D6E4F0" }}>Rate Limit (Per Minute)</Label>
+                  <Label className="text-white">Rate Limit (Per Minute)</Label>
                   <Input
                     type="number"
                     value={rateLimitPerMinute}
                     onChange={(e) => setRateLimitPerMinute(Number(e.target.value))}
-                    style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                    className="bg-neutral-800 border-neutral-600 text-white"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label style={{ color: "#D6E4F0" }}>Rate Limit (Per Hour)</Label>
+                  <Label className="text-white">Rate Limit (Per Hour)</Label>
                   <Input
                     type="number"
                     value={rateLimitPerHour}
                     onChange={(e) => setRateLimitPerHour(Number(e.target.value))}
-                    style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                    className="bg-neutral-800 border-neutral-600 text-white"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>CORS Allowed Origins</Label>
+                <Label className="text-white">CORS Allowed Origins</Label>
                 <Input
                   value={corsOrigins}
                   onChange={(e) => setCorsOrigins(e.target.value)}
                   placeholder="*"
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg" style={{ background: "#0A0F17" }}>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800">
                 <div>
-                  <Label style={{ color: "#D6E4F0" }}>Enable API Key Authentication</Label>
-                  <p className="text-sm" style={{ color: "#8FA3B7" }}>Require API keys for external requests</p>
+                  <Label className="text-white">Enable API Key Authentication</Label>
+                  <p className="text-sm text-white">Require API keys for external requests</p>
                 </div>
                 <Switch
                   checked={enableApiKeyAuth}
@@ -303,7 +303,7 @@ const AdminSecurity = () => {
                 />
               </div>
 
-              <Button onClick={handleSaveSettings} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+              <Button onClick={handleSaveSettings} className="bg-blue-500 hover:bg-blue-600 text-white">
                 <Save className="w-4 h-4 mr-2" />
                 Save Security Settings
               </Button>
@@ -313,24 +313,24 @@ const AdminSecurity = () => {
 
         {/* Data Privacy Tab */}
         <TabsContent value="privacy">
-          <div className="rounded-lg border p-6 space-y-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-            <div className="flex items-start gap-4 p-4 rounded-lg" style={{ background: "#4CB3FF20", borderColor: "#4CB3FF", borderWidth: "1px" }}>
-              <AlertTriangle className="w-6 h-6 mt-0.5" style={{ color: "#4CB3FF" }} />
+          <div className="rounded-lg border p-6 space-y-6 bg-neutral-700 border-neutral-600">
+            <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-500/20 border border-blue-500">
+              <AlertTriangle className="w-6 h-6 mt-0.5 text-blue-400" />
               <div className="flex-1">
-                <h3 className="font-semibold mb-1" style={{ color: "#D6E4F0" }}>
+                <h3 className="font-semibold mb-1 text-white">
                   GDPR & Privacy Compliance
                 </h3>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>
+                <p className="text-sm text-white">
                   Configure data protection and privacy settings
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg" style={{ background: "#0A0F17" }}>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800">
                 <div>
-                  <Label style={{ color: "#D6E4F0" }}>Enable GDPR Compliance</Label>
-                  <p className="text-sm" style={{ color: "#8FA3B7" }}>Enforce GDPR data protection rules</p>
+                  <Label className="text-white">Enable GDPR Compliance</Label>
+                  <p className="text-sm text-white">Enforce GDPR data protection rules</p>
                 </div>
                 <Switch
                   checked={enableGDPR}
@@ -339,29 +339,29 @@ const AdminSecurity = () => {
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Data Retention (Days)</Label>
+                <Label className="text-white">Data Retention (Days)</Label>
                 <Input
                   type="number"
                   value={dataRetentionDays}
                   onChange={(e) => setDataRetentionDays(Number(e.target.value))}
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Privacy Policy URL</Label>
+                <Label className="text-white">Privacy Policy URL</Label>
                 <Input
                   value={privacyPolicyUrl}
                   onChange={(e) => setPrivacyPolicyUrl(e.target.value)}
                   placeholder="https://youaredev.dev/privacy"
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg" style={{ background: "#0A0F17" }}>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800">
                 <div>
-                  <Label style={{ color: "#D6E4F0" }}>Enable Cookie Consent Banner</Label>
-                  <p className="text-sm" style={{ color: "#8FA3B7" }}>Show cookie consent popup to users</p>
+                  <Label className="text-white">Enable Cookie Consent Banner</Label>
+                  <p className="text-sm text-white">Show cookie consent popup to users</p>
                 </div>
                 <Switch
                   checked={enableCookieConsent}
@@ -369,10 +369,10 @@ const AdminSecurity = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-lg" style={{ background: "#0A0F17" }}>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800">
                 <div>
-                  <Label style={{ color: "#D6E4F0" }}>Auto-Delete Inactive Accounts</Label>
-                  <p className="text-sm" style={{ color: "#8FA3B7" }}>Remove accounts inactive for 1+ year</p>
+                  <Label className="text-white">Auto-Delete Inactive Accounts</Label>
+                  <p className="text-sm text-white">Remove accounts inactive for 1+ year</p>
                 </div>
                 <Switch
                   checked={autoDeleteInactive}
@@ -380,12 +380,12 @@ const AdminSecurity = () => {
                 />
               </div>
 
-              <Button onClick={handleExportData} variant="outline">
+              <Button onClick={handleExportData} variant="outline" className="border-neutral-600 text-white hover:bg-neutral-600">
                 <Download className="w-4 h-4 mr-2" />
                 Export User Data (GDPR Request)
               </Button>
 
-              <Button onClick={handleSaveSettings} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+              <Button onClick={handleSaveSettings} className="bg-blue-500 hover:bg-blue-600 text-white">
                 Save Privacy Settings
               </Button>
             </div>
@@ -394,32 +394,31 @@ const AdminSecurity = () => {
 
         {/* Backup Management Tab */}
         <TabsContent value="backup">
-          <div className="rounded-lg border p-6 space-y-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-            <div className="flex items-start gap-4 p-4 rounded-lg" style={{ background: "#4CB3FF20", borderColor: "#4CB3FF", borderWidth: "1px" }}>
-              <RefreshCw className="w-6 h-6 mt-0.5" style={{ color: "#4CB3FF" }} />
+          <div className="rounded-lg border p-6 space-y-6 bg-neutral-700 border-neutral-600">
+            <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-500/20 border border-blue-500">
+              <RefreshCw className="w-6 h-6 mt-0.5 text-blue-400" />
               <div className="flex-1">
-                <h3 className="font-semibold mb-1" style={{ color: "#D6E4F0" }}>
+                <h3 className="font-semibold mb-1 text-white">
                   Database Backup & Restore
                 </h3>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>
+                <p className="text-sm text-white">
                   Configure automated backups and restoration
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-lg" style={{ background: "#0A0F17" }}>
-                <Label style={{ color: "#D6E4F0" }}>Last Backup</Label>
-                <p className="text-2xl font-semibold mt-2" style={{ color: "#4CB3FF" }}>{lastBackup}</p>
+              <div className="p-4 rounded-lg bg-neutral-800">
+                <Label className="text-white">Last Backup</Label>
+                <p className="text-2xl font-semibold mt-2 text-blue-400">{lastBackup}</p>
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Backup Schedule</Label>
+                <Label className="text-white">Backup Schedule</Label>
                 <select
                   value={backupSchedule}
                   onChange={(e) => setBackupSchedule(e.target.value)}
-                  className="w-full h-10 px-3 rounded-lg"
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0", border: "1px solid" }}
+                  className="w-full h-10 px-3 rounded-lg bg-neutral-800 border border-neutral-600 text-white"
                 >
                   <option value="hourly">Hourly</option>
                   <option value="daily">Daily</option>
@@ -429,20 +428,20 @@ const AdminSecurity = () => {
               </div>
 
               <div className="space-y-2">
-                <Label style={{ color: "#D6E4F0" }}>Backup Retention (Days)</Label>
+                <Label className="text-white">Backup Retention (Days)</Label>
                 <Input
                   type="number"
                   value={backupRetention}
                   onChange={(e) => setBackupRetention(Number(e.target.value))}
-                  style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                  className="bg-neutral-800 border-neutral-600 text-white"
                 />
               </div>
 
               <div className="flex gap-4">
-                <Button onClick={handleBackupNow} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                <Button onClick={handleBackupNow} className="bg-blue-500 hover:bg-blue-600 text-white">
                   Backup Now
                 </Button>
-                <Button onClick={handleRestoreBackup} variant="outline">
+                <Button onClick={handleRestoreBackup} variant="outline" className="border-neutral-600 text-white hover:bg-neutral-600">
                   <AlertTriangle className="w-4 h-4 mr-2" />
                   Restore from Backup
                 </Button>

@@ -187,57 +187,57 @@ const AdminProjects = () => {
         <h1 className="text-3xl font-bold text-white">
           Project Management
         </h1>
-        <p className="text-sm mt-1 text-white/70">
+        <p className="text-sm mt-1 text-white">
           Manage all projects across the platform
         </p>
       </div>
 
       <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <FolderOpen className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <FolderOpen className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Total Projects</p>
-                <p className="text-2xl font-bold" style={{ color: "#D6E4F0" }}>{stats.totalProjects}</p>
+                <p className="text-sm text-white">Total Projects</p>
+                <p className="text-2xl font-bold text-white">{stats.totalProjects}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <TrendingUp className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <TrendingUp className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Active (30d)</p>
-                <p className="text-2xl font-bold" style={{ color: "#4CB3FF" }}>{stats.activeProjects}</p>
+                <p className="text-sm text-white">Active (30d)</p>
+                <p className="text-2xl font-bold text-blue-400">{stats.activeProjects}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <HardDrive className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <HardDrive className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Total Storage</p>
-                <p className="text-2xl font-bold" style={{ color: "#D6E4F0" }}>{formatStorage(stats.totalStorage)}</p>
+                <p className="text-sm text-white">Total Storage</p>
+                <p className="text-2xl font-bold text-white">{formatStorage(stats.totalStorage)}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+          <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg" style={{ background: "#4CB3FF20" }}>
-                <Clock className="w-5 h-5" style={{ color: "#4CB3FF" }} />
+              <div className="p-2 rounded-lg bg-blue-500/20">
+                <Clock className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm" style={{ color: "#8FA3B7" }}>Recent (7d)</p>
-                <p className="text-2xl font-bold" style={{ color: "#4CB3FF" }}>{stats.recentlyModified}</p>
+                <p className="text-sm text-white">Recent (7d)</p>
+                <p className="text-2xl font-bold text-blue-400">{stats.recentlyModified}</p>
               </div>
             </div>
           </div>
@@ -246,77 +246,75 @@ const AdminProjects = () => {
 
       <div className="mb-6">
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: "#8FA3B7" }} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white" />
           <Input
             type="text"
             placeholder="Search projects or owners..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm"
-            style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+            className="pl-9 h-9 text-sm bg-neutral-700 border-neutral-600 text-white"
           />
         </div>
       </div>
 
-      <div className="rounded-lg border overflow-hidden" style={{ borderColor: "#ffffff15" }}>
+      <div className="rounded-lg border overflow-hidden bg-neutral-700 border-neutral-600">
         <Table>
           <TableHeader>
-            <TableRow style={{ borderColor: "#ffffff15" }}>
-              <TableHead style={{ color: "#8FA3B7" }}>Project Name</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Owner</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Files</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Storage</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Created</TableHead>
-              <TableHead style={{ color: "#8FA3B7" }}>Last Modified</TableHead>
-              <TableHead style={{ color: "#8FA3B7", textAlign: "right" }}>Actions</TableHead>
+            <TableRow className="border-neutral-600">
+              <TableHead className="text-white">Project Name</TableHead>
+              <TableHead className="text-white">Owner</TableHead>
+              <TableHead className="text-white">Files</TableHead>
+              <TableHead className="text-white">Storage</TableHead>
+              <TableHead className="text-white">Created</TableHead>
+              <TableHead className="text-white">Last Modified</TableHead>
+              <TableHead className="text-white text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProjects.map((project) => (
               <TableRow 
                 key={project.id}
-                className="hover:bg-[#ffffff05]"
-                style={{ borderColor: "#ffffff15" }}
+                className="hover:bg-neutral-600/50 border-neutral-600"
               >
-                <TableCell style={{ color: "#D6E4F0" }}>
+                <TableCell className="text-white">
                   <div>
                     <p className="font-medium">{project.name}</p>
                     {project.description && (
-                      <p className="text-xs" style={{ color: "#8FA3B7" }}>{project.description}</p>
+                      <p className="text-xs text-white">{project.description}</p>
                     )}
                   </div>
                 </TableCell>
-                <TableCell style={{ color: "#8FA3B7" }}>{project.ownerEmail}</TableCell>
-                <TableCell style={{ color: "#D6E4F0" }}>{project.fileCount}</TableCell>
-                <TableCell style={{ color: "#D6E4F0" }}>{formatStorage(project.storageSize || 0)}</TableCell>
-                <TableCell style={{ color: "#8FA3B7" }}>{formatDate(project.created_at)}</TableCell>
-                <TableCell style={{ color: "#8FA3B7" }}>{formatDate(project.updated_at)}</TableCell>
-                <TableCell style={{ textAlign: "right" }}>
+                <TableCell className="text-white">{project.ownerEmail}</TableCell>
+                <TableCell className="text-white">{project.fileCount}</TableCell>
+                <TableCell className="text-white">{formatStorage(project.storageSize || 0)}</TableCell>
+                <TableCell className="text-white">{formatDate(project.created_at)}</TableCell>
+                <TableCell className="text-white">{formatDate(project.updated_at)}</TableCell>
+                <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" style={{ color: "#8FA3B7" }} />
+                      <Button variant="ghost" className="h-8 w-8 p-0 text-white hover:bg-neutral-600">
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                      <DropdownMenuItem style={{ color: "#D6E4F0" }}>
+                    <DropdownMenuContent align="end" className="bg-neutral-700 border-neutral-600">
+                      <DropdownMenuItem className="text-white hover:bg-neutral-600">
                         <Eye className="mr-2 h-4 w-4" />
                         View Project
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleExportProject(project.id, project.name)}
-                        style={{ color: "#D6E4F0" }}
+                        className="text-white hover:bg-neutral-600"
                       >
                         <Download className="mr-2 h-4 w-4" />
                         Export Project
                       </DropdownMenuItem>
-                      <DropdownMenuItem style={{ color: "#D6E4F0" }}>
+                      <DropdownMenuItem className="text-white hover:bg-neutral-600">
                         <UserPlus className="mr-2 h-4 w-4" />
                         Transfer Ownership
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDeleteProject(project.id, project.name)}
-                        style={{ color: "#ef4444" }}
+                        className="text-red-400 hover:bg-neutral-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete Project
