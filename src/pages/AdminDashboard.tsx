@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -131,12 +131,22 @@ const AdminDashboard = () => {
     securityAlertsEnabled: 0,
     billingAlertsEnabled: 0,
     projectUpdatesEnabled: 0,
+    // Admin Alerts Metrics
+    totalAdminAlerts: 0,
+    unresolvedAlerts: 0,
+    resolvedAlerts: 0,
+    alertsToday: 0,
+    alertsThisWeek: 0,
+    criticalAlerts: 0,
+    warningAlerts: 0,
+    infoAlerts: 0,
+    topAlertType: 'N/A',
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -163,6 +173,7 @@ const AdminDashboard = () => {
         supabase.from('security_blocks').select('*'),
         supabase.from('notifications').select('*'),
         supabase.from('notification_preferences').select('*'),
+        supabase.from('admin_alerts').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -191,6 +202,7 @@ const AdminDashboard = () => {
       const securityBlocks = securityBlocksRes.data || [];
       const notifications = notificationsRes.data || [];
       const notificationPrefs = notificationPrefsRes.data || [];
+      const adminAlerts = adminAlertsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -384,6 +396,25 @@ const AdminDashboard = () => {
       const billingAlertsEnabled = notificationPrefs.filter(p => p.billing_alerts).length;
       const projectUpdatesEnabled = notificationPrefs.filter(p => p.project_updates).length;
 
+      // Calculate Admin Alerts metrics
+      const totalAdminAlerts = adminAlerts.length;
+      const unresolvedAlerts = adminAlerts.filter(a => !a.is_resolved).length;
+      const resolvedAlerts = adminAlerts.filter(a => a.is_resolved).length;
+      const alertsToday = adminAlerts.filter(a => new Date(a.created_at) >= today).length;
+      const alertsThisWeek = adminAlerts.filter(a => new Date(a.created_at) >= sevenDaysAgo).length;
+      const criticalAlerts = adminAlerts.filter(a => a.severity === 'critical' || a.severity === 'error').length;
+      const warningAlerts = adminAlerts.filter(a => a.severity === 'warning' || a.severity === 'warn').length;
+      const infoAlerts = adminAlerts.filter(a => a.severity === 'info').length;
+      
+      // Find top alert type
+      const alertTypeCounts: Record<string, number> = {};
+      adminAlerts.forEach(a => {
+        const type = a.alert_type || 'unknown';
+        alertTypeCounts[type] = (alertTypeCounts[type] || 0) + 1;
+      });
+      const topAlertType = Object.entries(alertTypeCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -573,6 +604,16 @@ const AdminDashboard = () => {
         securityAlertsEnabled,
         billingAlertsEnabled,
         projectUpdatesEnabled,
+        // Admin Alerts
+        totalAdminAlerts,
+        unresolvedAlerts,
+        resolvedAlerts,
+        alertsToday,
+        alertsThisWeek,
+        criticalAlerts,
+        warningAlerts,
+        infoAlerts,
+        topAlertType,
       });
 
       setLoading(false);
@@ -1494,6 +1535,80 @@ const AdminDashboard = () => {
             </div>
             <p className="text-3xl font-bold text-indigo-400">{stats.projectUpdatesEnabled}</p>
             <p className="text-xs mt-1 text-white/70">Project notifications</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Alerts Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Megaphone className="w-5 h-5 text-red-400" />
+          <h2 className="text-xl font-semibold text-white">Admin Alerts</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Total Alerts</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.totalAdminAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.alertsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertOctagon className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Unresolved</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.unresolvedAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">Needs attention</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCheck className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Resolved</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.resolvedAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">Handled alerts</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.alertsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Critical</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.criticalAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">High severity</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Warnings</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.warningAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">Medium severity</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Info</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.infoAlerts}</p>
+            <p className="text-xs mt-1 text-white/70">Low severity</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Top Alert Type</p>
+            </div>
+            <p className="text-lg font-bold text-purple-400 truncate">{stats.topAlertType}</p>
+            <p className="text-xs mt-1 text-white/70">Most common alert</p>
           </div>
         </div>
       </div>
