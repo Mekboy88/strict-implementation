@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -73,17 +73,22 @@ const AdminDashboard = () => {
     storageLimit: 100,
     largestBucket: '',
     recentUploads: 0,
-    // AI Usage (placeholder)
-    totalAIRequests: 15420,
-    aiRequestsToday: 342,
-    mostUsedModel: 'gpt-4o',
-    avgResponseTime: 1.8,
+    // AI Usage Metrics
+    totalAIRequests: 0,
+    aiRequestsToday: 0,
+    aiRequestsThisWeek: 0,
+    totalTokensUsed: 0,
+    totalAICost: 0,
+    mostUsedModel: 'N/A',
+    avgResponseTime: 0,
+    uniqueAIUsers: 0,
+    aiConfigs: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -97,6 +102,9 @@ const AdminDashboard = () => {
         supabase.from('storage_usage').select('*'),
         supabase.from('storage_buckets').select('*'),
         supabase.from('storage_objects').select('*'),
+        supabase.from('ai_usage').select('*'),
+        supabase.from('ai_logs').select('*'),
+        supabase.from('ai_config').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -112,6 +120,9 @@ const AdminDashboard = () => {
       const storageUsage = storageUsageRes.data || [];
       const storageBuckets = storageBucketsRes.data || [];
       const storageObjects = storageObjectsRes.data || [];
+      const aiUsage = aiUsageRes.data || [];
+      const aiLogs = aiLogsRes.data || [];
+      const aiConfig = aiConfigRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -193,6 +204,33 @@ const AdminDashboard = () => {
         count: storageObjects.filter(o => o.bucket_id === bucket.id).length
       }));
       const largestBucket = bucketObjectCounts.sort((a, b) => b.count - a.count)[0]?.name || 'N/A';
+
+      // Calculate AI usage metrics
+      const totalAIRequests = aiUsage.length + aiLogs.length;
+      const aiRequestsToday = [...aiUsage, ...aiLogs].filter(r => new Date(r.created_at) >= today).length;
+      const aiRequestsThisWeek = [...aiUsage, ...aiLogs].filter(r => new Date(r.created_at) >= sevenDaysAgo).length;
+      const totalTokensUsed = aiUsage.reduce((sum, r) => sum + (r.tokens_used || 0), 0) + 
+                              aiLogs.reduce((sum, r) => sum + (r.tokens_used || 0), 0);
+      const totalAICost = aiUsage.reduce((sum, r) => sum + Number(r.request_cost || 0), 0);
+      const avgResponseTime = aiLogs.length > 0
+        ? aiLogs.reduce((sum, r) => sum + (r.duration_ms || 0), 0) / aiLogs.length / 1000
+        : 0;
+      
+      // Find most used model
+      const modelCounts: Record<string, number> = {};
+      [...aiUsage, ...aiLogs].forEach(r => {
+        const model = r.model_id || 'unknown';
+        modelCounts[model] = (modelCounts[model] || 0) + 1;
+      });
+      const mostUsedModel = Object.entries(modelCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+      
+      // Count unique AI users
+      const uniqueAIUsers = new Set([
+        ...aiUsage.map(r => r.user_id),
+        ...aiLogs.map(r => r.user_id)
+      ]).size;
+      const aiConfigs = aiConfig.length;
 
       // Build recent activity feed
       const activities: ActivityItem[] = [];
@@ -327,10 +365,15 @@ const AdminDashboard = () => {
         storageLimit: 100,
         largestBucket,
         recentUploads,
-        totalAIRequests: 15420,
-        aiRequestsToday: 342,
-        mostUsedModel: 'gpt-4o',
-        avgResponseTime: 1.8,
+        totalAIRequests,
+        aiRequestsToday,
+        aiRequestsThisWeek,
+        totalTokensUsed,
+        totalAICost,
+        mostUsedModel,
+        avgResponseTime,
+        uniqueAIUsers,
+        aiConfigs,
       });
 
       setLoading(false);
@@ -839,28 +882,61 @@ const AdminDashboard = () => {
       {/* AI Usage Section */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <Cpu className="w-5 h-5 text-blue-400" />
+          <Brain className="w-5 h-5 text-purple-400" />
           <h2 className="text-xl font-semibold text-white">AI Usage</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
-            <p className="text-sm mb-2 text-white">Total Requests</p>
-            <p className="text-3xl font-bold text-white">{stats.totalAIRequests.toLocaleString()}</p>
-            <p className="text-xs mt-1 text-white">All time</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Total Requests</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.totalAIRequests.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.aiRequestsThisWeek} this week</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Requests Today</p>
             <p className="text-3xl font-bold text-blue-400">+{stats.aiRequestsToday}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.uniqueAIUsers} unique users</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Cpu className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Tokens Used</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.totalTokensUsed.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">Total tokens consumed</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Coins className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Total Cost</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">${stats.totalAICost.toFixed(4)}</p>
+            <p className="text-xs mt-1 text-white/70">All time AI spend</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Most Used Model</p>
-            <p className="text-2xl font-bold text-white">{stats.mostUsedModel}</p>
-            <p className="text-xs mt-1 text-white">Primary model</p>
+            <p className="text-xl font-bold text-white truncate">{stats.mostUsedModel}</p>
+            <p className="text-xs mt-1 text-white/70">Primary model</p>
           </div>
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
-            <p className="text-sm mb-2 text-white">Avg Response Time</p>
-            <p className="text-3xl font-bold text-white">{stats.avgResponseTime}s</p>
-            <p className="text-xs mt-1 text-white">Per request</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Avg Response Time</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.avgResponseTime.toFixed(2)}s</p>
+            <p className="text-xs mt-1 text-white/70">Per request</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Unique AI Users</p>
+            <p className="text-3xl font-bold text-white">{stats.uniqueAIUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with AI activity</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">AI Configurations</p>
+            <p className="text-3xl font-bold text-white">{stats.aiConfigs}</p>
+            <p className="text-xs mt-1 text-white/70">Custom AI configs</p>
           </div>
         </div>
       </div>
