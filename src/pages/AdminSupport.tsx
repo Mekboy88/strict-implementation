@@ -49,6 +49,12 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
+interface AdminUser {
+  id: string;
+  email: string;
+  full_name: string | null;
+}
+
 interface SupportTicket {
   id: string;
   subject: string;
@@ -64,6 +70,7 @@ interface SupportTicket {
   resolved_at: string | null;
   projectName?: string;
   userEmail?: string;
+  assignedAdminName?: string;
 }
 
 interface AIMessage {
@@ -88,6 +95,7 @@ const AdminSupport = () => {
     project_id: "",
   });
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
   
   // AI Chat state
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
@@ -98,6 +106,7 @@ const AdminSupport = () => {
   useEffect(() => {
     fetchTickets();
     fetchProjects();
+    fetchAdmins();
   }, []);
 
   useEffect(() => {
@@ -115,11 +124,12 @@ const AdminSupport = () => {
       toast.error("Failed to fetch support tickets");
       console.error(error);
     } else {
-      // Fetch project names and user emails
+      // Fetch project names and assigned admin names
       const ticketsWithDetails = await Promise.all(
         (data || []).map(async (ticket) => {
           let projectName = "";
           let userEmail = "";
+          let assignedAdminName = "";
           
           if (ticket.project_id) {
             const { data: project } = await supabase
@@ -129,8 +139,17 @@ const AdminSupport = () => {
               .single();
             projectName = project?.name || "";
           }
+
+          if (ticket.assigned_to) {
+            const { data: profile } = await supabase
+              .from("user_profiles")
+              .select("full_name")
+              .eq("id", ticket.assigned_to)
+              .single();
+            assignedAdminName = profile?.full_name || "Unknown";
+          }
           
-          return { ...ticket, projectName, userEmail };
+          return { ...ticket, projectName, userEmail, assignedAdminName };
         })
       );
       setTickets(ticketsWithDetails);
@@ -141,6 +160,52 @@ const AdminSupport = () => {
   const fetchProjects = async () => {
     const { data } = await supabase.from("projects").select("id, name").limit(100);
     setProjects(data || []);
+  };
+
+  const fetchAdmins = async () => {
+    // Get admin user IDs from user_roles
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["admin", "owner"]);
+    
+    if (adminRoles && adminRoles.length > 0) {
+      const adminIds = adminRoles.map(r => r.user_id);
+      // Get admin profiles
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .in("id", adminIds);
+      
+      const adminList: AdminUser[] = (profiles || []).map(p => ({
+        id: p.id,
+        email: "", // We don't have email in profiles, will show name instead
+        full_name: p.full_name
+      }));
+      setAdmins(adminList);
+    }
+  };
+
+  const assignTicket = async (ticketId: string, adminId: string | null) => {
+    const { error } = await supabase
+      .from("feedback")
+      .update({ assigned_to: adminId })
+      .eq("id", ticketId);
+
+    if (error) {
+      toast.error("Failed to assign ticket");
+    } else {
+      toast.success(adminId ? "Ticket assigned" : "Ticket unassigned");
+      fetchTickets();
+      if (selectedTicket?.id === ticketId) {
+        const admin = admins.find(a => a.id === adminId);
+        setSelectedTicket({ 
+          ...selectedTicket, 
+          assigned_to: adminId,
+          assignedAdminName: admin?.full_name || undefined
+        });
+      }
+    }
   };
 
   const createTicket = async () => {
@@ -513,7 +578,7 @@ const AdminSupport = () => {
                     <h2 className="text-lg font-semibold text-white mb-1">
                       {selectedTicket.subject}
                     </h2>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <Badge className={getPriorityColor(selectedTicket.priority)}>
                         {selectedTicket.priority}
                       </Badge>
@@ -534,6 +599,27 @@ const AdminSupport = () => {
                           {selectedTicket.projectName}
                         </span>
                       )}
+                    </div>
+                    {/* Assign to Admin */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <User className="w-4 h-4 text-neutral-400" />
+                      <span className="text-neutral-400 text-sm">Assigned to:</span>
+                      <Select
+                        value={selectedTicket.assigned_to || "unassigned"}
+                        onValueChange={(v) => assignTicket(selectedTicket.id, v === "unassigned" ? null : v)}
+                      >
+                        <SelectTrigger className="w-[180px] h-8 bg-neutral-700 border-neutral-600 text-white text-sm">
+                          <SelectValue placeholder="Unassigned" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {admins.map((admin) => (
+                            <SelectItem key={admin.id} value={admin.id}>
+                              {admin.full_name || "Admin"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <DropdownMenu>
