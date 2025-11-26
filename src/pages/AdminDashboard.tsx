@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2 } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -98,12 +98,17 @@ const AdminDashboard = () => {
     activeSupabaseIntegrations: 0,
     recentSupabaseConnections: 0,
     uniqueSupabaseProjects: 0,
+    // Stripe Integration Metrics
+    totalStripeIntegrations: 0,
+    activeStripeIntegrations: 0,
+    stripeWithWebhooks: 0,
+    recentStripeConnections: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -124,6 +129,7 @@ const AdminDashboard = () => {
         supabase.from('api_requests').select('*'),
         supabase.from('api_access').select('*'),
         supabase.from('integrations_supabase').select('*'),
+        supabase.from('integrations_stripe').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -146,6 +152,7 @@ const AdminDashboard = () => {
       const apiRequests = apiRequestsRes.data || [];
       const apiAccess = apiAccessRes.data || [];
       const supabaseIntegrations = supabaseIntegrationsRes.data || [];
+      const stripeIntegrations = stripeIntegrationsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -284,6 +291,13 @@ const AdminDashboard = () => {
       const activeSupabaseIntegrations = supabaseIntegrations.filter(i => i.is_active).length;
       const recentSupabaseConnections = supabaseIntegrations.filter(i => new Date(i.connected_at) >= sevenDaysAgo).length;
       const uniqueSupabaseProjects = new Set(supabaseIntegrations.map(i => i.project_id)).size;
+
+      // Calculate Stripe integration metrics
+      const totalStripeIntegrations = stripeIntegrations.length;
+      const activeStripeIntegrations = stripeIntegrations.filter(i => i.is_active).length;
+      const stripeWithWebhooks = stripeIntegrations.filter(i => i.webhook_secret).length;
+      const recentStripeConnections = stripeIntegrations.filter(i => new Date(i.connected_at) >= sevenDaysAgo).length;
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -440,6 +454,11 @@ const AdminDashboard = () => {
         activeSupabaseIntegrations,
         recentSupabaseConnections,
         uniqueSupabaseProjects,
+        // Stripe Integration
+        totalStripeIntegrations,
+        activeStripeIntegrations,
+        stripeWithWebhooks,
+        recentStripeConnections,
       });
 
       setLoading(false);
@@ -1118,6 +1137,48 @@ const AdminDashboard = () => {
             </div>
             <p className="text-3xl font-bold text-purple-400">{stats.uniqueSupabaseProjects}</p>
             <p className="text-xs mt-1 text-white/70">Projects with Supabase</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stripe Integration Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Stripe Integration</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Total Integrations</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.totalStripeIntegrations}</p>
+            <p className="text-xs mt-1 text-white/70">Stripe connections</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active Integrations</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeStripeIntegrations}</p>
+            <p className="text-xs mt-1 text-white/70">Currently active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Webhook className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">With Webhooks</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.stripeWithWebhooks}</p>
+            <p className="text-xs mt-1 text-white/70">Webhook configured</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Recent Connections</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">+{stats.recentStripeConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
           </div>
         </div>
       </div>
