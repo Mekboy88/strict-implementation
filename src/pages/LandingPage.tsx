@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCard, Briefcase, Bell, ListTodo } from "lucide-react";
+import { Mail, Github, Settings, LogOut, User, HelpCircle, Sun, Users, CreditCard, Briefcase, Bell, ListTodo, Plug } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 
@@ -627,6 +627,10 @@ const UrDevLandingPage: React.FC = () => {
                       <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100 text-[10px] sm:text-[11px]">
                         <span className="text-xs">＋</span>
                         <span>Attach</span>
+                      </button>
+                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-purple-400/80 hover:text-purple-100 text-[10px] sm:text-[11px]">
+                        <Plug className="h-3 w-3" />
+                        <span>Integration</span>
                       </button>
                       <button 
                         onClick={() => setShowPlanWizard(true)}
