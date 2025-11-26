@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -37,6 +37,14 @@ const AdminDashboard = () => {
     pendingDeployments: 0,
     deploymentsToday: 0,
     deploymentSuccessRate: 0,
+    // Edge Function Metrics
+    totalEdgeFunctions: 0,
+    activeEdgeFunctions: 0,
+    totalInvocations: 0,
+    invocationsToday: 0,
+    edgeFunctionErrors: 0,
+    edgeFunctionErrorRate: 0,
+    avgEdgeFunctionDuration: 0,
     // System Health (placeholder data)
     serverStatus: 'healthy',
     databaseStatus: 'healthy',
@@ -56,13 +64,16 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
         supabase.from('billing_invoices').select('*'),
         supabase.from('billing_plans').select('*'),
         supabase.from('project_deployments').select('*'),
+        supabase.from('edge_functions').select('*'),
+        supabase.from('edge_logs').select('*'),
+        supabase.from('edge_errors').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -71,6 +82,9 @@ const AdminDashboard = () => {
       const invoices = invoicesRes.data || [];
       const plans = plansRes.data || [];
       const deployments = deploymentsRes.data || [];
+      const edgeFunctions = edgeFunctionsRes.data || [];
+      const edgeLogs = edgeLogsRes.data || [];
+      const edgeErrors = edgeErrorsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -118,6 +132,19 @@ const AdminDashboard = () => {
         ? ((successfulDeployments / totalDeployments) * 100) 
         : 0;
 
+      // Calculate edge function metrics
+      const totalEdgeFunctions = edgeFunctions.length;
+      const activeEdgeFunctions = edgeFunctions.filter(f => f.is_active).length;
+      const totalInvocations = edgeLogs.length;
+      const invocationsToday = edgeLogs.filter(l => new Date(l.created_at) >= today).length;
+      const edgeFunctionErrors = edgeErrors.length;
+      const edgeFunctionErrorRate = totalInvocations > 0 
+        ? ((edgeFunctionErrors / totalInvocations) * 100) 
+        : 0;
+      const avgEdgeFunctionDuration = totalInvocations > 0
+        ? edgeLogs.reduce((sum, l) => sum + l.duration_ms, 0) / totalInvocations
+        : 0;
+
       setStats({
         totalUsers: users?.length || 0,
         newUsersToday,
@@ -143,6 +170,14 @@ const AdminDashboard = () => {
         pendingDeployments,
         deploymentsToday,
         deploymentSuccessRate,
+        // Edge Functions
+        totalEdgeFunctions,
+        activeEdgeFunctions,
+        totalInvocations,
+        invocationsToday,
+        edgeFunctionErrors,
+        edgeFunctionErrorRate,
+        avgEdgeFunctionDuration,
         // System
         serverStatus: 'healthy',
         databaseStatus: 'healthy',
@@ -333,6 +368,39 @@ const AdminDashboard = () => {
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Deployments Today</p>
             <p className="text-3xl font-bold text-purple-400">+{stats.deploymentsToday}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Edge Function Stats Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-xl font-semibold text-white">Edge Function Stats</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Functions</p>
+            <p className="text-3xl font-bold text-white">{stats.totalEdgeFunctions}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.activeEdgeFunctions} active</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Invocations</p>
+            <p className="text-3xl font-bold text-yellow-400">{stats.totalInvocations.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.invocationsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Errors</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.edgeFunctionErrors}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.edgeFunctionErrorRate.toFixed(2)}% error rate</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Avg Duration</p>
+            <p className="text-3xl font-bold text-white">{stats.avgEdgeFunctionDuration.toFixed(0)}ms</p>
+            <p className="text-xs mt-1 text-white/70">Per invocation</p>
           </div>
         </div>
       </div>
