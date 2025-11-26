@@ -49,13 +49,6 @@ const ALL_ROLES = [
     color: "bg-yellow-500/30 text-yellow-400 border-yellow-500/50",
     icon: UserCog
   },
-  { 
-    value: "user", 
-    label: "User", 
-    description: "Basic access with limited permissions",
-    color: "bg-neutral-500/30 text-neutral-300 border-neutral-500/50",
-    icon: UserIcon
-  },
 ];
 
 export const EditRoleDialog = ({ open, onOpenChange, user, onSave, currentUserRole = "user" }: EditRoleDialogProps) => {
