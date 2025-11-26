@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck, MessageSquare, MessagesSquare, Sparkles, ScrollText, Bug, Info } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck, MessageSquare, MessagesSquare, Sparkles, ScrollText, Bug, Info, Gauge, SlidersHorizontal, Variable, FileCode, UsersRound, Layers, Camera, KeyRound, UserCircle, Cog } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -166,12 +166,84 @@ const AdminDashboard = () => {
     uniqueErrorCodes: 0,
     errorsWithStackTrace: 0,
     topErrorCode: 'N/A',
+    // Billing Usage Metrics
+    totalBillingUsage: 0,
+    billingUsageThisMonth: 0,
+    totalBilledAmount: 0,
+    uniqueUsageTypes: 0,
+    avgUsagePerUser: 0,
+    topUsageType: 'N/A',
+    // Platform Limits Metrics
+    totalPlatformLimits: 0,
+    activeLimits: 0,
+    avgLimitValue: 0,
+    topLimitType: 'N/A',
+    // Platform Settings Metrics
+    totalPlatformSettings: 0,
+    recentSettingsUpdates: 0,
+    settingsWithUpdater: 0,
+    topSettingKey: 'N/A',
+    // Project Env Vars Metrics
+    totalEnvVars: 0,
+    secretEnvVars: 0,
+    publicEnvVars: 0,
+    projectsWithEnvVars: 0,
+    avgEnvVarsPerProject: 0,
+    // Project Files Metrics
+    totalProjectFiles: 0,
+    projectFilesThisWeek: 0,
+    uniqueFileTypes: 0,
+    projectsWithFiles: 0,
+    avgFilesPerProject: 0,
+    topFileType: 'N/A',
+    // Project Members Metrics
+    totalProjectMembers: 0,
+    viewerMembers: 0,
+    editorMembers: 0,
+    adminMembers: 0,
+    projectsWithMembers: 0,
+    avgMembersPerProject: 0,
+    // Project Metadata Metrics
+    totalProjectMetadata: 0,
+    projectsWithMetadata: 0,
+    recentMetadataUpdates: 0,
+    uniqueMetadataUsers: 0,
+    // Project Snapshots Metrics
+    totalSnapshots: 0,
+    snapshotsThisWeek: 0,
+    projectsWithSnapshots: 0,
+    avgSnapshotsPerProject: 0,
+    // Storage Permissions Metrics
+    totalStoragePermissions: 0,
+    readPermissions: 0,
+    writePermissions: 0,
+    deletePermissions: 0,
+    usersWithPermissions: 0,
+    bucketsWithPermissions: 0,
+    // User Connections Metrics
+    totalUserConnections: 0,
+    activeConnections: 0,
+    googleConnections: 0,
+    githubOAuthConnections: 0,
+    uniqueProviders: 0,
+    recentConnections: 0,
+    // User Profiles Metrics
+    totalUserProfiles: 0,
+    profilesWithAvatar: 0,
+    profilesWithBio: 0,
+    profilesWithWebsite: 0,
+    profileCompleteness: 0,
+    countriesRepresented: 0,
+    // User Settings Metrics
+    totalUserSettings: 0,
+    recentSettingsChanges: 0,
+    usersWithSettings: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes, platformLogsRes, platformErrorsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes, platformLogsRes, platformErrorsRes, billingUsageRes, platformLimitsRes, platformSettingsRes, projectEnvVarsRes, projectFilesRes, projectMembersRes, projectMetadataRes, projectSnapshotsRes, storagePermissionsRes, userConnectionsRes, userProfilesRes, userSettingsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -202,6 +274,18 @@ const AdminDashboard = () => {
         supabase.from('llm_logs').select('*'),
         supabase.from('platform_logs').select('*'),
         supabase.from('platform_errors').select('*'),
+        supabase.from('billing_usage').select('*'),
+        supabase.from('platform_limits').select('*'),
+        supabase.from('platform_settings').select('*'),
+        supabase.from('project_env_vars').select('*'),
+        supabase.from('project_files').select('*'),
+        supabase.from('project_members').select('*'),
+        supabase.from('project_metadata').select('*'),
+        supabase.from('project_snapshots').select('*'),
+        supabase.from('storage_permissions').select('*'),
+        supabase.from('user_connections').select('*'),
+        supabase.from('user_profiles').select('*'),
+        supabase.from('user_settings').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -234,6 +318,18 @@ const AdminDashboard = () => {
       const llmLogs = llmLogsRes.data || [];
       const platformLogs = platformLogsRes.data || [];
       const platformErrors = platformErrorsRes.data || [];
+      const billingUsage = billingUsageRes.data || [];
+      const platformLimits = platformLimitsRes.data || [];
+      const platformSettings = platformSettingsRes.data || [];
+      const projectEnvVars = projectEnvVarsRes.data || [];
+      const projectFiles = projectFilesRes.data || [];
+      const projectMembers = projectMembersRes.data || [];
+      const projectMetadata = projectMetadataRes.data || [];
+      const projectSnapshots = projectSnapshotsRes.data || [];
+      const storagePermissions = storagePermissionsRes.data || [];
+      const userConnections = userConnectionsRes.data || [];
+      const userProfiles = userProfilesRes.data || [];
+      const userSettings = userSettingsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -486,6 +582,129 @@ const AdminDashboard = () => {
       const topErrorCode = Object.entries(errorCodeCounts)
         .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
 
+      // Calculate Billing Usage metrics
+      const totalBillingUsage = billingUsage.length;
+      const firstDayOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const billingUsageThisMonth = billingUsage.filter(b => new Date(b.billing_period_start) >= firstDayOfThisMonth).length;
+      const totalBilledAmount = billingUsage.reduce((sum, b) => sum + Number(b.total_cost || 0), 0);
+      const uniqueUsageTypes = new Set(billingUsage.map(b => b.usage_type)).size;
+      const avgUsagePerUser = users?.length ? totalBillingUsage / users.length : 0;
+      const usageTypeCounts: Record<string, number> = {};
+      billingUsage.forEach(b => {
+        const type = b.usage_type || 'unknown';
+        usageTypeCounts[type] = (usageTypeCounts[type] || 0) + 1;
+      });
+      const topUsageType = Object.entries(usageTypeCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
+      // Calculate Platform Limits metrics
+      const totalPlatformLimits = platformLimits.length;
+      const activeLimits = platformLimits.length;
+      const avgLimitValue = totalPlatformLimits > 0
+        ? platformLimits.reduce((sum, l) => sum + (l.limit_value || 0), 0) / totalPlatformLimits
+        : 0;
+      const limitTypeCounts: Record<string, number> = {};
+      platformLimits.forEach(l => {
+        const type = l.limit_type || 'unknown';
+        limitTypeCounts[type] = (limitTypeCounts[type] || 0) + 1;
+      });
+      const topLimitType = Object.entries(limitTypeCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
+      // Calculate Platform Settings metrics
+      const totalPlatformSettings = platformSettings.length;
+      const recentSettingsUpdates = platformSettings.filter(s => s.updated_at && new Date(s.updated_at) >= sevenDaysAgo).length;
+      const settingsWithUpdater = platformSettings.filter(s => s.updated_by).length;
+      const settingKeyCounts: Record<string, number> = {};
+      platformSettings.forEach(s => {
+        const key = s.setting_key || 'unknown';
+        settingKeyCounts[key] = (settingKeyCounts[key] || 0) + 1;
+      });
+      const topSettingKey = Object.entries(settingKeyCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
+      // Calculate Project Env Vars metrics
+      const totalEnvVars = projectEnvVars.length;
+      const secretEnvVars = projectEnvVars.filter(e => e.is_secret).length;
+      const publicEnvVars = projectEnvVars.filter(e => !e.is_secret).length;
+      const projectsWithEnvVars = new Set(projectEnvVars.map(e => e.project_id)).size;
+      const avgEnvVarsPerProject = projectsWithEnvVars > 0 ? totalEnvVars / projectsWithEnvVars : 0;
+
+      // Calculate Project Files metrics
+      const totalProjectFiles = projectFiles.length;
+      const projectFilesThisWeek = projectFiles.filter(f => new Date(f.created_at) >= sevenDaysAgo).length;
+      const uniqueFileTypes = new Set(projectFiles.filter(f => f.file_type).map(f => f.file_type)).size;
+      const projectsWithFiles = new Set(projectFiles.map(f => f.project_id)).size;
+      const avgFilesPerProject = projectsWithFiles > 0 ? totalProjectFiles / projectsWithFiles : 0;
+      const fileTypeCounts: Record<string, number> = {};
+      projectFiles.forEach(f => {
+        const type = f.file_type || 'unknown';
+        fileTypeCounts[type] = (fileTypeCounts[type] || 0) + 1;
+      });
+      const topFileType = Object.entries(fileTypeCounts)
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
+
+      // Calculate Project Members metrics
+      const totalProjectMembers = projectMembers.length;
+      const viewerMembers = projectMembers.filter(m => m.role === 'viewer').length;
+      const editorMembers = projectMembers.filter(m => m.role === 'editor').length;
+      const adminMembers = projectMembers.filter(m => m.role === 'admin' || m.role === 'owner').length;
+      const projectsWithMembers = new Set(projectMembers.map(m => m.project_id)).size;
+      const avgMembersPerProject = projectsWithMembers > 0 ? totalProjectMembers / projectsWithMembers : 0;
+
+      // Calculate Project Metadata metrics
+      const totalProjectMetadata = projectMetadata.length;
+      const projectsWithMetadata = new Set(projectMetadata.map(m => m.id)).size;
+      const recentMetadataUpdates = projectMetadata.filter(m => new Date(m.updated_at) >= sevenDaysAgo).length;
+      const uniqueMetadataUsers = new Set(projectMetadata.map(m => m.user_id)).size;
+
+      // Calculate Project Snapshots metrics
+      const totalSnapshots = projectSnapshots.length;
+      const snapshotsThisWeek = projectSnapshots.filter(s => new Date(s.created_at) >= sevenDaysAgo).length;
+      const projectsWithSnapshots = new Set(projectSnapshots.map(s => s.project_id)).size;
+      const avgSnapshotsPerProject = projectsWithSnapshots > 0 ? totalSnapshots / projectsWithSnapshots : 0;
+
+      // Calculate Storage Permissions metrics
+      const totalStoragePermissions = storagePermissions.length;
+      const readPermissions = storagePermissions.filter(p => p.permission === 'read' || p.permission === 'select').length;
+      const writePermissions = storagePermissions.filter(p => p.permission === 'write' || p.permission === 'insert' || p.permission === 'update').length;
+      const deletePermissions = storagePermissions.filter(p => p.permission === 'delete').length;
+      const usersWithPermissions = new Set(storagePermissions.map(p => p.user_id)).size;
+      const bucketsWithPermissions = new Set(storagePermissions.map(p => p.bucket_id)).size;
+
+      // Calculate User Connections metrics
+      const totalUserConnections = userConnections.length;
+      const activeConnections = userConnections.filter(c => !c.expires_at || new Date(c.expires_at) > now).length;
+      const googleConnections = userConnections.filter(c => c.provider === 'google').length;
+      const githubOAuthConnections = userConnections.filter(c => c.provider === 'github').length;
+      const uniqueProviders = new Set(userConnections.map(c => c.provider)).size;
+      const recentUserConnections = userConnections.filter(c => new Date(c.connected_at) >= sevenDaysAgo).length;
+
+      // Calculate User Profiles metrics
+      const totalUserProfiles = userProfiles.length;
+      const profilesWithAvatar = userProfiles.filter(p => p.avatar_url).length;
+      const profilesWithBio = userProfiles.filter(p => p.bio).length;
+      const profilesWithWebsite = userProfiles.filter(p => p.website).length;
+      const profileFieldsCount = userProfiles.reduce((count, p) => {
+        let fields = 0;
+        if (p.full_name) fields++;
+        if (p.username) fields++;
+        if (p.avatar_url) fields++;
+        if (p.bio) fields++;
+        if (p.website) fields++;
+        if (p.country) fields++;
+        return count + fields;
+      }, 0);
+      const profileCompleteness = totalUserProfiles > 0 
+        ? Math.round((profileFieldsCount / (totalUserProfiles * 6)) * 100)
+        : 0;
+      const countriesRepresented = new Set(userProfiles.filter(p => p.country).map(p => p.country)).size;
+
+      // Calculate User Settings metrics
+      const totalUserSettingsCount = userSettings.length;
+      const recentSettingsChanges = userSettings.filter(s => new Date(s.updated_at) >= sevenDaysAgo).length;
+      const usersWithSettingsCount = new Set(userSettings.map(s => s.user_id)).size;
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -710,6 +929,78 @@ const AdminDashboard = () => {
         uniqueErrorCodes,
         errorsWithStackTrace,
         topErrorCode,
+        // Billing Usage
+        totalBillingUsage,
+        billingUsageThisMonth,
+        totalBilledAmount,
+        uniqueUsageTypes,
+        avgUsagePerUser,
+        topUsageType,
+        // Platform Limits
+        totalPlatformLimits,
+        activeLimits,
+        avgLimitValue,
+        topLimitType,
+        // Platform Settings
+        totalPlatformSettings,
+        recentSettingsUpdates,
+        settingsWithUpdater,
+        topSettingKey,
+        // Project Env Vars
+        totalEnvVars,
+        secretEnvVars,
+        publicEnvVars,
+        projectsWithEnvVars,
+        avgEnvVarsPerProject,
+        // Project Files
+        totalProjectFiles,
+        projectFilesThisWeek,
+        uniqueFileTypes,
+        projectsWithFiles,
+        avgFilesPerProject,
+        topFileType,
+        // Project Members
+        totalProjectMembers,
+        viewerMembers,
+        editorMembers,
+        adminMembers,
+        projectsWithMembers,
+        avgMembersPerProject,
+        // Project Metadata
+        totalProjectMetadata,
+        projectsWithMetadata,
+        recentMetadataUpdates,
+        uniqueMetadataUsers,
+        // Project Snapshots
+        totalSnapshots,
+        snapshotsThisWeek,
+        projectsWithSnapshots,
+        avgSnapshotsPerProject,
+        // Storage Permissions
+        totalStoragePermissions,
+        readPermissions,
+        writePermissions,
+        deletePermissions,
+        usersWithPermissions,
+        bucketsWithPermissions,
+        // User Connections
+        totalUserConnections,
+        activeConnections,
+        googleConnections,
+        githubOAuthConnections,
+        uniqueProviders,
+        recentConnections: recentUserConnections,
+        // User Profiles
+        totalUserProfiles,
+        profilesWithAvatar,
+        profilesWithBio,
+        profilesWithWebsite,
+        profileCompleteness,
+        countriesRepresented,
+        // User Settings
+        totalUserSettings: totalUserSettingsCount,
+        recentSettingsChanges,
+        usersWithSettings: usersWithSettingsCount,
       });
 
       setLoading(false);
@@ -1897,6 +2188,616 @@ const AdminDashboard = () => {
             </div>
             <p className="text-lg font-bold text-yellow-400 truncate">{stats.topErrorCode}</p>
             <p className="text-xs mt-1 text-white/70">Most common error</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Billing Usage Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Gauge className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-semibold text-white">Billing Usage</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <p className="text-sm text-white">Total Usage Records</p>
+            </div>
+            <p className="text-3xl font-bold text-emerald-400">{stats.totalBillingUsage}</p>
+            <p className="text-xs mt-1 text-white/70">All time</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">This Month</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.billingUsageThisMonth}</p>
+            <p className="text-xs mt-1 text-white/70">Current billing period</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Total Billed</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">${stats.totalBilledAmount.toFixed(2)}</p>
+            <p className="text-xs mt-1 text-white/70">All usage costs</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Usage Types</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueUsageTypes}</p>
+            <p className="text-xs mt-1 text-white/70">Different categories</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Avg Usage/User</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.avgUsagePerUser.toFixed(1)}</p>
+            <p className="text-xs mt-1 text-white/70">Records per user</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Top Usage Type</p>
+            </div>
+            <p className="text-lg font-bold text-orange-400 truncate">{stats.topUsageType}</p>
+            <p className="text-xs mt-1 text-white/70">Most common</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Limits Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <SlidersHorizontal className="w-5 h-5 text-amber-400" />
+          <h2 className="text-xl font-semibold text-white">Platform Limits</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Gauge className="w-4 h-4 text-amber-400" />
+              <p className="text-sm text-white">Total Limits</p>
+            </div>
+            <p className="text-3xl font-bold text-amber-400">{stats.totalPlatformLimits}</p>
+            <p className="text-xs mt-1 text-white/70">Configured limits</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active Limits</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeLimits}</p>
+            <p className="text-xs mt-1 text-white/70">Currently enforced</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Avg Limit Value</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.avgLimitValue.toFixed(0)}</p>
+            <p className="text-xs mt-1 text-white/70">Average threshold</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Top Limit Type</p>
+            </div>
+            <p className="text-lg font-bold text-purple-400 truncate">{stats.topLimitType}</p>
+            <p className="text-xs mt-1 text-white/70">Most configured</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Platform Settings Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Cog className="w-5 h-5 text-slate-400" />
+          <h2 className="text-xl font-semibold text-white">Platform Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Settings2 className="w-4 h-4 text-slate-400" />
+              <p className="text-sm text-white">Total Settings</p>
+            </div>
+            <p className="text-3xl font-bold text-slate-300">{stats.totalPlatformSettings}</p>
+            <p className="text-xs mt-1 text-white/70">Configuration keys</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Recent Updates</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.recentSettingsUpdates}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCircle className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">With Updater</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.settingsWithUpdater}</p>
+            <p className="text-xs mt-1 text-white/70">Tracked changes</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Top Setting</p>
+            </div>
+            <p className="text-lg font-bold text-purple-400 truncate">{stats.topSettingKey}</p>
+            <p className="text-xs mt-1 text-white/70">Most accessed</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Environment Variables Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Variable className="w-5 h-5 text-lime-400" />
+          <h2 className="text-xl font-semibold text-white">Project Environment Variables</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Variable className="w-4 h-4 text-lime-400" />
+              <p className="text-sm text-white">Total Env Vars</p>
+            </div>
+            <p className="text-3xl font-bold text-lime-400">{stats.totalEnvVars}</p>
+            <p className="text-xs mt-1 text-white/70">All variables</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Secret Vars</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.secretEnvVars}</p>
+            <p className="text-xs mt-1 text-white/70">Protected values</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Unlock className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Public Vars</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.publicEnvVars}</p>
+            <p className="text-xs mt-1 text-white/70">Non-secret values</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Projects with Vars</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.projectsWithEnvVars}</p>
+            <p className="text-xs mt-1 text-white/70">Using env vars</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Avg per Project</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.avgEnvVarsPerProject.toFixed(1)}</p>
+            <p className="text-xs mt-1 text-white/70">Variables per project</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Files Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <FileCode className="w-5 h-5 text-sky-400" />
+          <h2 className="text-xl font-semibold text-white">Project Files</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-sky-400" />
+              <p className="text-sm text-white">Total Files</p>
+            </div>
+            <p className="text-3xl font-bold text-sky-400">{stats.totalProjectFiles}</p>
+            <p className="text-xs mt-1 text-white/70">All project files</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">+{stats.projectFilesThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">New files</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">File Types</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueFileTypes}</p>
+            <p className="text-xs mt-1 text-white/70">Different types</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Projects with Files</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.projectsWithFiles}</p>
+            <p className="text-xs mt-1 text-white/70">Active projects</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Avg Files/Project</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.avgFilesPerProject.toFixed(1)}</p>
+            <p className="text-xs mt-1 text-white/70">Files per project</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileCode className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Top File Type</p>
+            </div>
+            <p className="text-lg font-bold text-orange-400 truncate">{stats.topFileType}</p>
+            <p className="text-xs mt-1 text-white/70">Most common</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Members Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <UsersRound className="w-5 h-5 text-pink-400" />
+          <h2 className="text-xl font-semibold text-white">Project Members</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-pink-400" />
+              <p className="text-sm text-white">Total Members</p>
+            </div>
+            <p className="text-3xl font-bold text-pink-400">{stats.totalProjectMembers}</p>
+            <p className="text-xs mt-1 text-white/70">All memberships</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Viewers</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.viewerMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Read-only access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Editors</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.editorMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Edit access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Admins/Owners</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.adminMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Full access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Projects with Members</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.projectsWithMembers}</p>
+            <p className="text-xs mt-1 text-white/70">Collaborative projects</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Avg Members/Project</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.avgMembersPerProject.toFixed(1)}</p>
+            <p className="text-xs mt-1 text-white/70">Team size</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Metadata Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-xl font-semibold text-white">Project Metadata</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Database className="w-4 h-4 text-indigo-400" />
+              <p className="text-sm text-white">Total Metadata</p>
+            </div>
+            <p className="text-3xl font-bold text-indigo-400">{stats.totalProjectMetadata}</p>
+            <p className="text-xs mt-1 text-white/70">Metadata records</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Projects with Metadata</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.projectsWithMetadata}</p>
+            <p className="text-xs mt-1 text-white/70">Enriched projects</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Recent Updates</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.recentMetadataUpdates}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Unique Users</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.uniqueMetadataUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with metadata</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Snapshots Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Camera className="w-5 h-5 text-rose-400" />
+          <h2 className="text-xl font-semibold text-white">Project Snapshots</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Archive className="w-4 h-4 text-rose-400" />
+              <p className="text-sm text-white">Total Snapshots</p>
+            </div>
+            <p className="text-3xl font-bold text-rose-400">{stats.totalSnapshots}</p>
+            <p className="text-xs mt-1 text-white/70">Version backups</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">+{stats.snapshotsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">New snapshots</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Projects with Snapshots</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.projectsWithSnapshots}</p>
+            <p className="text-xs mt-1 text-white/70">Using versioning</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Avg Snapshots/Project</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.avgSnapshotsPerProject.toFixed(1)}</p>
+            <p className="text-xs mt-1 text-white/70">Backup frequency</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Storage Permissions Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <KeyRound className="w-5 h-5 text-amber-400" />
+          <h2 className="text-xl font-semibold text-white">Storage Permissions</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-amber-400" />
+              <p className="text-sm text-white">Total Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-amber-400">{stats.totalStoragePermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Access rules</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Read Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.readPermissions}</p>
+            <p className="text-xs mt-1 text-white/70">View access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Upload className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Write Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.writePermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Upload/Edit access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Delete Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.deletePermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Remove access</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Users with Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.usersWithPermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Authorized users</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <HardDrive className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Buckets with Permissions</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.bucketsWithPermissions}</p>
+            <p className="text-xs mt-1 text-white/70">Secured buckets</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Connections Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Link2 className="w-5 h-5 text-fuchsia-400" />
+          <h2 className="text-xl font-semibold text-white">User Connections (OAuth)</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-fuchsia-400" />
+              <p className="text-sm text-white">Total Connections</p>
+            </div>
+            <p className="text-3xl font-bold text-fuchsia-400">{stats.totalUserConnections}</p>
+            <p className="text-xs mt-1 text-white/70">OAuth connections</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Active Connections</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.activeConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Non-expired</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <p className="text-sm text-white">Google</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.googleConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Google OAuth</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Github className="w-4 h-4 text-white" />
+              <p className="text-sm text-white">GitHub OAuth</p>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.githubOAuthConnections}</p>
+            <p className="text-xs mt-1 text-white/70">GitHub OAuth</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Unique Providers</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.uniqueProviders}</p>
+            <p className="text-xs mt-1 text-white/70">OAuth providers</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">Recent Connections</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">+{stats.recentConnections}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Profiles Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <UserCircle className="w-5 h-5 text-violet-400" />
+          <h2 className="text-xl font-semibold text-white">User Profiles</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-violet-400" />
+              <p className="text-sm text-white">Total Profiles</p>
+            </div>
+            <p className="text-3xl font-bold text-violet-400">{stats.totalUserProfiles}</p>
+            <p className="text-xs mt-1 text-white/70">User profiles created</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCircle className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">With Avatar</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.profilesWithAvatar}</p>
+            <p className="text-xs mt-1 text-white/70">Profile pictures</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">With Bio</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.profilesWithBio}</p>
+            <p className="text-xs mt-1 text-white/70">Biography added</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">With Website</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.profilesWithWebsite}</p>
+            <p className="text-xs mt-1 text-white/70">Website linked</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Profile Completeness</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{stats.profileCompleteness}%</p>
+            <p className="text-xs mt-1 text-white/70">Average completion</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Countries</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.countriesRepresented}</p>
+            <p className="text-xs mt-1 text-white/70">Countries represented</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Settings Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Settings2 className="w-5 h-5 text-gray-400" />
+          <h2 className="text-xl font-semibold text-white">User Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Cog className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-white">Total Settings Records</p>
+            </div>
+            <p className="text-3xl font-bold text-gray-300">{stats.totalUserSettings}</p>
+            <p className="text-xs mt-1 text-white/70">Settings saved</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Recent Changes</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.recentSettingsChanges}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Users with Settings</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.usersWithSettings}</p>
+            <p className="text-xs mt-1 text-white/70">Customized preferences</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Settings Adoption</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">
+              {stats.totalUsers > 0 ? ((stats.usersWithSettings / stats.totalUsers) * 100).toFixed(1) : 0}%
+            </p>
+            <p className="text-xs mt-1 text-white/70">Users with custom settings</p>
           </div>
         </div>
       </div>
