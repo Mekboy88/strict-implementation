@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle, Zap, Github, GitBranch, Clock, UserPlus, AlertTriangle, Archive, Upload, Lock, Unlock, Brain, Coins, Timer, Hash, Key, Server, Shield, Link2, Webhook, ShieldAlert, ShieldCheck, Ban, Eye, FileWarning, Bell, BellRing, Mail, Settings2, BellOff, Inbox, Megaphone, AlertOctagon, CheckCheck, MessageSquare, MessagesSquare, Sparkles } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -141,12 +141,21 @@ const AdminDashboard = () => {
     warningAlerts: 0,
     infoAlerts: 0,
     topAlertType: 'N/A',
+    // LLM Logs Metrics
+    totalLlmLogs: 0,
+    llmLogsToday: 0,
+    llmLogsThisWeek: 0,
+    llmLogsWithResponse: 0,
+    llmLogsNoResponse: 0,
+    uniqueLlmUsers: 0,
+    avgPromptLength: 0,
+    avgResponseLength: 0,
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       // Fetch users, projects, billing, and deployment data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes] = await Promise.all([
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes, edgeFunctionsRes, edgeLogsRes, edgeErrorsRes, githubConnectionsRes, storageUsageRes, storageBucketsRes, storageObjectsRes, aiUsageRes, aiLogsRes, aiConfigRes, apiKeysRes, apiRequestsRes, apiAccessRes, supabaseIntegrationsRes, stripeIntegrationsRes, securityEventsRes, securityAuditRes, securityBlocksRes, notificationsRes, notificationPrefsRes, adminAlertsRes, llmLogsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
@@ -174,6 +183,7 @@ const AdminDashboard = () => {
         supabase.from('notifications').select('*'),
         supabase.from('notification_preferences').select('*'),
         supabase.from('admin_alerts').select('*'),
+        supabase.from('llm_logs').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -203,6 +213,7 @@ const AdminDashboard = () => {
       const notifications = notificationsRes.data || [];
       const notificationPrefs = notificationPrefsRes.data || [];
       const adminAlerts = adminAlertsRes.data || [];
+      const llmLogs = llmLogsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -415,6 +426,20 @@ const AdminDashboard = () => {
       const topAlertType = Object.entries(alertTypeCounts)
         .sort(([, a], [, b]) => b - a)[0]?.[0] || 'N/A';
 
+      // Calculate LLM Logs metrics
+      const totalLlmLogs = llmLogs.length;
+      const llmLogsToday = llmLogs.filter(l => new Date(l.created_at) >= today).length;
+      const llmLogsThisWeek = llmLogs.filter(l => new Date(l.created_at) >= sevenDaysAgo).length;
+      const llmLogsWithResponse = llmLogs.filter(l => l.response && l.response.length > 0).length;
+      const llmLogsNoResponse = llmLogs.filter(l => !l.response || l.response.length === 0).length;
+      const uniqueLlmUsers = new Set(llmLogs.filter(l => l.user_id).map(l => l.user_id)).size;
+      const avgPromptLength = totalLlmLogs > 0
+        ? Math.round(llmLogs.reduce((sum, l) => sum + (l.prompt?.length || 0), 0) / totalLlmLogs)
+        : 0;
+      const avgResponseLength = llmLogsWithResponse > 0
+        ? Math.round(llmLogs.filter(l => l.response).reduce((sum, l) => sum + (l.response?.length || 0), 0) / llmLogsWithResponse)
+        : 0;
+
       const activities: ActivityItem[] = [];
       
       // Add recent signups (last 10)
@@ -614,6 +639,15 @@ const AdminDashboard = () => {
         warningAlerts,
         infoAlerts,
         topAlertType,
+        // LLM Logs
+        totalLlmLogs,
+        llmLogsToday,
+        llmLogsThisWeek,
+        llmLogsWithResponse,
+        llmLogsNoResponse,
+        uniqueLlmUsers,
+        avgPromptLength,
+        avgResponseLength,
       });
 
       setLoading(false);
@@ -1609,6 +1643,82 @@ const AdminDashboard = () => {
             </div>
             <p className="text-lg font-bold text-purple-400 truncate">{stats.topAlertType}</p>
             <p className="text-xs mt-1 text-white/70">Most common alert</p>
+          </div>
+        </div>
+      </div>
+
+      {/* LLM Logs Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <MessagesSquare className="w-5 h-5 text-violet-400" />
+          <h2 className="text-xl font-semibold text-white">LLM Logs</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="w-4 h-4 text-violet-400" />
+              <p className="text-sm text-white">Total Logs</p>
+            </div>
+            <p className="text-3xl font-bold text-violet-400">{stats.totalLlmLogs}</p>
+            <p className="text-xs mt-1 text-white/70">+{stats.llmLogsToday} today</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <p className="text-sm text-white">This Week</p>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{stats.llmLogsThisWeek}</p>
+            <p className="text-xs mt-1 text-white/70">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">With Response</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.llmLogsWithResponse}</p>
+            <p className="text-xs mt-1 text-white/70">Successful completions</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">No Response</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.llmLogsNoResponse}</p>
+            <p className="text-xs mt-1 text-white/70">Failed or pending</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-blue-400" />
+              <p className="text-sm text-white">Unique Users</p>
+            </div>
+            <p className="text-3xl font-bold text-blue-400">{stats.uniqueLlmUsers}</p>
+            <p className="text-xs mt-1 text-white/70">Users with LLM usage</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-orange-400" />
+              <p className="text-sm text-white">Avg Prompt Length</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-400">{stats.avgPromptLength.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">Characters per prompt</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Avg Response Length</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.avgResponseLength.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">Characters per response</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-purple-400" />
+              <p className="text-sm text-white">Success Rate</p>
+            </div>
+            <p className="text-3xl font-bold text-purple-400">
+              {stats.totalLlmLogs > 0 ? ((stats.llmLogsWithResponse / stats.totalLlmLogs) * 100).toFixed(1) : 0}%
+            </p>
+            <p className="text-xs mt-1 text-white/70">Responses generated</p>
           </div>
         </div>
       </div>
