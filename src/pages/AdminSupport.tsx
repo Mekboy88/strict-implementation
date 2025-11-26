@@ -50,6 +50,7 @@ import {
   ExternalLink,
   FileText,
   Image,
+  Pencil,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -93,12 +94,20 @@ const AdminSupport = () => {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({
     subject: "",
     message: "",
     priority: "medium",
     type: "support",
     project_id: "",
+  });
+  const [editTicket, setEditTicket] = useState({
+    id: "",
+    subject: "",
+    message: "",
+    priority: "medium",
+    type: "support",
   });
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
@@ -275,6 +284,52 @@ const AdminSupport = () => {
         setSelectedTicket(null);
       }
       fetchTickets();
+    }
+  };
+
+  const openEditDialog = (ticket: SupportTicket) => {
+    setEditTicket({
+      id: ticket.id,
+      subject: ticket.subject,
+      message: ticket.message,
+      priority: ticket.priority,
+      type: ticket.type,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const updateTicket = async () => {
+    if (!editTicket.subject || !editTicket.message) {
+      toast.error("Subject and message are required");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("feedback")
+      .update({
+        subject: editTicket.subject,
+        message: editTicket.message,
+        priority: editTicket.priority,
+        type: editTicket.type,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editTicket.id);
+
+    if (error) {
+      toast.error("Failed to update ticket");
+    } else {
+      toast.success("Ticket updated");
+      setEditDialogOpen(false);
+      fetchTickets();
+      if (selectedTicket?.id === editTicket.id) {
+        setSelectedTicket({
+          ...selectedTicket,
+          subject: editTicket.subject,
+          message: editTicket.message,
+          priority: editTicket.priority,
+          type: editTicket.type,
+        });
+      }
     }
   };
 
@@ -649,6 +704,13 @@ const AdminSupport = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-neutral-700 border-neutral-600">
                       <DropdownMenuItem
+                        onClick={() => openEditDialog(selectedTicket)}
+                        className="text-white hover:bg-neutral-600"
+                      >
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Edit Ticket
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => updateTicketStatus(selectedTicket.id, "in_progress")}
                         className="text-white hover:bg-neutral-600"
                       >
@@ -905,6 +967,85 @@ const AdminSupport = () => {
             </Button>
             <Button onClick={createTicket} className="bg-blue-600 hover:bg-blue-700">
               Create Ticket
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Ticket Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="bg-neutral-800 border-neutral-700 text-white">
+          <DialogHeader>
+            <DialogTitle>Edit Ticket</DialogTitle>
+            <DialogDescription className="text-neutral-400">
+              Update the ticket details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-neutral-400 mb-1 block">Subject</label>
+              <Input
+                value={editTicket.subject}
+                onChange={(e) => setEditTicket({ ...editTicket, subject: e.target.value })}
+                className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Brief description of the issue"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-neutral-400 mb-1 block">Message</label>
+              <Textarea
+                value={editTicket.message}
+                onChange={(e) => setEditTicket({ ...editTicket, message: e.target.value })}
+                className="bg-neutral-700 border-neutral-600 text-white min-h-[100px] focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Detailed description..."
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-neutral-400 mb-1 block">Priority</label>
+                <Select
+                  value={editTicket.priority}
+                  onValueChange={(v) => setEditTicket({ ...editTicket, priority: v })}
+                >
+                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-700 border-neutral-600">
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm text-neutral-400 mb-1 block">Type</label>
+                <Select
+                  value={editTicket.type}
+                  onValueChange={(v) => setEditTicket({ ...editTicket, type: v })}
+                >
+                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-700 border-neutral-600">
+                    <SelectItem value="support">Support</SelectItem>
+                    <SelectItem value="bug">Bug Report</SelectItem>
+                    <SelectItem value="feature">Feature Request</SelectItem>
+                    <SelectItem value="feedback">Feedback</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              className="bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600"
+            >
+              Cancel
+            </Button>
+            <Button onClick={updateTicket} className="bg-blue-600 hover:bg-blue-700">
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
