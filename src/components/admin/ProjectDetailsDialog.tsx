@@ -92,6 +92,7 @@ export function ProjectDetailsDialog({
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [analyzingContext, setAnalyzingContext] = useState<{ type: "file" | "project"; name: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -219,6 +220,8 @@ export function ProjectDetailsDialog({
     if (!selectedFile || !project) return;
     setAiFixLoading(true);
     setActiveTab("ai-diagnose");
+    setAnalyzingContext({ type: "file", name: selectedFile.path });
+    setAiLoading(true);
 
     const fileError = hasError(selectedFile.path);
     const errorContext = fileError 
@@ -251,6 +254,8 @@ export function ProjectDetailsDialog({
       toast.error("Failed to get AI suggestions");
     } finally {
       setAiFixLoading(false);
+      setAiLoading(false);
+      setAnalyzingContext(null);
     }
   };
 
@@ -263,14 +268,16 @@ export function ProjectDetailsDialog({
       timestamp: new Date(),
     };
     setAiMessages((prev) => [...prev, userMessage]);
+    const messageText = aiInput;
     setAiInput("");
     setAiLoading(true);
+    setAnalyzingContext({ type: "project", name: project.name });
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-diagnose", {
         body: {
           projectId: project.id,
-          message: aiInput,
+          message: messageText,
         },
       });
 
@@ -287,6 +294,7 @@ export function ProjectDetailsDialog({
       toast.error("Failed to get AI response");
     } finally {
       setAiLoading(false);
+      setAnalyzingContext(null);
     }
   };
 
@@ -640,11 +648,30 @@ export function ProjectDetailsDialog({
                       </div>
                     ))}
                     {aiLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-neutral-700 p-3 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                            <span className="text-neutral-400 text-sm">Analyzing...</span>
+                      <div className="flex justify-start animate-fade-in">
+                        <div className="bg-neutral-700 p-4 rounded-lg border border-blue-500/30">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-400/30 border-t-blue-400"></div>
+                              {analyzingContext?.type === "file" ? (
+                                <FileCode className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-400" />
+                              ) : (
+                                <FolderOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-400" />
+                              )}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-blue-400 text-sm font-medium">
+                                {analyzingContext?.type === "file" ? "Analyzing file..." : "Analyzing project..."}
+                              </span>
+                              <span className="text-neutral-400 text-xs font-mono truncate max-w-[300px]">
+                                {analyzingContext?.name || "Processing request"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex gap-1">
+                            <div className="h-1 w-8 bg-blue-400/60 rounded animate-pulse"></div>
+                            <div className="h-1 w-8 bg-blue-400/40 rounded animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+                            <div className="h-1 w-8 bg-blue-400/20 rounded animate-pulse" style={{ animationDelay: "0.4s" }}></div>
                           </div>
                         </div>
                       </div>
