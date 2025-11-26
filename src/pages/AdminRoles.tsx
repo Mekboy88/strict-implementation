@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Edit, Trash2, Check, X, Search, Download, Users, 
-  ChevronLeft, ChevronRight, UserPlus, RefreshCw
+  ChevronLeft, ChevronRight, UserPlus, RefreshCw, Calendar,
+  UserMinus, CheckSquare, Square, BarChart3
 } from "lucide-react";
 import {
   Table,
@@ -15,8 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -35,8 +34,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 type AppRole = "owner" | "admin" | "moderator" | "user";
 
@@ -71,6 +72,14 @@ interface UserForAssignment {
   email: string;
   full_name: string | null;
   current_role: AppRole | null;
+}
+
+interface UserWithRole {
+  id: string;
+  user_id: string;
+  role: AppRole;
+  full_name: string | null;
+  created_at: string;
 }
 
 // Role definitions with their default permissions
@@ -125,6 +134,13 @@ const ROLE_DEFINITIONS: Record<AppRole, Omit<RoleConfig, 'userCount'>> = {
   },
 };
 
+const ROLE_COLORS: Record<AppRole, string> = {
+  owner: "#ef4444",
+  admin: "#f59e0b",
+  moderator: "#3b82f6",
+  user: "#22c55e",
+};
+
 const AdminRoles = () => {
   const { toast } = useToast();
   
@@ -139,6 +155,10 @@ const AdminRoles = () => {
   const [activitySearch, setActivitySearch] = useState("");
   const [activityFilter, setActivityFilter] = useState<string>("all");
   
+  // Date Range Filter
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  
   // Pagination for activity log
   const [activityPage, setActivityPage] = useState(1);
   const [totalActivities, setTotalActivities] = useState(0);
@@ -151,6 +171,16 @@ const AdminRoles = () => {
   const [selectedRole, setSelectedRole] = useState<AppRole>("user");
   const [assignmentLoading, setAssignmentLoading] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState("");
+  
+  // Bulk Assignment
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  
+  // View Users by Role Dialog
+  const [isViewUsersDialogOpen, setIsViewUsersDialogOpen] = useState(false);
+  const [selectedRoleForView, setSelectedRoleForView] = useState<AppRole | null>(null);
+  const [usersWithRole, setUsersWithRole] = useState<UserWithRole[]>([]);
+  const [viewUsersLoading, setViewUsersLoading] = useState(false);
 
   // Fetch role counts from user_roles table
   const fetchRoleCounts = async () => {
@@ -193,7 +223,7 @@ const AdminRoles = () => {
     }
   };
 
-  // Fetch activity logs with pagination
+  // Fetch activity logs with pagination and date filter
   const fetchActivityLogs = async () => {
     try {
       setActivitiesLoading(true);
@@ -211,6 +241,14 @@ const AdminRoles = () => {
       // Filter by entity type if not "all"
       if (activityFilter !== "all") {
         query = query.eq("entity_type", activityFilter);
+      }
+      
+      // Date range filter
+      if (dateFrom) {
+        query = query.gte("created_at", `${dateFrom}T00:00:00`);
+      }
+      if (dateTo) {
+        query = query.lte("created_at", `${dateTo}T23:59:59`);
       }
       
       const { data, error, count } = await query;
@@ -282,7 +320,7 @@ const AdminRoles = () => {
       
       const users: UserForAssignment[] = (profiles || []).map(profile => ({
         id: profile.id,
-        email: "", // We don't have email in profiles, show name instead
+        email: "",
         full_name: profile.full_name,
         current_role: roleMap.get(profile.id) || null,
       }));
@@ -295,6 +333,52 @@ const AdminRoles = () => {
         description: "Failed to load users",
         variant: "destructive",
       });
+    }
+  };
+
+  // Fetch users with a specific role
+  const fetchUsersWithRole = async (role: AppRole) => {
+    try {
+      setViewUsersLoading(true);
+      
+      const { data: userRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("id, user_id, role, created_at")
+        .eq("role", role);
+      
+      if (rolesError) throw rolesError;
+      
+      if (userRoles && userRoles.length > 0) {
+        const userIds = userRoles.map(r => r.user_id);
+        
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        
+        const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+        
+        const usersWithRoleData: UserWithRole[] = userRoles.map(ur => ({
+          id: ur.id,
+          user_id: ur.user_id,
+          role: ur.role as AppRole,
+          full_name: profileMap.get(ur.user_id) || "Unknown User",
+          created_at: ur.created_at || "",
+        }));
+        
+        setUsersWithRole(usersWithRoleData);
+      } else {
+        setUsersWithRole([]);
+      }
+    } catch (error) {
+      console.error("Error fetching users with role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
+    } finally {
+      setViewUsersLoading(false);
     }
   };
 
@@ -366,6 +450,163 @@ const AdminRoles = () => {
       });
     } finally {
       setAssignmentLoading(false);
+    }
+  };
+
+  // Bulk assign role to multiple users
+  const handleBulkAssignRole = async () => {
+    if (selectedUserIds.length === 0 || !selectedRole) return;
+    
+    try {
+      setAssignmentLoading(true);
+      
+      const { data: userData } = await supabase.auth.getUser();
+      
+      for (const userId of selectedUserIds) {
+        const { data: existingRole } = await supabase
+          .from("user_roles")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        if (existingRole) {
+          await supabase
+            .from("user_roles")
+            .update({ role: selectedRole, updated_at: new Date().toISOString() })
+            .eq("user_id", userId);
+        } else {
+          await supabase
+            .from("user_roles")
+            .insert({ user_id: userId, role: selectedRole });
+        }
+        
+        // Log each assignment
+        await supabase.from("activity_logs").insert({
+          user_id: userData.user?.id,
+          action: "bulk_role_assigned",
+          entity_type: "role",
+          entity_id: userId,
+          metadata: { role: selectedRole, target_user_id: userId },
+        });
+      }
+      
+      toast({
+        title: "Bulk Assignment Complete",
+        description: `Role "${selectedRole}" assigned to ${selectedUserIds.length} users.`,
+      });
+      
+      setSelectedUserIds([]);
+      setIsBulkMode(false);
+      setIsAssignDialogOpen(false);
+      
+      fetchRoleCounts();
+      fetchActivityLogs();
+      fetchUsersForAssignment();
+    } catch (error) {
+      console.error("Error bulk assigning roles:", error);
+      toast({
+        title: "Error",
+        description: "Failed to bulk assign roles",
+        variant: "destructive",
+      });
+    } finally {
+      setAssignmentLoading(false);
+    }
+  };
+
+  // Remove role from user
+  const handleRemoveRole = async (userId: string, roleName: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      
+      // Log the activity
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("activity_logs").insert({
+        user_id: userData.user?.id,
+        action: "role_removed",
+        entity_type: "role",
+        entity_id: userId,
+        metadata: { removed_role: roleName, target_user_id: userId },
+      });
+      
+      toast({
+        title: "Role Removed",
+        description: "User's role has been removed successfully.",
+      });
+      
+      // Refresh data
+      fetchRoleCounts();
+      fetchActivityLogs();
+      if (selectedRoleForView) {
+        fetchUsersWithRole(selectedRoleForView);
+      }
+      fetchUsersForAssignment();
+    } catch (error) {
+      console.error("Error removing role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove role",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Downgrade user role
+  const handleDowngradeRole = async (userId: string, currentRole: AppRole) => {
+    const roleHierarchy: AppRole[] = ["owner", "admin", "moderator", "user"];
+    const currentIndex = roleHierarchy.indexOf(currentRole);
+    
+    if (currentIndex === roleHierarchy.length - 1) {
+      toast({
+        title: "Cannot Downgrade",
+        description: "User already has the lowest role.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const newRole = roleHierarchy[currentIndex + 1];
+    
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("activity_logs").insert({
+        user_id: userData.user?.id,
+        action: "role_downgraded",
+        entity_type: "role",
+        entity_id: userId,
+        metadata: { from_role: currentRole, to_role: newRole, target_user_id: userId },
+      });
+      
+      toast({
+        title: "Role Downgraded",
+        description: `User downgraded from ${currentRole} to ${newRole}.`,
+      });
+      
+      fetchRoleCounts();
+      fetchActivityLogs();
+      if (selectedRoleForView) {
+        fetchUsersWithRole(selectedRoleForView);
+      }
+      fetchUsersForAssignment();
+    } catch (error) {
+      console.error("Error downgrading role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to downgrade role",
+        variant: "destructive",
+      });
     }
   };
 
@@ -460,8 +701,49 @@ const AdminRoles = () => {
     );
   }, [usersForAssignment, userSearchQuery]);
 
+  // Chart data for role distribution
+  const pieChartData = useMemo(() => {
+    return roles.map(role => ({
+      name: role.displayName,
+      value: role.userCount,
+      color: ROLE_COLORS[role.name],
+    }));
+  }, [roles]);
+
+  const barChartData = useMemo(() => {
+    return roles.map(role => ({
+      name: role.displayName,
+      users: role.userCount,
+      fill: ROLE_COLORS[role.name],
+    }));
+  }, [roles]);
+
+  // Toggle user selection for bulk assignment
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Select all users
+  const selectAllUsers = () => {
+    if (selectedUserIds.length === filteredUsersForAssignment.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(filteredUsersForAssignment.map(u => u.id));
+    }
+  };
+
   // Pagination
   const totalPages = Math.ceil(totalActivities / activitiesPerPage);
+
+  // Clear date filters
+  const clearDateFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+  };
 
   useEffect(() => {
     fetchRoleCounts();
@@ -470,13 +752,24 @@ const AdminRoles = () => {
 
   useEffect(() => {
     fetchActivityLogs();
-  }, [activityPage, activityFilter]);
+  }, [activityPage, activityFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     if (isAssignDialogOpen) {
       fetchUsersForAssignment();
     }
   }, [isAssignDialogOpen]);
+
+  useEffect(() => {
+    if (selectedRoleForView) {
+      fetchUsersWithRole(selectedRoleForView);
+    }
+  }, [selectedRoleForView]);
+
+  const handleRoleCardClick = (role: AppRole) => {
+    setSelectedRoleForView(role);
+    setIsViewUsersDialogOpen(true);
+  };
 
   return (
     <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
@@ -499,15 +792,37 @@ const AdminRoles = () => {
                   Assign Role
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md bg-neutral-800 border-neutral-700">
+              <DialogContent className="max-w-lg bg-neutral-800 border-neutral-700">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Assign Role to User</DialogTitle>
+                  <DialogTitle className="text-white">
+                    {isBulkMode ? "Bulk Assign Roles" : "Assign Role to User"}
+                  </DialogTitle>
                   <DialogDescription className="text-white/70">
-                    Select a user and assign them a role
+                    {isBulkMode 
+                      ? `Select multiple users to assign the same role (${selectedUserIds.length} selected)`
+                      : "Select a user and assign them a role"
+                    }
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
+                  {/* Bulk Mode Toggle */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white">Bulk Assignment Mode</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsBulkMode(!isBulkMode);
+                        setSelectedUserIds([]);
+                        setSelectedUserId("");
+                      }}
+                      className="border-neutral-600 text-white hover:bg-neutral-700"
+                    >
+                      {isBulkMode ? "Single Mode" : "Bulk Mode"}
+                    </Button>
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-white">Search User</Label>
                     <Input
@@ -518,32 +833,71 @@ const AdminRoles = () => {
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-white">Select User</Label>
-                    <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                      <SelectTrigger className="bg-neutral-900 border-neutral-600 text-white">
-                        <SelectValue placeholder="Choose a user" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-neutral-800 border-neutral-600 max-h-60">
+                  {isBulkMode ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-white">Select Users</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={selectAllUsers}
+                          className="text-white/70 hover:text-white"
+                        >
+                          {selectedUserIds.length === filteredUsersForAssignment.length 
+                            ? "Deselect All" 
+                            : "Select All"
+                          }
+                        </Button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto border border-neutral-600 rounded-md p-2 space-y-1">
                         {filteredUsersForAssignment.map((user) => (
-                          <SelectItem 
-                            key={user.id} 
-                            value={user.id}
-                            className="text-white hover:bg-neutral-700"
+                          <div
+                            key={user.id}
+                            className="flex items-center gap-2 p-2 rounded hover:bg-neutral-700 cursor-pointer"
+                            onClick={() => toggleUserSelection(user.id)}
                           >
-                            <div className="flex items-center gap-2">
-                              <span>{user.full_name || "Unnamed User"}</span>
-                              {user.current_role && (
-                                <Badge variant="outline" className="text-xs">
-                                  {user.current_role}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
+                            <Checkbox
+                              checked={selectedUserIds.includes(user.id)}
+                              className="border-neutral-500"
+                            />
+                            <span className="text-white">{user.full_name || "Unnamed User"}</span>
+                            {user.current_role && (
+                              <Badge variant="outline" className="text-xs ml-auto">
+                                {user.current_role}
+                              </Badge>
+                            )}
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label className="text-white">Select User</Label>
+                      <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                        <SelectTrigger className="bg-neutral-900 border-neutral-600 text-white">
+                          <SelectValue placeholder="Choose a user" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-800 border-neutral-600 max-h-60">
+                          {filteredUsersForAssignment.map((user) => (
+                            <SelectItem 
+                              key={user.id} 
+                              value={user.id}
+                              className="text-white hover:bg-neutral-700"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span>{user.full_name || "Unnamed User"}</span>
+                                {user.current_role && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {user.current_role}
+                                  </Badge>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-white">Assign Role</Label>
@@ -572,17 +926,26 @@ const AdminRoles = () => {
                 <DialogFooter>
                   <Button 
                     variant="outline" 
-                    onClick={() => setIsAssignDialogOpen(false)}
+                    onClick={() => {
+                      setIsAssignDialogOpen(false);
+                      setSelectedUserIds([]);
+                      setIsBulkMode(false);
+                    }}
                     className="border-neutral-600 text-white hover:bg-neutral-700"
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={handleAssignRole}
-                    disabled={!selectedUserId || assignmentLoading}
+                    onClick={isBulkMode ? handleBulkAssignRole : handleAssignRole}
+                    disabled={(isBulkMode ? selectedUserIds.length === 0 : !selectedUserId) || assignmentLoading}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {assignmentLoading ? "Assigning..." : "Assign Role"}
+                    {assignmentLoading 
+                      ? "Assigning..." 
+                      : isBulkMode 
+                        ? `Assign to ${selectedUserIds.length} Users` 
+                        : "Assign Role"
+                    }
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -590,6 +953,87 @@ const AdminRoles = () => {
           </div>
         </div>
       </div>
+
+      {/* View Users by Role Dialog */}
+      <Dialog open={isViewUsersDialogOpen} onOpenChange={setIsViewUsersDialogOpen}>
+        <DialogContent className="max-w-2xl bg-neutral-800 border-neutral-700">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Users with {selectedRoleForView && ROLE_DEFINITIONS[selectedRoleForView].displayName} Role
+            </DialogTitle>
+            <DialogDescription className="text-white/70">
+              Manage users assigned to this role
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {viewUsersLoading ? (
+              <div className="text-center py-8 text-white/70">Loading users...</div>
+            ) : usersWithRole.length === 0 ? (
+              <div className="text-center py-8 text-white/70">No users with this role</div>
+            ) : (
+              <div className="max-h-96 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-neutral-600">
+                      <TableHead className="text-white/70">User</TableHead>
+                      <TableHead className="text-white/70">Assigned</TableHead>
+                      <TableHead className="text-white/70 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {usersWithRole.map((user) => (
+                      <TableRow key={user.id} className="border-neutral-600">
+                        <TableCell className="text-white font-medium">
+                          {user.full_name || "Unknown User"}
+                        </TableCell>
+                        <TableCell className="text-white/70">
+                          {user.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "N/A"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {selectedRoleForView !== "user" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDowngradeRole(user.user_id, user.role)}
+                                className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/20"
+                              >
+                                <ChevronLeft className="w-3 h-3 mr-1" />
+                                Downgrade
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveRole(user.user_id, user.role)}
+                              className="border-red-600 text-red-400 hover:bg-red-600/20"
+                            >
+                              <UserMinus className="w-3 h-3 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsViewUsersDialogOpen(false)}
+              className="border-neutral-600 text-white hover:bg-neutral-700"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Content */}
       <div className="pt-6 overflow-y-auto">
@@ -600,6 +1044,13 @@ const AdminRoles = () => {
               className="text-white data-[state=active]:bg-neutral-600 data-[state=active]:text-white"
             >
               Roles
+            </TabsTrigger>
+            <TabsTrigger 
+              value="statistics" 
+              className="text-white data-[state=active]:bg-neutral-600 data-[state=active]:text-white"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Statistics
             </TabsTrigger>
             <TabsTrigger 
               value="matrix" 
@@ -654,7 +1105,8 @@ const AdminRoles = () => {
                 {filteredRoles.map((role) => (
                   <div
                     key={role.name}
-                    className="rounded-lg border p-5 bg-neutral-700 border-neutral-600"
+                    onClick={() => handleRoleCardClick(role.name)}
+                    className="rounded-lg border p-5 bg-neutral-700 border-neutral-600 cursor-pointer hover:border-neutral-500 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -665,9 +1117,14 @@ const AdminRoles = () => {
                           {role.description}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 bg-neutral-600 px-3 py-1 rounded-full">
-                        <Users className="w-4 h-4 text-blue-400" />
-                        <span className="text-white font-medium">{role.userCount}</span>
+                      <div 
+                        className="flex items-center gap-2 px-3 py-1 rounded-full"
+                        style={{ backgroundColor: `${ROLE_COLORS[role.name]}20` }}
+                      >
+                        <Users className="w-4 h-4" style={{ color: ROLE_COLORS[role.name] }} />
+                        <span className="font-medium" style={{ color: ROLE_COLORS[role.name] }}>
+                          {role.userCount}
+                        </span>
                       </div>
                     </div>
 
@@ -690,10 +1147,114 @@ const AdminRoles = () => {
                         })}
                       </div>
                     </div>
+                    
+                    <div className="mt-3 text-xs text-white/50">
+                      Click to view users with this role
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Statistics */}
+          <TabsContent value="statistics">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pie Chart */}
+              <div className="rounded-lg border p-6 bg-neutral-700 border-neutral-600">
+                <h3 className="text-lg font-semibold text-white mb-4">Role Distribution</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {pieChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#404040', 
+                          border: '1px solid #525252',
+                          borderRadius: '8px',
+                          color: '#fff'
+                        }}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Bar Chart */}
+              <div className="rounded-lg border p-6 bg-neutral-700 border-neutral-600">
+                <h3 className="text-lg font-semibold text-white mb-4">Users per Role</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={barChartData}>
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: '#a3a3a3' }}
+                        axisLine={{ stroke: '#525252' }}
+                      />
+                      <YAxis 
+                        tick={{ fill: '#a3a3a3' }}
+                        axisLine={{ stroke: '#525252' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#404040', 
+                          border: '1px solid #525252',
+                          borderRadius: '8px',
+                          color: '#fff'
+                        }}
+                      />
+                      <Bar dataKey="users" radius={[4, 4, 0, 0]}>
+                        {barChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="lg:col-span-2 rounded-lg border p-6 bg-neutral-700 border-neutral-600">
+                <h3 className="text-lg font-semibold text-white mb-4">Role Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {roles.map((role) => (
+                    <div 
+                      key={role.name}
+                      className="p-4 rounded-lg"
+                      style={{ backgroundColor: `${ROLE_COLORS[role.name]}15` }}
+                    >
+                      <div 
+                        className="text-3xl font-bold"
+                        style={{ color: ROLE_COLORS[role.name] }}
+                      >
+                        {role.userCount}
+                      </div>
+                      <div className="text-white/70 text-sm mt-1">{role.displayName}s</div>
+                      <div className="text-white/50 text-xs mt-1">
+                        {roles.reduce((sum, r) => sum + r.userCount, 0) > 0
+                          ? `${Math.round((role.userCount / roles.reduce((sum, r) => sum + r.userCount, 0)) * 100)}%`
+                          : "0%"
+                        } of total
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Permission Matrix */}
@@ -752,8 +1313,8 @@ const AdminRoles = () => {
           {/* Admin Activity Log */}
           <TabsContent value="activity">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
+              <div className="flex items-center gap-4 flex-1 flex-wrap">
+                <div className="relative flex-1 min-w-[200px] max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                   <Input
                     value={activitySearch}
@@ -774,6 +1335,36 @@ const AdminRoles = () => {
                     <SelectItem value="settings" className="text-white hover:bg-neutral-700">Settings</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {/* Date Range Filter */}
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-neutral-400" />
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-36 bg-neutral-600 border-neutral-500 text-white"
+                    placeholder="From"
+                  />
+                  <span className="text-white/50">to</span>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-36 bg-neutral-600 border-neutral-500 text-white"
+                    placeholder="To"
+                  />
+                  {(dateFrom || dateTo) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearDateFilters}
+                      className="text-white/70 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -827,8 +1418,9 @@ const AdminRoles = () => {
                           <Badge 
                             variant="outline" 
                             className={
-                              activity.action.includes("delete") ? "text-red-400 border-red-400" :
+                              activity.action.includes("delete") || activity.action.includes("remove") ? "text-red-400 border-red-400" :
                               activity.action.includes("create") || activity.action.includes("assign") ? "text-green-400 border-green-400" :
+                              activity.action.includes("downgrade") ? "text-yellow-400 border-yellow-400" :
                               "text-blue-400 border-blue-400"
                             }
                           >
