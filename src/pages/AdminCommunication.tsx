@@ -355,26 +355,26 @@ const AdminCommunication = () => {
         <h1 className="text-3xl font-bold text-white">
           Content & Communication
         </h1>
-        <p className="text-sm mt-2 text-white/70">
+        <p className="text-sm mt-2 text-white">
           Manage announcements, emails, notifications, and support tickets
         </p>
       </div>
 
       <Tabs defaultValue="announcements" className="w-full">
-        <TabsList className="mb-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-          <TabsTrigger value="announcements" style={{ color: "#D6E4F0" }}>
+        <TabsList className="mb-6 bg-neutral-700 border border-neutral-600">
+          <TabsTrigger value="announcements" className="text-white data-[state=active]:bg-neutral-600">
             <Megaphone className="w-4 h-4 mr-2" />
             Announcements
           </TabsTrigger>
-          <TabsTrigger value="campaigns" style={{ color: "#D6E4F0" }}>
+          <TabsTrigger value="campaigns" className="text-white data-[state=active]:bg-neutral-600">
             <Send className="w-4 h-4 mr-2" />
             Email Campaigns
           </TabsTrigger>
-          <TabsTrigger value="notifications" style={{ color: "#D6E4F0" }}>
+          <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-neutral-600">
             <Bell className="w-4 h-4 mr-2" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="tickets" style={{ color: "#D6E4F0" }}>
+          <TabsTrigger value="tickets" className="text-white data-[state=active]:bg-neutral-600">
             <Ticket className="w-4 h-4 mr-2" />
             Support Tickets
           </TabsTrigger>
@@ -385,50 +385,50 @@ const AdminCommunication = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Platform Announcements</h2>
-                <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Create and manage platform-wide announcements</p>
+                <h2 className="text-xl font-semibold text-white">Platform Announcements</h2>
+                <p className="text-sm mt-1 text-white">Create and manage platform-wide announcements</p>
               </div>
               <Dialog open={isAnnouncementDialogOpen} onOpenChange={setIsAnnouncementDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Announcement
                   </Button>
                 </DialogTrigger>
-                <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
                   <DialogHeader>
-                    <DialogTitle style={{ color: "#D6E4F0" }}>Create Announcement</DialogTitle>
-                    <DialogDescription style={{ color: "#8FA3B7" }}>
+                    <DialogTitle className="text-white">Create Announcement</DialogTitle>
+                    <DialogDescription className="text-white">
                       Broadcast an announcement to all users
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Title</Label>
+                      <Label className="text-white">Title</Label>
                       <Input
                         value={announcementTitle}
                         onChange={(e) => setAnnouncementTitle(e.target.value)}
                         placeholder="Important Update"
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Content</Label>
+                      <Label className="text-white">Content</Label>
                       <Textarea
                         value={announcementContent}
                         onChange={(e) => setAnnouncementContent(e.target.value)}
                         placeholder="Enter announcement content..."
                         rows={4}
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Type</Label>
+                      <Label className="text-white">Type</Label>
                       <Select value={announcementType} onValueChange={(value: any) => setAnnouncementType(value)}>
-                        <SelectTrigger style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}>
+                        <SelectTrigger className="bg-neutral-600 border-neutral-500 text-white">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
                           <SelectItem value="info">Info</SelectItem>
                           <SelectItem value="success">Success</SelectItem>
                           <SelectItem value="warning">Warning</SelectItem>
@@ -437,7 +437,7 @@ const AdminCommunication = () => {
                       </Select>
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label style={{ color: "#D6E4F0" }}>Active</Label>
+                      <Label className="text-white">Active</Label>
                       <Switch
                         checked={announcementActive}
                         onCheckedChange={setAnnouncementActive}
@@ -445,10 +445,10 @@ const AdminCommunication = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAnnouncementDialogOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsAnnouncementDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
                       Cancel
                     </Button>
-                    <Button onClick={handleCreateAnnouncement} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                    <Button onClick={handleCreateAnnouncement} className="bg-blue-500 hover:bg-blue-600 text-white">
                       Create
                     </Button>
                   </DialogFooter>
@@ -456,25 +456,25 @@ const AdminCommunication = () => {
               </Dialog>
             </div>
 
-            <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Title</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Type</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Status</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Created</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Expires</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Title</TableHead>
+                    <TableHead className="text-white">Type</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Created</TableHead>
+                    <TableHead className="text-white">Expires</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {announcements.map((announcement) => (
-                    <TableRow key={announcement.id} style={{ borderColor: "#ffffff15" }}>
+                    <TableRow key={announcement.id} className="border-neutral-600">
                       <TableCell>
                         <div>
-                          <p className="font-medium" style={{ color: "#D6E4F0" }}>{announcement.title}</p>
-                          <p className="text-xs" style={{ color: "#8FA3B7" }}>{announcement.content}</p>
+                          <p className="font-medium text-white">{announcement.title}</p>
+                          <p className="text-xs text-white">{announcement.content}</p>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -490,18 +490,18 @@ const AdminCommunication = () => {
                       <TableCell>
                         <Switch checked={announcement.active} />
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {new Date(announcement.created_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {announcement.expires_at ? new Date(announcement.expires_at).toLocaleDateString() : 'No expiry'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" style={{ color: "#4CB3FF" }}>
+                          <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-neutral-600">
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" style={{ color: "#EF4444" }}>
+                          <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-neutral-600">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -519,59 +519,59 @@ const AdminCommunication = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Email Campaigns</h2>
-                <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Create and manage email campaigns</p>
+                <h2 className="text-xl font-semibold text-white">Email Campaigns</h2>
+                <p className="text-sm mt-1 text-white">Create and manage email campaigns</p>
               </div>
               <Dialog open={isCampaignDialogOpen} onOpenChange={setIsCampaignDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Campaign
                   </Button>
                 </DialogTrigger>
-                <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
                   <DialogHeader>
-                    <DialogTitle style={{ color: "#D6E4F0" }}>Create Email Campaign</DialogTitle>
-                    <DialogDescription style={{ color: "#8FA3B7" }}>
+                    <DialogTitle className="text-white">Create Email Campaign</DialogTitle>
+                    <DialogDescription className="text-white">
                       Send mass emails to your users
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Campaign Name</Label>
+                      <Label className="text-white">Campaign Name</Label>
                       <Input
                         value={campaignName}
                         onChange={(e) => setCampaignName(e.target.value)}
                         placeholder="Monthly Newsletter"
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Email Subject</Label>
+                      <Label className="text-white">Email Subject</Label>
                       <Input
                         value={campaignSubject}
                         onChange={(e) => setCampaignSubject(e.target.value)}
                         placeholder="What's New This Month"
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Email Content</Label>
+                      <Label className="text-white">Email Content</Label>
                       <Textarea
                         value={campaignContent}
                         onChange={(e) => setCampaignContent(e.target.value)}
                         placeholder="Enter email content..."
                         rows={6}
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Recipients</Label>
+                      <Label className="text-white">Recipients</Label>
                       <Select value={campaignFilter} onValueChange={setCampaignFilter}>
-                        <SelectTrigger style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}>
+                        <SelectTrigger className="bg-neutral-600 border-neutral-500 text-white">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
                           <SelectItem value="all">All Users</SelectItem>
                           <SelectItem value="premium">Premium Users</SelectItem>
                           <SelectItem value="free">Free Users</SelectItem>
@@ -581,10 +581,10 @@ const AdminCommunication = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCampaignDialogOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsCampaignDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
                       Cancel
                     </Button>
-                    <Button onClick={handleCreateCampaign} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                    <Button onClick={handleCreateCampaign} className="bg-blue-500 hover:bg-blue-600 text-white">
                       Create
                     </Button>
                   </DialogFooter>
@@ -592,26 +592,26 @@ const AdminCommunication = () => {
               </Dialog>
             </div>
 
-            <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Campaign</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Status</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Recipients</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Opened</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Clicked</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Date</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Campaign</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Recipients</TableHead>
+                    <TableHead className="text-white">Opened</TableHead>
+                    <TableHead className="text-white">Clicked</TableHead>
+                    <TableHead className="text-white">Date</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {campaigns.map((campaign) => (
-                    <TableRow key={campaign.id} style={{ borderColor: "#ffffff15" }}>
+                    <TableRow key={campaign.id} className="border-neutral-600">
                       <TableCell>
                         <div>
-                          <p className="font-medium" style={{ color: "#D6E4F0" }}>{campaign.name}</p>
-                          <p className="text-xs" style={{ color: "#8FA3B7" }}>{campaign.subject}</p>
+                          <p className="font-medium text-white">{campaign.name}</p>
+                          <p className="text-xs text-white">{campaign.subject}</p>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -623,23 +623,23 @@ const AdminCommunication = () => {
                           {campaign.status}
                         </span>
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{campaign.recipients}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">{campaign.recipients}</TableCell>
+                      <TableCell className="text-white">
                         {campaign.recipients > 0 ? `${campaign.opened} (${Math.round((campaign.opened / campaign.recipients) * 100)}%)` : '-'}
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {campaign.recipients > 0 ? `${campaign.clicked} (${Math.round((campaign.clicked / campaign.recipients) * 100)}%)` : '-'}
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : 
                          campaign.scheduled_at ? new Date(campaign.scheduled_at).toLocaleDateString() : 'Draft'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" style={{ color: "#4CB3FF" }}>
+                          <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-neutral-600">
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" style={{ color: "#EF4444" }}>
+                          <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-neutral-600">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -657,50 +657,50 @@ const AdminCommunication = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>In-App Notifications</h2>
-                <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Send notifications to users</p>
+                <h2 className="text-xl font-semibold text-white">In-App Notifications</h2>
+                <p className="text-sm mt-1 text-white">Send notifications to users</p>
               </div>
               <Dialog open={isNotificationDialogOpen} onOpenChange={setIsNotificationDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Send Notification
                   </Button>
                 </DialogTrigger>
-                <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
                   <DialogHeader>
-                    <DialogTitle style={{ color: "#D6E4F0" }}>Send Notification</DialogTitle>
-                    <DialogDescription style={{ color: "#8FA3B7" }}>
+                    <DialogTitle className="text-white">Send Notification</DialogTitle>
+                    <DialogDescription className="text-white">
                       Push a notification to selected users
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Title</Label>
+                      <Label className="text-white">Title</Label>
                       <Input
                         value={notificationTitle}
                         onChange={(e) => setNotificationTitle(e.target.value)}
                         placeholder="Notification title"
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Message</Label>
+                      <Label className="text-white">Message</Label>
                       <Textarea
                         value={notificationMessage}
                         onChange={(e) => setNotificationMessage(e.target.value)}
                         placeholder="Enter notification message..."
                         rows={3}
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Type</Label>
+                      <Label className="text-white">Type</Label>
                       <Select value={notificationType} onValueChange={(value: any) => setNotificationType(value)}>
-                        <SelectTrigger style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}>
+                        <SelectTrigger className="bg-neutral-600 border-neutral-500 text-white">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
                           <SelectItem value="info">Info</SelectItem>
                           <SelectItem value="success">Success</SelectItem>
                           <SelectItem value="warning">Warning</SelectItem>
@@ -709,12 +709,12 @@ const AdminCommunication = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Recipients</Label>
+                      <Label className="text-white">Recipients</Label>
                       <Select value={notificationRecipients} onValueChange={setNotificationRecipients}>
-                        <SelectTrigger style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}>
+                        <SelectTrigger className="bg-neutral-600 border-neutral-500 text-white">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
                           <SelectItem value="all">All Users</SelectItem>
                           <SelectItem value="premium">Premium Users</SelectItem>
                           <SelectItem value="free">Free Users</SelectItem>
@@ -723,10 +723,10 @@ const AdminCommunication = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsNotificationDialogOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsNotificationDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
                       Cancel
                     </Button>
-                    <Button onClick={handleSendNotification} style={{ background: "#4CB3FF", color: "#ffffff" }}>
+                    <Button onClick={handleSendNotification} className="bg-blue-500 hover:bg-blue-600 text-white">
                       Send
                     </Button>
                   </DialogFooter>
@@ -734,24 +734,24 @@ const AdminCommunication = () => {
               </Dialog>
             </div>
 
-            <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>Title</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Type</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Recipients</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Read Rate</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Sent</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Title</TableHead>
+                    <TableHead className="text-white">Type</TableHead>
+                    <TableHead className="text-white">Recipients</TableHead>
+                    <TableHead className="text-white">Read Rate</TableHead>
+                    <TableHead className="text-white">Sent</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {notifications.map((notification) => (
-                    <TableRow key={notification.id} style={{ borderColor: "#ffffff15" }}>
+                    <TableRow key={notification.id} className="border-neutral-600">
                       <TableCell>
                         <div>
-                          <p className="font-medium" style={{ color: "#D6E4F0" }}>{notification.title}</p>
-                          <p className="text-xs" style={{ color: "#8FA3B7" }}>{notification.message}</p>
+                          <p className="font-medium text-white">{notification.title}</p>
+                          <p className="text-xs text-white">{notification.message}</p>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -764,13 +764,13 @@ const AdminCommunication = () => {
                           {notification.type}
                         </span>
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>{notification.recipients}</TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">{notification.recipients}</TableCell>
+                      <TableCell className="text-white">
                         {notification.total_count > 0 
                           ? `${notification.read_count}/${notification.total_count} (${Math.round((notification.read_count / notification.total_count) * 100)}%)`
                           : '-'}
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {new Date(notification.sent_at).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
@@ -786,35 +786,35 @@ const AdminCommunication = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Support Tickets</h2>
-                <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Manage user support requests</p>
+                <h2 className="text-xl font-semibold text-white">Support Tickets</h2>
+                <p className="text-sm mt-1 text-white">Manage user support requests</p>
               </div>
             </div>
 
-            <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
               <Table>
                 <TableHeader>
-                  <TableRow style={{ borderColor: "#ffffff15" }}>
-                    <TableHead style={{ color: "#8FA3B7" }}>User</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Subject</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Priority</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Status</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Created</TableHead>
-                    <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">User</TableHead>
+                    <TableHead className="text-white">Subject</TableHead>
+                    <TableHead className="text-white">Priority</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Created</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tickets.map((ticket) => (
-                    <TableRow key={ticket.id} style={{ borderColor: "#ffffff15" }}>
+                    <TableRow key={ticket.id} className="border-neutral-600">
                       <TableCell>
                         <div>
-                          <p className="font-medium" style={{ color: "#D6E4F0" }}>{ticket.user_email}</p>
+                          <p className="font-medium text-white">{ticket.user_email}</p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium" style={{ color: "#D6E4F0" }}>{ticket.subject}</p>
-                          <p className="text-xs" style={{ color: "#8FA3B7" }}>{ticket.message.substring(0, 60)}...</p>
+                          <p className="font-medium text-white">{ticket.subject}</p>
+                          <p className="text-xs text-white">{ticket.message.substring(0, 60)}...</p>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -822,30 +822,30 @@ const AdminCommunication = () => {
                           ticket.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
                           ticket.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
                           ticket.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-blue-500/20 text-blue-400'
+                          'bg-gray-500/20 text-gray-400'
                         }`}>
                           {ticket.priority}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded text-xs ${
+                          ticket.status === 'open' ? 'bg-blue-500/20 text-blue-400' :
+                          ticket.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
                           ticket.status === 'resolved' ? 'bg-green-500/20 text-green-400' :
-                          ticket.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                          ticket.status === 'closed' ? 'bg-gray-500/20 text-gray-400' :
-                          'bg-yellow-500/20 text-yellow-400'
+                          'bg-gray-500/20 text-gray-400'
                         }`}>
-                          {ticket.status === 'in_progress' ? 'In Progress' : ticket.status}
+                          {ticket.status.replace('_', ' ')}
                         </span>
                       </TableCell>
-                      <TableCell style={{ color: "#D6E4F0" }}>
+                      <TableCell className="text-white">
                         {new Date(ticket.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" style={{ color: "#4CB3FF" }}>
+                          <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-neutral-600">
                             <MessageSquare className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" style={{ color: "#10B981" }}>
+                          <Button variant="ghost" size="sm" className="text-green-400 hover:text-green-300 hover:bg-neutral-600">
                             <Check className="w-4 h-4" />
                           </Button>
                         </div>

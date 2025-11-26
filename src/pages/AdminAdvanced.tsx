@@ -306,13 +306,13 @@ const AdminAdvanced = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'connected':
-        return { bg: '#10B98130', text: '#10B981', border: '#10B98150' };
+        return 'bg-green-500/20 text-green-400';
       case 'disconnected':
-        return { bg: '#6B728030', text: '#9CA3AF', border: '#6B728050' };
+        return 'bg-gray-500/20 text-gray-400';
       case 'error':
-        return { bg: '#EF444430', text: '#EF4444', border: '#EF444450' };
+        return 'bg-red-500/20 text-red-400';
       default:
-        return { bg: '#6B728030', text: '#9CA3AF', border: '#6B728050' };
+        return 'bg-gray-500/20 text-gray-400';
     }
   };
 
@@ -330,513 +330,489 @@ const AdminAdvanced = () => {
         <h1 className="text-3xl font-bold text-white">
           Advanced Features
         </h1>
-        <p className="text-sm mt-2 text-white/70">
+        <p className="text-sm mt-2 text-white">
           Feature flags, maintenance mode, API management, and integrations
         </p>
       </div>
-            <Tabs defaultValue="flags" className="w-full">
-              <TabsList className="mb-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                <TabsTrigger value="flags" style={{ color: "#D6E4F0" }}>Feature Flags</TabsTrigger>
-                <TabsTrigger value="maintenance" style={{ color: "#D6E4F0" }}>Maintenance Mode</TabsTrigger>
-                <TabsTrigger value="api" style={{ color: "#D6E4F0" }}>API Management</TabsTrigger>
-                <TabsTrigger value="webhooks" style={{ color: "#D6E4F0" }}>Webhooks</TabsTrigger>
-                <TabsTrigger value="integrations" style={{ color: "#D6E4F0" }}>Integrations</TabsTrigger>
-              </TabsList>
+      <Tabs defaultValue="flags" className="w-full">
+        <TabsList className="mb-6 bg-neutral-700 border border-neutral-600">
+          <TabsTrigger value="flags" className="text-white data-[state=active]:bg-neutral-600">Feature Flags</TabsTrigger>
+          <TabsTrigger value="maintenance" className="text-white data-[state=active]:bg-neutral-600">Maintenance Mode</TabsTrigger>
+          <TabsTrigger value="api" className="text-white data-[state=active]:bg-neutral-600">API Management</TabsTrigger>
+          <TabsTrigger value="webhooks" className="text-white data-[state=active]:bg-neutral-600">Webhooks</TabsTrigger>
+          <TabsTrigger value="integrations" className="text-white data-[state=active]:bg-neutral-600">Integrations</TabsTrigger>
+        </TabsList>
 
-              {/* Feature Flags Tab */}
-              <TabsContent value="flags">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Feature Flags</h2>
-                      <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Control feature rollout and beta testing</p>
-                    </div>
-                    <Dialog open={isFeatureFlagDialogOpen} onOpenChange={setIsFeatureFlagDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Flag
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                        <DialogHeader>
-                          <DialogTitle style={{ color: "#D6E4F0" }}>Create Feature Flag</DialogTitle>
-                          <DialogDescription style={{ color: "#8FA3B7" }}>
-                            Add a new feature flag to control feature rollout
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Flag Name</Label>
-                            <Input
-                              value={featureFlagName}
-                              onChange={(e) => setFeatureFlagName(e.target.value)}
-                              placeholder="Advanced Analytics"
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Flag Key</Label>
-                            <Input
-                              value={featureFlagKey}
-                              onChange={(e) => setFeatureFlagKey(e.target.value)}
-                              placeholder="advanced_analytics"
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Description</Label>
-                            <Textarea
-                              value={featureFlagDescription}
-                              onChange={(e) => setFeatureFlagDescription(e.target.value)}
-                              placeholder="Describe what this flag controls..."
-                              rows={3}
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label style={{ color: "#D6E4F0" }}>Enabled</Label>
-                            <Switch
-                              checked={featureFlagEnabled}
-                              onCheckedChange={setFeatureFlagEnabled}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Rollout Percentage: {featureFlagRollout}%</Label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={featureFlagRollout}
-                              onChange={(e) => setFeatureFlagRollout(Number(e.target.value))}
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsFeatureFlagDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleCreateFeatureFlag} style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                            Create Flag
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
-                    <Table>
-                      <TableHeader>
-                        <TableRow style={{ borderColor: "#ffffff15" }}>
-                          <TableHead style={{ color: "#8FA3B7" }}>Flag Name</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Key</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Environment</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Rollout</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Status</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {featureFlags.map((flag) => (
-                          <TableRow key={flag.id} style={{ borderColor: "#ffffff15" }}>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium" style={{ color: "#D6E4F0" }}>{flag.name}</p>
-                                <p className="text-xs" style={{ color: "#8FA3B7" }}>{flag.description}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <code className="px-2 py-1 rounded text-xs" style={{ background: "#0A0F17", color: "#4CB3FF" }}>
-                                {flag.key}
-                              </code>
-                            </TableCell>
-                            <TableCell>
-                              <span className="px-2 py-1 rounded text-xs" style={{ background: "#ffffff10", color: "#D6E4F0" }}>
-                                {flag.environment}
-                              </span>
-                            </TableCell>
-                            <TableCell style={{ color: "#D6E4F0" }}>{flag.rollout_percentage}%</TableCell>
-                            <TableCell>
-                              <Switch checked={flag.enabled} />
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="sm" style={{ color: "#EF4444" }}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Maintenance Mode Tab */}
-              <TabsContent value="maintenance">
-                <div className="rounded-lg border p-6 space-y-6" style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                  <div className="flex items-start gap-4 p-4 rounded-lg" style={{ background: maintenanceEnabled ? "#EF444420" : "#4CB3FF20", borderColor: maintenanceEnabled ? "#EF4444" : "#4CB3FF", borderWidth: "1px" }}>
-                    <AlertTriangle className="w-6 h-6 mt-0.5" style={{ color: maintenanceEnabled ? "#EF4444" : "#4CB3FF" }} />
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1" style={{ color: "#D6E4F0" }}>
-                        {maintenanceEnabled ? "Maintenance Mode Active" : "Maintenance Mode Inactive"}
-                      </h3>
-                      <p className="text-sm" style={{ color: "#8FA3B7" }}>
-                        {maintenanceEnabled
-                          ? "The platform is currently in maintenance mode. Users cannot access the site."
-                          : "The platform is fully operational and accessible to all users."}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={maintenanceEnabled}
-                      onCheckedChange={handleToggleMaintenance}
-                    />
-                  </div>
-
+        {/* Feature Flags Tab */}
+        <TabsContent value="flags">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-white">Feature Flags</h2>
+                <p className="text-sm mt-1 text-white">Control feature rollout and beta testing</p>
+              </div>
+              <Dialog open={isFeatureFlagDialogOpen} onOpenChange={setIsFeatureFlagDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Flag
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Create Feature Flag</DialogTitle>
+                    <DialogDescription className="text-white">
+                      Add a new feature flag to control feature rollout
+                    </DialogDescription>
+                  </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Maintenance Message</Label>
-                      <Textarea
-                        value={maintenanceMessage}
-                        onChange={(e) => setMaintenanceMessage(e.target.value)}
-                        rows={4}
-                        placeholder="Enter the message users will see during maintenance..."
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label style={{ color: "#D6E4F0" }}>Estimated End Time</Label>
+                      <Label className="text-white">Flag Name</Label>
                       <Input
-                        type="datetime-local"
-                        value={maintenanceEstimatedEnd}
-                        onChange={(e) => setMaintenanceEstimatedEnd(e.target.value)}
-                        style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
+                        value={featureFlagName}
+                        onChange={(e) => setFeatureFlagName(e.target.value)}
+                        placeholder="Advanced Analytics"
+                        className="bg-neutral-600 border-neutral-500 text-white"
                       />
                     </div>
-
-                    <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                      Save Maintenance Settings
+                    <div className="space-y-2">
+                      <Label className="text-white">Flag Key</Label>
+                      <Input
+                        value={featureFlagKey}
+                        onChange={(e) => setFeatureFlagKey(e.target.value)}
+                        placeholder="advanced_analytics"
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Description</Label>
+                      <Textarea
+                        value={featureFlagDescription}
+                        onChange={(e) => setFeatureFlagDescription(e.target.value)}
+                        placeholder="Describe what this flag controls..."
+                        rows={3}
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-white">Enabled</Label>
+                      <Switch
+                        checked={featureFlagEnabled}
+                        onCheckedChange={setFeatureFlagEnabled}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Rollout Percentage: {featureFlagRollout}%</Label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={featureFlagRollout}
+                        onChange={(e) => setFeatureFlagRollout(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsFeatureFlagDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
+                      Cancel
                     </Button>
-                  </div>
+                    <Button onClick={handleCreateFeatureFlag} className="bg-blue-500 hover:bg-blue-600 text-white">
+                      Create Flag
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-                  <div className="pt-6 border-t" style={{ borderColor: "#ffffff15" }}>
-                    <h3 className="text-lg font-semibold mb-4" style={{ color: "#D6E4F0" }}>Preview</h3>
-                    <div className="rounded-lg border p-8 text-center" style={{ background: "#0A0F17", borderColor: "#ffffff15" }}>
-                      <AlertTriangle className="w-16 h-16 mx-auto mb-4" style={{ color: "#F59E0B" }} />
-                      <h2 className="text-2xl font-bold mb-2" style={{ color: "#D6E4F0" }}>Maintenance Mode</h2>
-                      <p className="mb-4" style={{ color: "#8FA3B7" }}>{maintenanceMessage}</p>
-                      {maintenanceEstimatedEnd && (
-                        <p className="text-sm" style={{ color: "#8FA3B7" }}>
-                          Expected to be back: {new Date(maintenanceEstimatedEnd).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* API Management Tab */}
-              <TabsContent value="api">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>API Keys</h2>
-                      <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Manage API keys and rate limits</p>
-                    </div>
-                    <Dialog open={isApiKeyDialogOpen} onOpenChange={setIsApiKeyDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Generate API Key
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                        <DialogHeader>
-                          <DialogTitle style={{ color: "#D6E4F0" }}>Generate API Key</DialogTitle>
-                          <DialogDescription style={{ color: "#8FA3B7" }}>
-                            Create a new API key for external integrations
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Key Name</Label>
-                            <Input
-                              value={apiKeyName}
-                              onChange={(e) => setApiKeyName(e.target.value)}
-                              placeholder="Production API"
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Rate Limit (requests/hour)</Label>
-                            <Input
-                              type="number"
-                              value={apiKeyRateLimit}
-                              onChange={(e) => setApiKeyRateLimit(Number(e.target.value))}
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Flag Name</TableHead>
+                    <TableHead className="text-white">Key</TableHead>
+                    <TableHead className="text-white">Environment</TableHead>
+                    <TableHead className="text-white">Rollout</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {featureFlags.map((flag) => (
+                    <TableRow key={flag.id} className="border-neutral-600">
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-white">{flag.name}</p>
+                          <p className="text-xs text-white">{flag.description}</p>
                         </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsApiKeyDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleCreateApiKey} style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                            Generate Key
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
-                    <Table>
-                      <TableHeader>
-                        <TableRow style={{ borderColor: "#ffffff15" }}>
-                          <TableHead style={{ color: "#8FA3B7" }}>Name</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>API Key</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Usage</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Rate Limit</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Last Used</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {apiKeys.map((key) => (
-                          <TableRow key={key.id} style={{ borderColor: "#ffffff15" }}>
-                            <TableCell style={{ color: "#D6E4F0" }}>{key.name}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <code className="px-2 py-1 rounded text-xs" style={{ background: "#0A0F17", color: "#4CB3FF" }}>
-                                  {key.key}
-                                </code>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleCopyApiKey(key.key)}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                            <TableCell style={{ color: "#D6E4F0" }}>{key.requests_count.toLocaleString()}</TableCell>
-                            <TableCell style={{ color: "#D6E4F0" }}>{key.rate_limit.toLocaleString()}/hr</TableCell>
-                            <TableCell style={{ color: "#8FA3B7", fontSize: "0.75rem" }}>{key.last_used}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="sm" style={{ color: "#EF4444" }}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Webhooks Tab */}
-              <TabsContent value="webhooks">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Webhooks</h2>
-                      <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Configure webhooks for platform events</p>
-                    </div>
-                    <Dialog open={isWebhookDialogOpen} onOpenChange={setIsWebhookDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Webhook
+                      </TableCell>
+                      <TableCell>
+                        <code className="px-2 py-1 rounded text-xs bg-neutral-600 text-blue-400">
+                          {flag.key}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 rounded text-xs bg-neutral-600 text-white">
+                          {flag.environment}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-white">{flag.rollout_percentage}%</TableCell>
+                      <TableCell>
+                        <Switch checked={flag.enabled} />
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-neutral-600">
+                          <Trash2 className="w-4 h-4" />
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent style={{ background: "#0B111A", borderColor: "#ffffff15" }}>
-                        <DialogHeader>
-                          <DialogTitle style={{ color: "#D6E4F0" }}>Create Webhook</DialogTitle>
-                          <DialogDescription style={{ color: "#8FA3B7" }}>
-                            Configure a new webhook endpoint
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Webhook Name</Label>
-                            <Input
-                              value={webhookName}
-                              onChange={(e) => setWebhookName(e.target.value)}
-                              placeholder="User Signup Webhook"
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Endpoint URL</Label>
-                            <Input
-                              value={webhookUrl}
-                              onChange={(e) => setWebhookUrl(e.target.value)}
-                              placeholder="https://api.example.com/webhooks/events"
-                              style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label style={{ color: "#D6E4F0" }}>Events</Label>
-                            <Select>
-                              <SelectTrigger style={{ background: "#0A0F17", borderColor: "#ffffff25", color: "#D6E4F0" }}>
-                                <SelectValue placeholder="Select events to trigger..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="user.created">User Created</SelectItem>
-                                <SelectItem value="user.verified">User Verified</SelectItem>
-                                <SelectItem value="project.created">Project Created</SelectItem>
-                                <SelectItem value="payment.succeeded">Payment Succeeded</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Maintenance Mode Tab */}
+        <TabsContent value="maintenance">
+          <div className="rounded-lg border border-neutral-600 bg-neutral-700 p-6 space-y-6">
+            <div className={`flex items-start gap-4 p-4 rounded-lg border ${maintenanceEnabled ? 'bg-red-500/20 border-red-500' : 'bg-blue-500/20 border-blue-500'}`}>
+              <AlertTriangle className={`w-6 h-6 mt-0.5 ${maintenanceEnabled ? 'text-red-400' : 'text-blue-400'}`} />
+              <div className="flex-1">
+                <h3 className="font-semibold mb-1 text-white">
+                  {maintenanceEnabled ? "Maintenance Mode Active" : "Maintenance Mode Inactive"}
+                </h3>
+                <p className="text-sm text-white">
+                  {maintenanceEnabled
+                    ? "The platform is currently in maintenance mode. Users cannot access the site."
+                    : "The platform is fully operational and accessible to all users."}
+                </p>
+              </div>
+              <Switch
+                checked={maintenanceEnabled}
+                onCheckedChange={handleToggleMaintenance}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Maintenance Message</Label>
+                <Textarea
+                  value={maintenanceMessage}
+                  onChange={(e) => setMaintenanceMessage(e.target.value)}
+                  rows={4}
+                  placeholder="Enter the message users will see during maintenance..."
+                  className="bg-neutral-600 border-neutral-500 text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white">Estimated End Time</Label>
+                <Input
+                  type="datetime-local"
+                  value={maintenanceEstimatedEnd}
+                  onChange={(e) => setMaintenanceEstimatedEnd(e.target.value)}
+                  className="bg-neutral-600 border-neutral-500 text-white"
+                />
+              </div>
+
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                Save Maintenance Settings
+              </Button>
+            </div>
+
+            <div className="pt-6 border-t border-neutral-600">
+              <h3 className="text-lg font-semibold mb-4 text-white">Preview</h3>
+              <div className="rounded-lg border border-neutral-600 bg-neutral-600 p-8 text-center">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-yellow-400" />
+                <h2 className="text-2xl font-bold mb-2 text-white">Maintenance Mode</h2>
+                <p className="mb-4 text-white">{maintenanceMessage}</p>
+                {maintenanceEstimatedEnd && (
+                  <p className="text-sm text-white">
+                    Expected to be back: {new Date(maintenanceEstimatedEnd).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* API Management Tab */}
+        <TabsContent value="api">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-white">API Keys</h2>
+                <p className="text-sm mt-1 text-white">Manage API keys and rate limits</p>
+              </div>
+              <Dialog open={isApiKeyDialogOpen} onOpenChange={setIsApiKeyDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Generate API Key
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Generate API Key</DialogTitle>
+                    <DialogDescription className="text-white">
+                      Create a new API key for external integrations
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">Key Name</Label>
+                      <Input
+                        value={apiKeyName}
+                        onChange={(e) => setApiKeyName(e.target.value)}
+                        placeholder="Production API"
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Rate Limit (requests/hour)</Label>
+                      <Input
+                        type="number"
+                        value={apiKeyRateLimit}
+                        onChange={(e) => setApiKeyRateLimit(Number(e.target.value))}
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsApiKeyDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateApiKey} className="bg-blue-500 hover:bg-blue-600 text-white">
+                      Generate Key
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Name</TableHead>
+                    <TableHead className="text-white">API Key</TableHead>
+                    <TableHead className="text-white">Usage</TableHead>
+                    <TableHead className="text-white">Rate Limit</TableHead>
+                    <TableHead className="text-white">Last Used</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {apiKeys.map((key) => (
+                    <TableRow key={key.id} className="border-neutral-600">
+                      <TableCell className="text-white">{key.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 rounded text-xs bg-neutral-600 text-blue-400">
+                            {key.key}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyApiKey(key.key)}
+                            className="text-white hover:bg-neutral-600"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsWebhookDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleCreateWebhook} style={{ background: "#4CB3FF", color: "#ffffff" }}>
-                            Create Webhook
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                      </TableCell>
+                      <TableCell className="text-white">{key.requests_count.toLocaleString()}</TableCell>
+                      <TableCell className="text-white">{key.rate_limit.toLocaleString()}/hr</TableCell>
+                      <TableCell className="text-white text-xs">{key.last_used}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-neutral-600">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
 
-                  <div className="rounded-lg border" style={{ borderColor: "#ffffff15", background: "#0B111A" }}>
-                    <Table>
-                      <TableHeader>
-                        <TableRow style={{ borderColor: "#ffffff15" }}>
-                          <TableHead style={{ color: "#8FA3B7" }}>Name</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>URL</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Events</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Last Triggered</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Status</TableHead>
-                          <TableHead style={{ color: "#8FA3B7" }}>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {webhooks.map((webhook) => (
-                          <TableRow key={webhook.id} style={{ borderColor: "#ffffff15" }}>
-                            <TableCell style={{ color: "#D6E4F0" }}>{webhook.name}</TableCell>
-                            <TableCell>
-                              <code className="text-xs" style={{ color: "#4CB3FF" }}>{webhook.url}</code>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {webhook.events.map((event, idx) => (
-                                  <span key={idx} className="px-2 py-0.5 rounded text-xs" style={{ background: "#ffffff10", color: "#D6E4F0" }}>
-                                    {event}
-                                  </span>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell style={{ color: "#8FA3B7", fontSize: "0.75rem" }}>{webhook.last_triggered}</TableCell>
-                            <TableCell>
-                              <Switch checked={webhook.enabled} />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleTestWebhook(webhook.name)}
-                                  style={{ color: "#4CB3FF" }}
-                                >
-                                  <RefreshCw className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" style={{ color: "#EF4444" }}>
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+        {/* Webhooks Tab */}
+        <TabsContent value="webhooks">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-white">Webhooks</h2>
+                <p className="text-sm mt-1 text-white">Configure webhooks for platform events</p>
+              </div>
+              <Dialog open={isWebhookDialogOpen} onOpenChange={setIsWebhookDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Webhook
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-neutral-700 border-neutral-600">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Create Webhook</DialogTitle>
+                    <DialogDescription className="text-white">
+                      Configure a new webhook endpoint
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-white">Webhook Name</Label>
+                      <Input
+                        value={webhookName}
+                        onChange={(e) => setWebhookName(e.target.value)}
+                        placeholder="User Signup Webhook"
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Endpoint URL</Label>
+                      <Input
+                        value={webhookUrl}
+                        onChange={(e) => setWebhookUrl(e.target.value)}
+                        placeholder="https://api.example.com/webhooks/events"
+                        className="bg-neutral-600 border-neutral-500 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Events</Label>
+                      <Select>
+                        <SelectTrigger className="bg-neutral-600 border-neutral-500 text-white">
+                          <SelectValue placeholder="Select events to trigger..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-700 border-neutral-600">
+                          <SelectItem value="user.created">User Created</SelectItem>
+                          <SelectItem value="user.verified">User Verified</SelectItem>
+                          <SelectItem value="project.created">Project Created</SelectItem>
+                          <SelectItem value="payment.succeeded">Payment Succeeded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-              </TabsContent>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsWebhookDialogOpen(false)} className="border-neutral-500 text-white hover:bg-neutral-600">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateWebhook} className="bg-blue-500 hover:bg-blue-600 text-white">
+                      Create Webhook
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-              {/* Integrations Tab */}
-              <TabsContent value="integrations">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-xl font-semibold" style={{ color: "#D6E4F0" }}>Third-Party Integrations</h2>
-                    <p className="text-sm mt-1" style={{ color: "#8FA3B7" }}>Manage connections to external services</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {integrations.map((integration) => {
-                      const statusColor = getStatusBadgeColor(integration.status);
-                      return (
-                        <div
-                          key={integration.id}
-                          className="rounded-lg border p-6"
-                          style={{ background: "#0B111A", borderColor: "#ffffff15" }}
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#4CB3FF20" }}>
-                                <Puzzle className="w-5 h-5" style={{ color: "#4CB3FF" }} />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold" style={{ color: "#D6E4F0" }}>{integration.name}</h3>
-                                <p className="text-xs" style={{ color: "#8FA3B7" }}>{integration.service}</p>
-                              </div>
-                            </div>
-                            <span
-                              className="px-2 py-1 rounded text-xs font-medium"
-                              style={{
-                                background: statusColor.bg,
-                                color: statusColor.text,
-                                border: `1px solid ${statusColor.border}`
-                              }}
-                            >
-                              {integration.status}
+            <div className="rounded-lg border border-neutral-600 bg-neutral-700">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-neutral-600">
+                    <TableHead className="text-white">Name</TableHead>
+                    <TableHead className="text-white">URL</TableHead>
+                    <TableHead className="text-white">Events</TableHead>
+                    <TableHead className="text-white">Last Triggered</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {webhooks.map((webhook) => (
+                    <TableRow key={webhook.id} className="border-neutral-600">
+                      <TableCell className="text-white">{webhook.name}</TableCell>
+                      <TableCell>
+                        <code className="text-xs text-blue-400">{webhook.url}</code>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {webhook.events.map((event, idx) => (
+                            <span key={idx} className="px-2 py-0.5 rounded text-xs bg-neutral-600 text-white">
+                              {event}
                             </span>
-                          </div>
-
-                          {integration.api_key && (
-                            <div className="mb-4">
-                              <p className="text-xs mb-1" style={{ color: "#8FA3B7" }}>API Key</p>
-                              <code className="text-xs px-2 py-1 rounded block" style={{ background: "#0A0F17", color: "#4CB3FF" }}>
-                                {integration.api_key}
-                              </code>
-                            </div>
-                          )}
-
-                          <div className="mb-4">
-                            <p className="text-xs mb-1" style={{ color: "#8FA3B7" }}>Last Sync</p>
-                            <p className="text-sm" style={{ color: "#D6E4F0" }}>{integration.last_sync}</p>
-                          </div>
-
-                          {integration.status === 'connected' ? (
-                            <div className="flex gap-2">
-                              <Button variant="outline" className="flex-1" style={{ borderColor: "#ffffff25" }}>
-                                Configure
-                              </Button>
-                              <Button variant="outline" style={{ borderColor: "#EF4444", color: "#EF4444" }}>
-                                Disconnect
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              className="w-full"
-                              onClick={() => handleConnectIntegration(integration.name)}
-                              style={{ background: "#4CB3FF", color: "#ffffff" }}
-                            >
-                              Connect
-                            </Button>
-                          )}
+                          ))}
                         </div>
-                      );
-                    })}
+                      </TableCell>
+                      <TableCell className="text-white text-xs">{webhook.last_triggered}</TableCell>
+                      <TableCell>
+                        <Switch checked={webhook.enabled} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleTestWebhook(webhook.name)}
+                            className="text-blue-400 hover:text-blue-300 hover:bg-neutral-600"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-neutral-600">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Integrations Tab */}
+        <TabsContent value="integrations">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Third-Party Integrations</h2>
+              <p className="text-sm mt-1 text-white">Manage connections to external services</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {integrations.map((integration) => (
+                <div
+                  key={integration.id}
+                  className="rounded-lg border border-neutral-600 bg-neutral-700 p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20">
+                        <Puzzle className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-white">{integration.name}</h3>
+                        <p className="text-xs text-white">{integration.service}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeColor(integration.status)}`}>
+                      {integration.status}
+                    </span>
                   </div>
+
+                  {integration.api_key && (
+                    <div className="mb-4 p-3 rounded bg-neutral-600">
+                      <p className="text-xs text-white mb-1">API Key</p>
+                      <code className="text-xs text-blue-400">{integration.api_key}</code>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-white mb-4">
+                    <span>Last synced</span>
+                    <span>{integration.last_sync}</span>
+                  </div>
+
+                  <Button
+                    className={`w-full ${integration.status === 'connected' ? 'bg-neutral-600 hover:bg-neutral-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+                    onClick={() => handleConnectIntegration(integration.name)}
+                  >
+                    {integration.status === 'connected' ? 'Manage' : 'Connect'}
+                  </Button>
                 </div>
-              </TabsContent>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
