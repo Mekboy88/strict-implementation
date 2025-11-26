@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { X, Check, ChevronRight, Search, Zap, Database, Github, CreditCard, Mail, BarChart3, Cloud, MessageSquare, Shield, Server, Brain, Smartphone, Globe, Layers, ArrowRight, Lock, Unlock } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { IntegrationSetupWizard } from "./integrations/IntegrationSetupWizard";
 
 interface IntegrationsPanelProps {
   open: boolean;
   onClose: () => void;
 }
 
-interface Integration {
+export interface Integration {
   id: string;
   name: string;
   description: string;
@@ -107,6 +108,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ open, onCl
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [localIntegrations, setLocalIntegrations] = useState(integrations);
+  const [wizardIntegration, setWizardIntegration] = useState<Integration | null>(null);
 
   const filteredIntegrations = localIntegrations.filter(i => {
     const matchesCategory = selectedCategory === "all" || i.category === selectedCategory;
@@ -118,18 +120,44 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ open, onCl
   const popularIntegrations = localIntegrations.filter(i => i.popular);
   const connectedCount = localIntegrations.filter(i => i.connected).length;
 
-  const handleConnect = (integration: Integration) => {
+  const handleStartSetup = (integration: Integration) => {
+    setWizardIntegration(integration);
+  };
+
+  const handleStepComplete = (integration: Integration, stepIndex: number) => {
     setLocalIntegrations(prev => prev.map(i => {
       if (i.id === integration.id) {
-        const newCompleted = Math.min(i.completedSteps + 1, i.steps.length);
         return {
           ...i,
-          completedSteps: newCompleted,
-          connected: newCompleted === i.steps.length
+          completedSteps: stepIndex + 1,
         };
       }
       return i;
     }));
+    // Update selected integration if it's the same
+    if (selectedIntegration?.id === integration.id) {
+      setSelectedIntegration(prev => prev ? { ...prev, completedSteps: stepIndex + 1 } : null);
+    }
+  };
+
+  const handleSetupComplete = (integration: Integration, credentials: Record<string, string>) => {
+    setLocalIntegrations(prev => prev.map(i => {
+      if (i.id === integration.id) {
+        return {
+          ...i,
+          completedSteps: i.steps.length,
+          connected: true,
+        };
+      }
+      return i;
+    }));
+    // Update selected integration
+    if (selectedIntegration?.id === integration.id) {
+      setSelectedIntegration(prev => prev ? { ...prev, completedSteps: integration.steps.length, connected: true } : null);
+    }
+    setWizardIntegration(null);
+    // Here you would save credentials to Supabase
+    console.log("Integration completed:", integration.id, credentials);
   };
 
   if (!open) return null;
@@ -387,7 +415,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ open, onCl
                 {/* Action Button */}
                 {!selectedIntegration.connected && (
                   <button
-                    onClick={() => handleConnect(selectedIntegration)}
+                    onClick={() => handleStartSetup(selectedIntegration)}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white text-sm font-medium hover:from-violet-600 hover:to-purple-700 transition-all flex items-center justify-center gap-2"
                   >
                     {selectedIntegration.completedSteps === 0 ? 'Start Setup' : 'Continue Setup'}
@@ -396,7 +424,10 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ open, onCl
                 )}
                 
                 {selectedIntegration.connected && (
-                  <button className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-sm font-medium hover:bg-white/10 transition-all">
+                  <button 
+                    onClick={() => handleStartSetup(selectedIntegration)}
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-sm font-medium hover:bg-white/10 transition-all"
+                  >
                     Manage Integration
                   </button>
                 )}
@@ -413,6 +444,16 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ open, onCl
           <span>{connectedCount} Integrations Connected</span>
         </div>
       </div>
+
+      {/* Setup Wizard Modal */}
+      {wizardIntegration && (
+        <IntegrationSetupWizard
+          integration={wizardIntegration}
+          onClose={() => setWizardIntegration(null)}
+          onComplete={handleSetupComplete}
+          onStepComplete={handleStepComplete}
+        />
+      )}
     </div>
   );
 };
