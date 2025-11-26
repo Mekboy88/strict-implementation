@@ -578,7 +578,7 @@ const AdminSupport = () => {
               <Input
                 value={newTicket.subject}
                 onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                className="bg-neutral-700 border-neutral-600 text-white"
+                className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 placeholder="Brief description of the issue"
               />
             </div>
@@ -587,7 +587,7 @@ const AdminSupport = () => {
               <Textarea
                 value={newTicket.message}
                 onChange={(e) => setNewTicket({ ...newTicket, message: e.target.value })}
-                className="bg-neutral-700 border-neutral-600 text-white min-h-[100px]"
+                className="bg-neutral-700 border-neutral-600 text-white min-h-[100px] focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 placeholder="Detailed description..."
               />
             </div>
@@ -598,7 +598,7 @@ const AdminSupport = () => {
                   value={newTicket.priority}
                   onValueChange={(v) => setNewTicket({ ...newTicket, priority: v })}
                 >
-                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white">
+                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-700 border-neutral-600">
@@ -614,7 +614,7 @@ const AdminSupport = () => {
                   value={newTicket.type}
                   onValueChange={(v) => setNewTicket({ ...newTicket, type: v })}
                 >
-                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white">
+                  <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-700 border-neutral-600">
@@ -631,7 +631,7 @@ const AdminSupport = () => {
                 value={newTicket.project_id}
                 onValueChange={(v) => setNewTicket({ ...newTicket, project_id: v === "none" ? "" : v })}
               >
-                <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white">
+                <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent className="bg-neutral-700 border-neutral-600">
