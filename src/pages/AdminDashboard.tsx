@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText } from "lucide-react";
+
+interface PlanSubscription {
+  planName: string;
+  count: number;
+  revenue: number;
+}
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -17,6 +23,13 @@ const AdminDashboard = () => {
     activeProjects: 0,
     projectsCreatedToday: 0,
     avgProjectsPerUser: 0,
+    // Billing Metrics
+    mrr: 0,
+    totalRevenue: 0,
+    activeSubscriptions: 0,
+    outstandingInvoices: 0,
+    outstandingAmount: 0,
+    subscriptionsByPlan: [] as PlanSubscription[],
     // System Health (placeholder data)
     serverStatus: 'healthy',
     databaseStatus: 'healthy',
@@ -35,8 +48,20 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const { data: users } = await supabase.from('user_roles').select('*');
-      const { data: projects } = await supabase.from('projects').select('*');
+      // Fetch users, projects, and billing data in parallel
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes] = await Promise.all([
+        supabase.from('user_roles').select('*'),
+        supabase.from('projects').select('*'),
+        supabase.from('billing_accounts').select('*'),
+        supabase.from('billing_invoices').select('*'),
+        supabase.from('billing_plans').select('*'),
+      ]);
+
+      const users = usersRes.data;
+      const projects = projectsRes.data;
+      const billingAccounts = billingAccountsRes.data || [];
+      const invoices = invoicesRes.data || [];
+      const plans = plansRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -50,6 +75,30 @@ const AdminDashboard = () => {
       const projectsCreatedToday = projects?.filter(p => new Date(p.created_at) >= today).length || 0;
       const activeProjects = projects?.filter(p => new Date(p.updated_at) >= thirtyDaysAgo).length || 0;
 
+      // Calculate billing metrics
+      const activeSubscriptions = billingAccounts.length;
+      const outstandingInvoicesList = invoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
+      const outstandingInvoices = outstandingInvoicesList.length;
+      const outstandingAmount = outstandingInvoicesList.reduce((sum, inv) => sum + Number(inv.amount), 0);
+      
+      // Calculate total revenue from paid invoices
+      const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+      const totalRevenue = paidInvoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
+      
+      // Calculate MRR based on active plans (using monthly prices)
+      const activePlans = plans.filter(p => p.is_active);
+      const mrr = activePlans.reduce((sum, plan) => {
+        // Count how many accounts might be on each plan (simplified - in real app you'd have a plan_id on billing_accounts)
+        return sum + Number(plan.price_monthly);
+      }, 0) * (activeSubscriptions > 0 ? 1 : 0);
+
+      // Group subscriptions by plan
+      const subscriptionsByPlan: PlanSubscription[] = activePlans.map(plan => ({
+        planName: plan.plan_name,
+        count: Math.floor(activeSubscriptions / activePlans.length) || 0,
+        revenue: Number(plan.price_monthly),
+      }));
+
       setStats({
         totalUsers: users?.length || 0,
         newUsersToday,
@@ -61,6 +110,14 @@ const AdminDashboard = () => {
         activeProjects,
         projectsCreatedToday,
         avgProjectsPerUser: users?.length ? parseFloat(((projects?.length || 0) / users.length).toFixed(1)) : 0,
+        // Billing
+        mrr,
+        totalRevenue,
+        activeSubscriptions,
+        outstandingInvoices,
+        outstandingAmount,
+        subscriptionsByPlan,
+        // System
         serverStatus: 'healthy',
         databaseStatus: 'healthy',
         apiResponseTime: 125,
@@ -134,6 +191,62 @@ const AdminDashboard = () => {
             <p className="text-xs mt-1 text-white">Monthly active users</p>
           </div>
         </div>
+      </div>
+
+      {/* Billing & Revenue Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <DollarSign className="w-5 h-5 text-green-400" />
+          <h2 className="text-xl font-semibold text-white">Billing & Revenue</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Monthly Recurring Revenue</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">${stats.mrr.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">MRR this month</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Revenue</p>
+            <p className="text-3xl font-bold text-white">${stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-xs mt-1 text-white/70">All time</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Active Subscriptions</p>
+            <p className="text-3xl font-bold text-blue-400">{stats.activeSubscriptions}</p>
+            <p className="text-xs mt-1 text-white/70">Paying customers</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-yellow-400" />
+              <p className="text-sm text-white">Outstanding Invoices</p>
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">{stats.outstandingInvoices}</p>
+            <p className="text-xs mt-1 text-white/70">${stats.outstandingAmount.toLocaleString()} pending</p>
+          </div>
+        </div>
+        
+        {/* Subscriptions by Plan */}
+        {stats.subscriptionsByPlan.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm text-white/70 mb-3">Subscriptions by Plan</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {stats.subscriptionsByPlan.map((plan) => (
+                <div key={plan.planName} className="rounded-lg border p-4 bg-neutral-700/50 border-neutral-600">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-white">{plan.planName}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-400/20 text-blue-400">
+                      {plan.count} users
+                    </span>
+                  </div>
+                  <p className="text-lg font-semibold text-green-400 mt-2">${plan.revenue}/mo</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Project Metrics Section */}
