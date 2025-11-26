@@ -99,7 +99,8 @@ export const SuspendUserDialog = ({ open, onOpenChange, user, onSuspend }: Suspe
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter the reason for suspending this user..."
-              className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400 min-h-[80px] focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400 min-h-[80px] focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 break-words whitespace-pre-wrap"
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             />
           </div>
 
@@ -109,13 +110,13 @@ export const SuspendUserDialog = ({ open, onOpenChange, user, onSuspend }: Suspe
               <Eye className="w-4 h-4" />
               User Notification Preview
             </Label>
-            <div className="bg-neutral-900 border border-neutral-600 rounded-md p-4 text-sm">
+            <div className="bg-neutral-900 border border-neutral-600 rounded-md p-4 text-sm overflow-hidden">
               <p className="text-white font-medium mb-2">Your account has been suspended</p>
               <p className="text-neutral-400 mb-2">
                 Your account has been suspended {getDurationText(duration)}.
               </p>
               {reason && (
-                <p className="text-neutral-400">
+                <p className="text-neutral-400 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                   <span className="text-neutral-300">Reason:</span> {reason}
                 </p>
               )}
