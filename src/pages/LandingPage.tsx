@@ -628,7 +628,7 @@ const UrDevLandingPage: React.FC = () => {
                       </button>
                       <button 
                         onClick={() => {
-                          setPrompt("Describe your project idea and I'll generate a comprehensive development plan with actionable tasks organized in your To-do list.");
+                          setPrompt("Describe your project idea and I'll generate a comprehensive development plan with actionable tasks organised in your To-do list.");
                           setPromptStatus("Ready to plan");
                         }}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
