@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -51,6 +52,7 @@ import {
   FileText,
   Image,
   Pencil,
+  CheckSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -119,6 +121,9 @@ const AdminSupport = () => {
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  
+  // Bulk selection state
+  const [selectedTicketIds, setSelectedTicketIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchTickets();
@@ -351,6 +356,74 @@ const AdminSupport = () => {
           type: editTicket.type,
         });
       }
+    }
+  };
+
+  // Bulk action functions
+  const toggleTicketSelection = (ticketId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedTicketIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(ticketId)) {
+        newSet.delete(ticketId);
+      } else {
+        newSet.add(ticketId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedTicketIds.size === filteredTickets.length) {
+      setSelectedTicketIds(new Set());
+    } else {
+      setSelectedTicketIds(new Set(filteredTickets.map((t) => t.id)));
+    }
+  };
+
+  const bulkUpdateStatus = async (status: string) => {
+    if (selectedTicketIds.size === 0) return;
+
+    const { data: userData } = await supabase.auth.getUser();
+    const currentUserId = userData?.user?.id;
+
+    const updates: Record<string, any> = { status };
+    if (status === "resolved") {
+      updates.resolved_at = new Date().toISOString();
+      updates.resolved_by = currentUserId;
+    }
+
+    const { error } = await supabase
+      .from("feedback")
+      .update(updates)
+      .in("id", Array.from(selectedTicketIds));
+
+    if (error) {
+      toast.error("Failed to update tickets");
+    } else {
+      toast.success(`${selectedTicketIds.size} ticket(s) updated to ${status}`);
+      setSelectedTicketIds(new Set());
+      fetchTickets();
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedTicketIds.size === 0) return;
+
+    const { error } = await supabase
+      .from("feedback")
+      .delete()
+      .in("id", Array.from(selectedTicketIds));
+
+    if (error) {
+      toast.error("Failed to delete tickets");
+    } else {
+      toast.success(`${selectedTicketIds.size} ticket(s) deleted`);
+      setSelectedTicketIds(new Set());
+      if (selectedTicket && selectedTicketIds.has(selectedTicket.id)) {
+        setSelectedTicket(null);
+      }
+      fetchTickets();
     }
   };
 
@@ -609,6 +682,68 @@ const AdminSupport = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Tickets List */}
         <div className="w-1/3 border-r border-neutral-700 overflow-hidden flex flex-col">
+          {/* Bulk Actions Bar */}
+          {selectedTicketIds.size > 0 && (
+            <div className="p-3 bg-blue-600/20 border-b border-neutral-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-blue-400" />
+                <span className="text-sm text-white">{selectedTicketIds.size} selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-7 bg-neutral-700 border-neutral-600 text-white hover:bg-neutral-600">
+                      Set Status
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-neutral-700 border-neutral-600">
+                    <DropdownMenuItem onClick={() => bulkUpdateStatus("open")} className="text-white hover:bg-neutral-600">
+                      Open
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => bulkUpdateStatus("in_progress")} className="text-blue-400 hover:bg-neutral-600">
+                      In Progress
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => bulkUpdateStatus("resolved")} className="text-green-400 hover:bg-neutral-600">
+                      Resolved
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => bulkUpdateStatus("closed")} className="text-neutral-400 hover:bg-neutral-600">
+                      Closed
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={bulkDelete}
+                  className="h-7 bg-red-600/20 border-red-600/50 text-red-400 hover:bg-red-600/30"
+                >
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  Delete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedTicketIds(new Set())}
+                  className="h-7 text-neutral-400 hover:text-white"
+                >
+                  <XCircle className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* Select All Header */}
+          {filteredTickets.length > 0 && (
+            <div className="p-2 border-b border-neutral-700 flex items-center gap-2">
+              <Checkbox
+                checked={selectedTicketIds.size === filteredTickets.length && filteredTickets.length > 0}
+                onCheckedChange={toggleSelectAll}
+                className="border-neutral-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              />
+              <span className="text-xs text-neutral-400">Select all ({filteredTickets.length})</span>
+            </div>
+          )}
+          
           <ScrollArea className="flex-1">
             {loading ? (
               <div className="flex items-center justify-center py-8">
@@ -627,33 +762,43 @@ const AdminSupport = () => {
                     }}
                     className={`p-4 cursor-pointer transition-colors hover:bg-neutral-700/50 ${
                       selectedTicket?.id === ticket.id ? "bg-neutral-700" : ""
-                    }`}
+                    } ${selectedTicketIds.has(ticket.id) ? "bg-blue-600/10" : ""}`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(ticket.status)}
-                        <span className="text-white font-medium truncate max-w-[180px]">
-                          {ticket.subject}
-                        </span>
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedTicketIds.has(ticket.id)}
+                        onCheckedChange={() => {}}
+                        onClick={(e) => toggleTicketSelection(ticket.id, e)}
+                        className="mt-1 border-neutral-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(ticket.status)}
+                            <span className="text-white font-medium truncate max-w-[150px]">
+                              {ticket.subject}
+                            </span>
+                          </div>
+                          <Badge className={getPriorityColor(ticket.priority)}>
+                            {ticket.priority}
+                          </Badge>
+                        </div>
+                        <p className="text-neutral-400 text-sm line-clamp-2 mb-2">
+                          {ticket.message}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-neutral-500">
+                          {ticket.projectName && (
+                            <span className="flex items-center gap-1">
+                              <FolderOpen className="w-3 h-3" />
+                              {ticket.projectName}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatDate(ticket.created_at)}
+                          </span>
+                        </div>
                       </div>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
-                    </div>
-                    <p className="text-neutral-400 text-sm line-clamp-2 mb-2">
-                      {ticket.message}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-neutral-500">
-                      {ticket.projectName && (
-                        <span className="flex items-center gap-1">
-                          <FolderOpen className="w-3 h-3" />
-                          {ticket.projectName}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(ticket.created_at)}
-                      </span>
                     </div>
                   </div>
                 ))}
