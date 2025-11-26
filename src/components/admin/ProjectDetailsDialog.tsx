@@ -218,6 +218,7 @@ export function ProjectDetailsDialog({
   const askAIToFix = async () => {
     if (!selectedFile || !project) return;
     setAiFixLoading(true);
+    setActiveTab("ai-diagnose");
 
     const fileError = hasError(selectedFile.path);
     const errorContext = fileError 
@@ -239,13 +240,12 @@ export function ProjectDetailsDialog({
       if (error) throw error;
 
       toast.success("AI analysis complete");
-      // Switch to AI Diagnose tab and show the response
+      // Show the response
       setAiMessages([{
         role: "assistant",
         content: data.response,
         timestamp: new Date(),
       }]);
-      setActiveTab("ai-diagnose");
     } catch (error) {
       console.error("AI fix error:", error);
       toast.error("Failed to get AI suggestions");
