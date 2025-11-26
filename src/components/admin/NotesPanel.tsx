@@ -21,6 +21,8 @@ import {
   Save,
   X,
   Users,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +55,35 @@ export const NotesPanel = () => {
   const [newNote, setNewNote] = useState({ title: "", content: "", color: "default" });
   const [showNewNoteForm, setShowNewNoteForm] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", content: "", color: "default" });
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+
+  const toggleNoteExpanded = (noteId: string) => {
+    setExpandedNotes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(noteId)) {
+        newSet.delete(noteId);
+      } else {
+        newSet.add(noteId);
+      }
+      return newSet;
+    });
+  };
+
+  const isContentLong = (content: string | null) => {
+    if (!content) return false;
+    return content.length > 150 || content.split('\n').length > 3;
+  };
+
+  const truncateContent = (content: string) => {
+    const lines = content.split('\n');
+    if (lines.length > 3) {
+      return lines.slice(0, 3).join('\n') + '...';
+    }
+    if (content.length > 150) {
+      return content.slice(0, 150) + '...';
+    }
+    return content;
+  };
 
   const fetchNotes = async () => {
     try {
@@ -347,9 +378,36 @@ export const NotesPanel = () => {
                             )}
                           </div>
                           {note.content && (
-                            <p className="text-sm text-neutral-300 mt-1 whitespace-pre-wrap">
-                              {note.content}
-                            </p>
+                            <div className="mt-1">
+                              <p className={`text-sm text-neutral-300 whitespace-pre-wrap ${
+                                !expandedNotes.has(note.id) && isContentLong(note.content) 
+                                  ? "max-h-[60px] overflow-hidden" 
+                                  : ""
+                              }`}>
+                                {expandedNotes.has(note.id) || !isContentLong(note.content)
+                                  ? note.content
+                                  : truncateContent(note.content)
+                                }
+                              </p>
+                              {isContentLong(note.content) && (
+                                <button
+                                  onClick={() => toggleNoteExpanded(note.id)}
+                                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 mt-1"
+                                >
+                                  {expandedNotes.has(note.id) ? (
+                                    <>
+                                      <ChevronUp className="h-3 w-3" />
+                                      Show less
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="h-3 w-3" />
+                                      Show more
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
                           )}
                           <p className="text-xs text-neutral-500 mt-2">
                             {new Date(note.updated_at).toLocaleDateString()}
