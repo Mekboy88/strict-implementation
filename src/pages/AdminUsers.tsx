@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, Shield, Mail, Calendar, Search, MoreVertical, Edit, Trash2, Ban, 
   Activity, Clock, ChevronLeft, ChevronRight, ArrowUpDown,
-  CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw
+  CreditCard, Building2, CheckCircle, Eye, Key, RefreshCw, UserX
 } from "lucide-react";
 import {
   Table,
@@ -32,10 +32,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditRoleDialog } from "@/components/admin/EditRoleDialog";
 import { SuspendUserDialog } from "@/components/admin/SuspendUserDialog";
 import { DeleteUserDialog } from "@/components/admin/DeleteUserDialog";
 import { UserDetailsDialog } from "@/components/admin/UserDetailsDialog";
+import { BlacklistPanel } from "@/components/admin/BlacklistPanel";
 
 interface UserData {
   id: string;
@@ -421,31 +423,48 @@ const AdminUsers = () => {
 
   return (
     <div className="h-full bg-neutral-800 p-6 overflow-y-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">User Management</h1>
           <p className="text-sm mt-1 text-neutral-400">
             Manage all registered users and their roles
           </p>
         </div>
-        <Button 
-          type="button"
-          variant="outline" 
-          size="sm"
-          onClick={() => {
-            console.log('Refresh clicked');
-            fetchUsers(true);
-          }}
-          disabled={isRefreshing}
-          className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="bg-neutral-700 border-neutral-600 mb-6">
+          <TabsTrigger value="users" className="data-[state=active]:bg-neutral-600 text-white">
+            <Users className="w-4 h-4 mr-2" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="blacklist" className="data-[state=active]:bg-neutral-600 text-white">
+            <UserX className="w-4 h-4 mr-2" />
+            Blacklist
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="mt-0">
+          {/* Refresh Button */}
+          <div className="flex justify-end mb-4">
+            <Button 
+              type="button"
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                console.log('Refresh clicked');
+                fetchUsers(true);
+              }}
+              disabled={isRefreshing}
+              className="border-neutral-600 bg-neutral-700 text-white hover:bg-neutral-600"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
           <div className="flex items-center justify-between">
             <div>
@@ -814,6 +833,12 @@ const AdminUsers = () => {
           </div>
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="blacklist" className="mt-0">
+          <BlacklistPanel />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialogs */}
       <EditRoleDialog
