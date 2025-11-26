@@ -42,6 +42,7 @@ import {
   AlertCircle,
   RefreshCw,
   Filter,
+  Trash2,
 } from "lucide-react";
 
 interface SupportTicket {
@@ -182,6 +183,23 @@ const AdminSupport = () => {
       if (selectedTicket?.id === ticketId) {
         setSelectedTicket({ ...selectedTicket, status, resolved_at: updates.resolved_at });
       }
+    }
+  };
+
+  const deleteTicket = async (ticketId: string) => {
+    const { error } = await supabase
+      .from("feedback")
+      .delete()
+      .eq("id", ticketId);
+
+    if (error) {
+      toast.error("Failed to delete ticket");
+    } else {
+      toast.success("Ticket deleted");
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(null);
+      }
+      fetchTickets();
     }
   };
 
@@ -457,6 +475,13 @@ const AdminSupport = () => {
                         className="text-neutral-400 hover:bg-neutral-600"
                       >
                         Close Ticket
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => deleteTicket(selectedTicket.id)}
+                        className="text-red-400 hover:bg-neutral-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Ticket
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
