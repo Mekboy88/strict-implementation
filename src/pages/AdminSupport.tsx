@@ -629,13 +629,13 @@ const AdminSupport = () => {
               <label className="text-sm text-neutral-400 mb-1 block">Related Project (optional)</label>
               <Select
                 value={newTicket.project_id}
-                onValueChange={(v) => setNewTicket({ ...newTicket, project_id: v })}
+                onValueChange={(v) => setNewTicket({ ...newTicket, project_id: v === "none" ? "" : v })}
               >
                 <SelectTrigger className="bg-neutral-700 border-neutral-600 text-white">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent className="bg-neutral-700 border-neutral-600">
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
