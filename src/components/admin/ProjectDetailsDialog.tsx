@@ -402,7 +402,7 @@ export function ProjectDetailsDialog({
 
           <TabsContent value="files" className="mt-4">
             {selectedFile ? (
-              <div className="h-[350px] flex flex-col">
+              <div className="h-[500px] flex flex-col">
                 <div className="flex items-center justify-between mb-2 p-2 bg-neutral-700 rounded">
                   <div className="flex items-center gap-2">
                     <FileCode className={`w-4 h-4 ${hasError(selectedFile.path) ? "text-red-400" : "text-blue-400"}`} />
@@ -464,7 +464,7 @@ export function ProjectDetailsDialog({
                 </div>
               </div>
             ) : (
-              <ScrollArea className="h-[300px]">
+              <ScrollArea className="h-[500px]">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
@@ -515,7 +515,7 @@ export function ProjectDetailsDialog({
           </TabsContent>
 
           <TabsContent value="members" className="mt-4">
-            <ScrollArea className="h-[300px]">
+            <ScrollArea className="h-[500px]">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
@@ -539,7 +539,7 @@ export function ProjectDetailsDialog({
           </TabsContent>
 
           <TabsContent value="deployments" className="mt-4">
-            <ScrollArea className="h-[300px]">
+            <ScrollArea className="h-[500px]">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
@@ -579,7 +579,7 @@ export function ProjectDetailsDialog({
           </TabsContent>
 
           <TabsContent value="ai-diagnose" className="mt-4">
-            <div className="flex flex-col h-[350px]">
+            <div className="flex flex-col h-[500px]">
               <ScrollArea className="flex-1 mb-3">
                 {aiMessages.length === 0 ? (
                   <div className="text-center py-8">
