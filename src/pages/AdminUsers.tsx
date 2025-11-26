@@ -369,13 +369,13 @@ const AdminUsers = () => {
     fetchUsers();
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string, reason: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const { error } = await supabase.functions.invoke("admin-update-user", {
       headers: { Authorization: `Bearer ${session.access_token}` },
-      body: { action: "delete", userId }
+      body: { action: "delete", userId, reason }
     });
 
     if (error) {
