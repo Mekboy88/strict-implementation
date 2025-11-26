@@ -46,6 +46,10 @@ import {
   Ticket,
   TrendingUp,
   Timer,
+  Paperclip,
+  ExternalLink,
+  FileText,
+  Image,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -65,6 +69,7 @@ interface SupportTicket {
   project_id: string | null;
   user_id: string | null;
   assigned_to: string | null;
+  attachments: string[] | null;
   created_at: string;
   updated_at: string;
   resolved_at: string | null;
@@ -681,6 +686,41 @@ const AdminSupport = () => {
                 </div>
                 <p className="text-white whitespace-pre-wrap">{selectedTicket.message}</p>
               </div>
+
+              {/* Attachments */}
+              {selectedTicket.attachments && selectedTicket.attachments.length > 0 && (
+                <div className="p-4 border-b border-neutral-700 bg-neutral-750/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Paperclip className="w-4 h-4 text-neutral-400" />
+                    <span className="text-neutral-400 text-sm">
+                      Attachments ({selectedTicket.attachments.length})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedTicket.attachments.map((attachment, idx) => {
+                      const fileName = attachment.split('/').pop() || attachment;
+                      const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(attachment);
+                      return (
+                        <a
+                          key={idx}
+                          href={attachment}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 p-2 rounded bg-neutral-700 hover:bg-neutral-600 transition-colors group"
+                        >
+                          {isImage ? (
+                            <Image className="w-4 h-4 text-blue-400" />
+                          ) : (
+                            <FileText className="w-4 h-4 text-neutral-400" />
+                          )}
+                          <span className="text-sm text-white truncate flex-1">{fileName}</span>
+                          <ExternalLink className="w-3 h-3 text-neutral-500 group-hover:text-neutral-300" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* AI Chat Area */}
               <div className="flex-1 flex flex-col overflow-hidden">
