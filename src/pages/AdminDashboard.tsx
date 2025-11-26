@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText } from "lucide-react";
+import { Users, FolderOpen, Activity, Database, CheckCircle2, HardDrive, Cpu, AlertCircle, DollarSign, CreditCard, FileText, Rocket, XCircle } from "lucide-react";
 
 interface PlanSubscription {
   planName: string;
@@ -30,6 +30,13 @@ const AdminDashboard = () => {
     outstandingInvoices: 0,
     outstandingAmount: 0,
     subscriptionsByPlan: [] as PlanSubscription[],
+    // Deployment Metrics
+    totalDeployments: 0,
+    successfulDeployments: 0,
+    failedDeployments: 0,
+    pendingDeployments: 0,
+    deploymentsToday: 0,
+    deploymentSuccessRate: 0,
     // System Health (placeholder data)
     serverStatus: 'healthy',
     databaseStatus: 'healthy',
@@ -48,13 +55,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Fetch users, projects, and billing data in parallel
-      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes] = await Promise.all([
+      // Fetch users, projects, billing, and deployment data in parallel
+      const [usersRes, projectsRes, billingAccountsRes, invoicesRes, plansRes, deploymentsRes] = await Promise.all([
         supabase.from('user_roles').select('*'),
         supabase.from('projects').select('*'),
         supabase.from('billing_accounts').select('*'),
         supabase.from('billing_invoices').select('*'),
         supabase.from('billing_plans').select('*'),
+        supabase.from('project_deployments').select('*'),
       ]);
 
       const users = usersRes.data;
@@ -62,6 +70,7 @@ const AdminDashboard = () => {
       const billingAccounts = billingAccountsRes.data || [];
       const invoices = invoicesRes.data || [];
       const plans = plansRes.data || [];
+      const deployments = deploymentsRes.data || [];
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -99,6 +108,16 @@ const AdminDashboard = () => {
         revenue: Number(plan.price_monthly),
       }));
 
+      // Calculate deployment metrics
+      const totalDeployments = deployments.length;
+      const successfulDeployments = deployments.filter(d => d.status === 'success' || d.status === 'deployed').length;
+      const failedDeployments = deployments.filter(d => d.status === 'failed' || d.status === 'error').length;
+      const pendingDeployments = deployments.filter(d => d.status === 'pending' || d.status === 'building').length;
+      const deploymentsToday = deployments.filter(d => new Date(d.created_at) >= today).length;
+      const deploymentSuccessRate = totalDeployments > 0 
+        ? ((successfulDeployments / totalDeployments) * 100) 
+        : 0;
+
       setStats({
         totalUsers: users?.length || 0,
         newUsersToday,
@@ -117,6 +136,13 @@ const AdminDashboard = () => {
         outstandingInvoices,
         outstandingAmount,
         subscriptionsByPlan,
+        // Deployments
+        totalDeployments,
+        successfulDeployments,
+        failedDeployments,
+        pendingDeployments,
+        deploymentsToday,
+        deploymentSuccessRate,
         // System
         serverStatus: 'healthy',
         databaseStatus: 'healthy',
@@ -272,6 +298,41 @@ const AdminDashboard = () => {
           <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
             <p className="text-sm mb-2 text-white">Avg per User</p>
             <p className="text-3xl font-bold text-white">{stats.avgProjectsPerUser}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Deployment Metrics Section */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Rocket className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Deployment Metrics</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Total Deployments</p>
+            <p className="text-3xl font-bold text-white">{stats.totalDeployments}</p>
+            <p className="text-xs mt-1 text-white/70">All time</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <p className="text-sm text-white">Successful</p>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{stats.successfulDeployments}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.deploymentSuccessRate.toFixed(1)}% success rate</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <p className="text-sm text-white">Failed</p>
+            </div>
+            <p className="text-3xl font-bold text-red-400">{stats.failedDeployments}</p>
+            <p className="text-xs mt-1 text-white/70">{stats.pendingDeployments} pending</p>
+          </div>
+          <div className="rounded-lg border p-5 bg-neutral-700 border-neutral-600">
+            <p className="text-sm mb-2 text-white">Deployments Today</p>
+            <p className="text-3xl font-bold text-purple-400">+{stats.deploymentsToday}</p>
           </div>
         </div>
       </div>
