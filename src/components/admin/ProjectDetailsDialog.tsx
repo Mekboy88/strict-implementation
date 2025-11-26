@@ -15,7 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FolderOpen, User, Calendar, HardDrive, FileCode, 
-  Users, GitBranch, Globe, Clock, Bot, Send, X, Eye 
+  Users, GitBranch, Globe, Clock, Bot, Send, X, Eye,
+  Copy, AlertCircle, Wand2
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
@@ -59,6 +60,11 @@ interface ProjectFile {
   updated_at: string;
 }
 
+interface FileError {
+  file_path: string;
+  error_message: string;
+}
+
 interface AIMessage {
   role: "user" | "assistant";
   content: string;
@@ -78,6 +84,8 @@ export function ProjectDetailsDialog({
   // Code viewer state
   const [selectedFile, setSelectedFile] = useState<{ path: string; content: string } | null>(null);
   const [loadingFile, setLoadingFile] = useState(false);
+  const [fileErrors, setFileErrors] = useState<FileError[]>([]);
+  const [aiFixLoading, setAiFixLoading] = useState(false);
   
   // AI Diagnose state
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
@@ -167,7 +175,80 @@ export function ProjectDetailsDialog({
       .limit(20);
     setFiles(filesData || []);
 
+    // Fetch platform errors for this project
+    const { data: errorsData } = await supabase
+      .from("platform_errors")
+      .select("error_message, stack_trace")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    
+    // Extract file paths from error stack traces
+    const errors: FileError[] = [];
+    errorsData?.forEach((err) => {
+      const stackTrace = err.stack_trace || err.error_message || "";
+      // Try to extract file paths from stack trace
+      const fileMatches = stackTrace.match(/(?:src\/[^\s:)]+|[^\s:)]+\.(tsx?|jsx?|ts|js))/g);
+      if (fileMatches) {
+        fileMatches.forEach((match: string) => {
+          if (!errors.find(e => e.file_path === match)) {
+            errors.push({ file_path: match, error_message: err.error_message });
+          }
+        });
+      }
+    });
+    setFileErrors(errors);
+
     setLoading(false);
+  };
+
+  const copyFileContent = () => {
+    if (selectedFile) {
+      navigator.clipboard.writeText(selectedFile.content);
+      toast.success("Code copied to clipboard");
+    }
+  };
+
+  const hasError = (filePath: string): FileError | undefined => {
+    return fileErrors.find(e => filePath.includes(e.file_path) || e.file_path.includes(filePath));
+  };
+
+  const askAIToFix = async () => {
+    if (!selectedFile || !project) return;
+    setAiFixLoading(true);
+
+    const fileError = hasError(selectedFile.path);
+    const errorContext = fileError 
+      ? `\n\nError in this file: ${fileError.error_message}` 
+      : "";
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-diagnose", {
+        body: {
+          projectId: project.id,
+          message: `Please analyze and suggest fixes for this file: ${selectedFile.path}${errorContext}\n\nFile content:\n\`\`\`\n${selectedFile.content.slice(0, 3000)}\n\`\`\``,
+          projectContext: {
+            fileName: selectedFile.path,
+            hasError: !!fileError,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("AI analysis complete");
+      // Switch to AI Diagnose tab and show the response
+      setAiMessages([{
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+      }]);
+    } catch (error) {
+      console.error("AI fix error:", error);
+      toast.error("Failed to get AI suggestions");
+    } finally {
+      setAiFixLoading(false);
+    }
   };
 
   const sendAIMessage = async () => {
@@ -321,19 +402,49 @@ export function ProjectDetailsDialog({
               <div className="h-[350px] flex flex-col">
                 <div className="flex items-center justify-between mb-2 p-2 bg-neutral-700 rounded">
                   <div className="flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-blue-400" />
-                    <span className="text-white text-sm font-mono">{selectedFile.path}</span>
+                    <FileCode className={`w-4 h-4 ${hasError(selectedFile.path) ? "text-red-400" : "text-blue-400"}`} />
+                    <span className={`text-sm font-mono ${hasError(selectedFile.path) ? "text-red-400" : "text-white"}`}>
+                      {selectedFile.path}
+                    </span>
+                    {hasError(selectedFile.path) && (
+                      <Badge className="bg-red-500/20 text-red-400 text-xs">Has Error</Badge>
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedFile(null)}
-                    className="text-neutral-400 hover:text-white hover:bg-neutral-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyFileContent}
+                      className="text-neutral-400 hover:text-white hover:bg-neutral-600"
+                      title="Copy code"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={askAIToFix}
+                      disabled={aiFixLoading}
+                      className={`hover:bg-neutral-600 ${hasError(selectedFile.path) ? "text-red-400 hover:text-red-300" : "text-blue-400 hover:text-blue-300"}`}
+                      title="Ask AI to fix"
+                    >
+                      {aiFixLoading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                      ) : (
+                        <Wand2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-neutral-400 hover:text-white hover:bg-neutral-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex-1 rounded overflow-hidden border border-neutral-600">
+                <div className={`flex-1 rounded overflow-hidden border ${hasError(selectedFile.path) ? "border-red-500/50" : "border-neutral-600"}`}>
                   <Editor
                     height="100%"
                     language={getLanguageFromPath(selectedFile.path)}
@@ -359,22 +470,35 @@ export function ProjectDetailsDialog({
                   <p className="text-neutral-400 text-center py-8">No files found</p>
                 ) : (
                   <div className="space-y-2">
-                    {files.map((file) => (
-                      <div 
-                        key={file.id} 
-                        className="flex items-center justify-between p-2 bg-neutral-700 rounded hover:bg-neutral-600 cursor-pointer transition-colors"
-                        onClick={() => fetchFileContent(file.file_path)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileCode className="w-4 h-4 text-blue-400" />
-                          <span className="text-white text-sm font-mono">{file.file_path}</span>
+                    {files.map((file) => {
+                      const fileError = hasError(file.file_path);
+                      return (
+                        <div 
+                          key={file.id} 
+                          className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                            fileError 
+                              ? "bg-red-500/10 border border-red-500/30 hover:bg-red-500/20" 
+                              : "bg-neutral-700 hover:bg-neutral-600"
+                          }`}
+                          onClick={() => fetchFileContent(file.file_path)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {fileError ? (
+                              <AlertCircle className="w-4 h-4 text-red-400" />
+                            ) : (
+                              <FileCode className="w-4 h-4 text-blue-400" />
+                            )}
+                            <span className={`text-sm font-mono ${fileError ? "text-red-400" : "text-white"}`}>
+                              {file.file_path}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-neutral-400 text-xs">{formatDate(file.updated_at)}</span>
+                            <Eye className={`w-4 h-4 ${fileError ? "text-red-400" : "text-neutral-400"}`} />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-neutral-400 text-xs">{formatDate(file.updated_at)}</span>
-                          <Eye className="w-4 h-4 text-neutral-400" />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {loadingFile && (
                       <div className="flex items-center justify-center py-4">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
