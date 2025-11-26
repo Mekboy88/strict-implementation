@@ -260,7 +260,7 @@ const AdminUsers = () => {
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case "owner": return "Primary Super Admin";
+      case "owner": return "Platform Owner";
       case "admin": return "Admin";
       case "moderator": return "Moderator";
       default: return "User";
@@ -394,7 +394,7 @@ const AdminUsers = () => {
         <div className="rounded-lg border p-4 bg-neutral-700 border-neutral-600">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-neutral-400">Primary Super Admin</p>
+              <p className="text-xs text-neutral-400">Platform Owner</p>
               <p className="text-2xl font-bold text-white">{stats.owners}</p>
             </div>
             <div className="p-2 rounded-lg bg-purple-500/20">
@@ -469,7 +469,7 @@ const AdminUsers = () => {
           </SelectTrigger>
           <SelectContent className="bg-neutral-700 border-neutral-600 z-50">
             <SelectItem value="all" className="text-white hover:bg-neutral-600">All Roles</SelectItem>
-            <SelectItem value="owner" className="text-white hover:bg-neutral-600">Primary Super Admin</SelectItem>
+            <SelectItem value="owner" className="text-white hover:bg-neutral-600">Platform Owner</SelectItem>
             <SelectItem value="admin" className="text-white hover:bg-neutral-600">Admin</SelectItem>
             <SelectItem value="moderator" className="text-white hover:bg-neutral-600">Moderator</SelectItem>
             <SelectItem value="user" className="text-white hover:bg-neutral-600">User</SelectItem>
