@@ -387,6 +387,30 @@ const AdminUsers = () => {
     fetchUsers();
   };
 
+  const handleResetPassword = async (userId: string, email: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase.functions.invoke("admin-update-user", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: { 
+        action: "resetPassword", 
+        userId,
+        redirectUrl: `${window.location.origin}/reset-password`
+      }
+    });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to send password reset email", variant: "destructive" });
+      return;
+    }
+
+    toast({ 
+      title: "Password Reset Sent", 
+      description: `Password reset link has been generated for ${email}. The user will receive an email to reset their password.`
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12 bg-neutral-800">
@@ -698,12 +722,7 @@ const AdminUsers = () => {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="hover:bg-neutral-600 cursor-pointer text-white"
-                            onClick={() => {
-                              toast({
-                                title: "Password Reset",
-                                description: `Password reset email sent to ${user.email}`,
-                              });
-                            }}
+                            onClick={() => handleResetPassword(user.user_id, user.email || '')}
                           >
                             <Key className="w-4 h-4 mr-2" />
                             Reset Password

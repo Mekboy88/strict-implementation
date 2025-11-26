@@ -52,7 +52,7 @@ serve(async (req) => {
       });
     }
 
-    const { action, userId, role, banDuration } = await req.json();
+    const { action, userId, role, banDuration, redirectUrl } = await req.json();
 
     // CRITICAL: Check if target user is owner - NEVER allow changes to owner
     const { data: targetUserRole } = await supabaseAdmin
@@ -135,6 +135,35 @@ serve(async (req) => {
         await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
 
         return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "resetPassword": {
+        // Get user email first
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (userError || !userData?.user?.email) {
+          throw new Error("Could not find user email");
+        }
+
+        // Generate password reset link
+        const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+          type: "recovery",
+          email: userData.user.email,
+          options: {
+            redirectTo: redirectUrl || `${Deno.env.get("SUPABASE_URL")}/auth/v1/callback`,
+          },
+        });
+
+        if (error) throw error;
+
+        console.log(`Password reset email generated for user: ${userData.user.email}`);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          email: userData.user.email,
+          message: "Password reset link generated"
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
