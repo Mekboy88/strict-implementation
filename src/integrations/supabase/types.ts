@@ -474,6 +474,36 @@ export type Database = {
         }
         Relationships: []
       }
+      deleted_user_blacklist: {
+        Row: {
+          deleted_at: string
+          deleted_by: string | null
+          deletion_reason: string
+          email: string
+          full_name: string | null
+          id: string
+          original_user_id: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by?: string | null
+          deletion_reason: string
+          email: string
+          full_name?: string | null
+          id?: string
+          original_user_id?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string | null
+          deletion_reason?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          original_user_id?: string | null
+        }
+        Relationships: []
+      }
       edge_errors: {
         Row: {
           created_at: string
