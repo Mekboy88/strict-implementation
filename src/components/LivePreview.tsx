@@ -72,13 +72,8 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     });
 
     try {
-      // All transformed code bundled together
-      const CODE_BUNDLE = ${JSON.stringify(transformedFiles.join("\n\n"))};
-      console.log('Loading components...', ${JSON.stringify(Object.keys(files))});
-      
-      // Evaluate the bundled code safely
-      // eslint-disable-next-line no-eval
-      eval(CODE_BUNDLE);
+      // All transformed code (each file already exposes its component on window)
+      ${transformedFiles.join("\n\n")}
 
       // Render the detected main component
       const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
