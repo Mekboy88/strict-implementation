@@ -1,118 +1,94 @@
 /**
- * Robust JSX to JavaScript Compiler
- * Transforms JSX syntax into React.createElement calls
+ * Simplified JSX Compiler with Proper Error Handling
+ * Transforms JSX to React.createElement with component support
  */
 
-interface Token {
-  type: 'text' | 'tag-open' | 'tag-close' | 'tag-self-close' | 'expression' | 'attribute';
-  value: string;
-  line: number;
-  col: number;
-}
-
 export function compileJSX(code: string): string {
-  // Remove TypeScript types and interfaces
-  code = stripTypeScript(code);
-  
-  // Find all JSX blocks and transform them
-  return transformJSXInCode(code);
+  try {
+    // Step 1: Remove TypeScript artifacts
+    code = stripTypeScript(code);
+    
+    // Step 2: Transform JSX
+    code = transformJSX(code);
+    
+    return code;
+  } catch (error) {
+    console.error('[JSX Compiler] Error:', error);
+    // Return safe fallback
+    return `function Page() { return React.createElement('div', null, 'JSX Compilation Error: ${error instanceof Error ? error.message : String(error)}'); }`;
+  }
 }
 
 function stripTypeScript(code: string): string {
-  // Simplified: for now we assume preview input is plain TSX without complex
-  // type information and avoid aggressive regex stripping that could corrupt
-  // the source. This keeps the compiler safe for simple components.
+  // Remove interface/type declarations
+  code = code.replace(/interface\s+\w+\s*\{[^}]*\}/gs, '');
+  code = code.replace(/type\s+\w+\s*=\s*[^;]+;/gs, '');
+  
+  // Remove type annotations from function params: (x: Type)
+  code = code.replace(/\(\s*\{([^}]+)\}\s*:\s*\{[^}]+\}\s*\)/g, '({ $1 })');
+  code = code.replace(/\(\s*(\w+)\s*:\s*[^)]+\)/g, '($1)');
+  
+  // Remove return type annotations: ): Type =>
+  code = code.replace(/\):\s*\w+(\[\])?\s*(=>|{)/g, ') $2');
+  
+  // Remove variable type annotations: const x: Type =
+  code = code.replace(/:\s*\w+(\[\])?\s*=/g, ' =');
+  
   return code;
 }
 
-function transformJSXInCode(code: string): string {
+function transformJSX(code: string): string {
   let result = '';
   let i = 0;
-  const MAX_ITERATIONS = code.length * 2; // Safety limit
-  let iterations = 0;
   
-  while (i < code.length && iterations < MAX_ITERATIONS) {
-    iterations++;
-    
-    // Treat any `<` followed by a letter as the start of JSX. This is
-    // intentionally permissive but very safe for our preview use-case
-    // (static TSX components) and avoids mis-detecting JSX blocks.
-    if (
-      code[i] === '<' &&
-      i + 1 < code.length &&
-      /[a-zA-Z]/.test(code[i + 1])
-    ) {
-      const jsxResult = parseJSXElement(code, i);
-      result += jsxResult.code;
-      i = jsxResult.endIndex;
+  while (i < code.length) {
+    // Look for JSX opening: < followed by letter
+    if (code[i] === '<' && i + 1 < code.length && /[a-zA-Z]/.test(code[i + 1])) {
+      try {
+        const jsxResult = parseJSXElement(code, i);
+        result += jsxResult.code;
+        i = jsxResult.endIndex;
+      } catch (error) {
+        console.error('[JSX Parser] Error at position', i, ':', error);
+        // Skip the problematic character and continue
+        result += code[i];
+        i++;
+      }
     } else {
       result += code[i];
       i++;
     }
   }
-
-  if (iterations >= MAX_ITERATIONS) {
-    console.error('JSX compiler exceeded iteration limit');
-    return code; // Return original code if we hit the limit
-  }
   
   return result;
 }
 
-function isJSXStart(code: string, index: number): boolean {
-  // Check if this < is likely JSX and not a comparison
-  const before = code.slice(Math.max(0, index - 20), index).trim();
-  
-  // Common JSX contexts
-  if (before.endsWith('return') || 
-      before.endsWith('=>') || 
-      before.endsWith('(') ||
-      before.endsWith(',') ||
-      /\?\s*$/.test(before) ||
-      /:\s*$/.test(before)) {
-    return true;
-  }
-  
-  // Also check if we're inside JSX (after > of opening tag)
-  const lastChar = before[before.length - 1];
-  if (lastChar === '>') {
-    return true;
-  }
-  
-  return false;
-}
-
 function parseJSXElement(code: string, startIndex: number): { code: string; endIndex: number } {
-  let i = startIndex;
-  const MAX_PARSE_ITERATIONS = 10000;
-  let iterations = 0;
-  
-  // Parse opening tag
-  if (code[i] !== '<') {
-    throw new Error('Expected < at JSX start');
-  }
-  
-  i++; // skip <
+  let i = startIndex + 1; // Skip '<'
   
   // Get tag name
   let tagName = '';
-  while (i < code.length && /[a-zA-Z0-9_.-]/.test(code[i]) && iterations < MAX_PARSE_ITERATIONS) {
-    iterations++;
+  while (i < code.length && /[a-zA-Z0-9_.]/.test(code[i])) {
     tagName += code[i];
     i++;
   }
   
+  if (!tagName) {
+    throw new Error('Invalid JSX: no tag name');
+  }
+  
+  // Skip whitespace
+  while (i < code.length && /\s/.test(code[i])) i++;
+  
   // Parse attributes
-  const attributes: { [key: string]: string } = {};
-  while (i < code.length && code[i] !== '>' && code[i] !== '/' && iterations < MAX_PARSE_ITERATIONS) {
-    iterations++;
-    
+  const attributes: Record<string, string> = {};
+  while (i < code.length && code[i] !== '>' && code[i] !== '/') {
     // Skip whitespace
     while (i < code.length && /\s/.test(code[i])) i++;
     
     if (code[i] === '>' || code[i] === '/') break;
     
-    // Parse attribute name
+    // Get attribute name
     let attrName = '';
     while (i < code.length && /[a-zA-Z0-9_-]/.test(code[i])) {
       attrName += code[i];
@@ -121,86 +97,80 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
     
     if (!attrName) break;
     
-    // Skip whitespace and =
+    // Skip whitespace and '='
     while (i < code.length && (/\s/.test(code[i]) || code[i] === '=')) i++;
     
-    // Parse attribute value
-    let attrValue = '';
+    // Get attribute value
     if (code[i] === '"' || code[i] === "'") {
+      // String value
       const quote = code[i];
-      i++; // skip opening quote
+      i++;
+      let attrValue = '';
       while (i < code.length && code[i] !== quote) {
         attrValue += code[i];
         i++;
       }
-      i++; // skip closing quote
+      i++; // Skip closing quote
       attributes[attrName] = JSON.stringify(attrValue);
     } else if (code[i] === '{') {
-      // JSX expression
+      // Expression value
+      i++; // Skip '{'
       let braceCount = 1;
-      i++; // skip {
+      let expr = '';
       while (i < code.length && braceCount > 0) {
         if (code[i] === '{') braceCount++;
-        if (code[i] === '}') braceCount--;
-        if (braceCount > 0) attrValue += code[i];
+        else if (code[i] === '}') braceCount--;
+        if (braceCount > 0) expr += code[i];
         i++;
       }
-      attributes[attrName] = attrValue;
+      attributes[attrName] = expr.trim();
     }
   }
   
   // Check for self-closing tag
   if (code[i] === '/' && code[i + 1] === '>') {
-    i += 2; // skip />
-    const props = Object.keys(attributes).length > 0
-      ? `{ ${Object.entries(attributes).map(([k, v]) => `${k}: ${v}`).join(', ')} }`
-      : 'null';
+    i += 2;
     return {
-      code: `React.createElement('${tagName}', ${props})`,
+      code: buildCreateElement(tagName, attributes, []),
       endIndex: i
     };
   }
   
-  i++; // skip >
+  // Skip '>'
+  if (code[i] === '>') i++;
   
   // Parse children
   const children: string[] = [];
-  while (i < code.length && iterations < MAX_PARSE_ITERATIONS) {
-    iterations++;
-    
+  while (i < code.length) {
     // Check for closing tag
     if (code[i] === '<' && code[i + 1] === '/') {
-      // Found closing tag
-      i += 2; // skip </
-      let closingTag = '';
-      while (i < code.length && code[i] !== '>') {
-        closingTag += code[i];
-        i++;
-      }
-      i++; // skip >
+      i += 2; // Skip '</'
+      // Skip tag name
+      while (i < code.length && code[i] !== '>') i++;
+      i++; // Skip '>'
       break;
     }
     
-    // Check for nested JSX element
-    if (code[i] === '<') {
+    // Nested JSX element
+    if (code[i] === '<' && /[a-zA-Z]/.test(code[i + 1])) {
       const childResult = parseJSXElement(code, i);
       children.push(childResult.code);
       i = childResult.endIndex;
       continue;
     }
     
-    // Check for JSX expression
+    // Expression {  }
     if (code[i] === '{') {
+      i++; // Skip '{'
       let braceCount = 1;
-      i++; // skip {
-      let expression = '';
+      let expr = '';
       while (i < code.length && braceCount > 0) {
         if (code[i] === '{') braceCount++;
-        if (code[i] === '}') braceCount--;
-        if (braceCount > 0) expression += code[i];
+        else if (code[i] === '}') braceCount--;
+        if (braceCount > 0) expr += code[i];
         i++;
       }
-      children.push(expression.trim());
+      children.push(expr.trim());
       continue;
     }
     
@@ -210,30 +180,33 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
       text += code[i];
       i++;
     }
-    
-    text = text.trim();
-    if (text) {
-      children.push(JSON.stringify(text));
+    const trimmed = text.trim();
+    if (trimmed) {
+      children.push(JSON.stringify(trimmed));
     }
   }
   
-  if (iterations >= MAX_PARSE_ITERATIONS) {
-    console.error('JSX parser exceeded iteration limit');
-    return {
-      code: `React.createElement('div', null, 'Parse error')`,
-      endIndex: i
-    };
-  }
+  return {
+    code: buildCreateElement(tagName, attributes, children),
+    endIndex: i
+  };
+}
+
+function buildCreateElement(
+  tagName: string,
+  attributes: Record<string, string>,
+  children: string[]
+): string {
+  // CRITICAL: Uppercase = component (identifier), lowercase = HTML element (string)
+  const tagArg = /^[A-Z]/.test(tagName) ? tagName : `'${tagName}'`;
   
-  // Build React.createElement call
+  // Build props object
   const props = Object.keys(attributes).length > 0
     ? `{ ${Object.entries(attributes).map(([k, v]) => `${k}: ${v}`).join(', ')} }`
     : 'null';
   
-  const childrenStr = children.length > 0 ? `, ${children.join(', ')}` : '';
+  // Build children arguments
+  const childrenStr = children.length > 0 ? ', ' + children.join(', ') : '';
   
-  return {
-    code: `React.createElement('${tagName}', ${props}${childrenStr})`,
-    endIndex: i
-  };
+  return `React.createElement(${tagArg}, ${props}${childrenStr})`;
 }

@@ -7,7 +7,7 @@ export const PREVIEW_RUNTIME = `
 // Enhanced React-like runtime with proper rendering
 window.React = {
   createElement(type, props, ...children) {
-    return { type, props: props || {}, children: children.flat() };
+    return { type, props: props || {}, children: children.flat(Infinity) };
   },
   Fragment: Symbol.for('react.fragment')
 };
@@ -16,14 +16,18 @@ window.React = {
 window.ReactDOM = {
   render(vnode, container) {
     try {
+      console.log('[ReactDOM] Rendering to container');
       container.innerHTML = "";
       const dom = renderVNode(vnode);
       if (dom) {
         container.appendChild(dom);
+        console.log('[ReactDOM] Render complete');
+      } else {
+        console.error('[ReactDOM] renderVNode returned null');
       }
     } catch (error) {
-      console.error('Render error:', error);
-      container.innerHTML = '<div style="padding:2rem;color:red;">Render Error: ' + error.message + '</div>';
+      console.error('[ReactDOM] Render error:', error);
+      container.innerHTML = '<div style="padding:2rem;color:red;font-family:monospace;"><h2>Render Error</h2><pre>' + error.message + '</pre></div>';
     }
   }
 };
@@ -39,7 +43,7 @@ function renderVNode(vnode) {
     return document.createTextNode(String(vnode));
   }
   
-  // Handle arrays (including .map() results)
+  // Handle arrays (including .map() results) - CRITICAL for product lists
   if (Array.isArray(vnode)) {
     const fragment = document.createDocumentFragment();
     vnode.forEach(child => {
@@ -51,7 +55,10 @@ function renderVNode(vnode) {
   
   // Handle function components
   if (typeof vnode.type === 'function') {
-    const props = { ...vnode.props, children: vnode.children };
+    const props = { ...vnode.props };
+    if (vnode.children && vnode.children.length > 0) {
+      props.children = vnode.children.length === 1 ? vnode.children[0] : vnode.children;
+    }
     const rendered = vnode.type(props);
     return renderVNode(rendered);
   }
@@ -79,9 +86,10 @@ function renderVNode(vnode) {
       } else if (key === "style" && typeof vnode.props[key] === "object") {
         Object.assign(el.style, vnode.props[key]);
       } else if (key.startsWith("on")) {
-        // Event handlers - skip in static preview
-        continue;
-      } else if (key !== "children") {
+        // Event handlers - attach them
+        const eventName = key.substring(2).toLowerCase();
+        el.addEventListener(eventName, vnode.props[key]);
+      } else if (key !== "children" && key !== "key") {
         try {
           el.setAttribute(key, vnode.props[key]);
         } catch (e) {
