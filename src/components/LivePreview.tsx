@@ -1,321 +1,282 @@
-import { useEffect, useRef, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
-import { bundleForPreview } from '@/utils/preview/bundler';
+import { useEffect, useRef, useState } from "react";
+import { RefreshCw, Smartphone, Monitor, Tablet } from "lucide-react";
+import { transformCodeForPreview, detectMainComponent, sortFilesByDependency } from "@/utils/preview/codeTransformer";
+
 interface LivePreviewProps {
   files: { [key: string]: string };
   activeFileId: string;
 }
 
-type DeviceMode = 'desktop' | 'tablet' | 'mobile';
+type DeviceMode = "desktop" | "tablet" | "mobile";
 
-const DEFAULT_PAGE_TSX = `export default function Page() {
-  return (
-    <main className=\"min-h-screen flex items-center justify-center bg-white\">
-      <h1 className=\"text-2xl font-bold text-gray-900\">Preview Works!</h1>
-    </main>
-  );
-}`;
-
-export default function LivePreview({ files }: LivePreviewProps) {
+const LivePreview = ({ files }: LivePreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [key, setKey] = useState(0);
+
+  const deviceSizes = {
+    desktop: { width: "100%", height: "100%" },
+    tablet: { width: "768px", height: "1024px" },
+    mobile: { width: "375px", height: "667px" },
+  };
+
+  // Listen for fix error messages from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'FIX_ERROR') {
+        console.log('Fix error requested from preview:', event.data.error);
+        // Trigger a custom event that can be picked up by the chat component
+        window.dispatchEvent(new CustomEvent('request-error-fix', { 
+          detail: { error: event.data.error } 
+        }));
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    console.log('📁 LivePreview received files:', Object.keys(files));
-    console.log('📄 Has src/app/page.tsx:', !!files['src/app/page.tsx']);
+    const doc = iframeRef.current.contentDocument;
+    if (!doc) return;
 
-    const entryPath = 'src/app/page.tsx';
-    const filesForPreview = { ...files };
-
-    if (!filesForPreview[entryPath] || !filesForPreview[entryPath].trim()) {
-      console.warn('⚠️ No valid src/app/page.tsx content found, using default preview page');
-      filesForPreview[entryPath] = DEFAULT_PAGE_TSX;
-    }
-
-    console.log('🔍 Bundling app for preview:', {
-      file: entryPath,
-      totalFiles: Object.keys(filesForPreview).length,
+    // Sort files by dependency (components before pages)
+    const sortedFiles = sortFilesByDependency(files);
+    
+    // Transform all files to browser-compatible code
+    const transformedFiles = sortedFiles.map(([id, content]) => {
+      const result = transformCodeForPreview(content, id);
+      return result.transformedCode;
     });
 
-    try {
-      const bundledCode = bundleForPreview(filesForPreview, entryPath);
-      console.log('🧩 Bundled code snippet:', bundledCode.slice(0, 400));
-      const previewHtml = generateBundledPreview(bundledCode);
-      console.log('✅ Bundled Preview Generated');
-      iframeRef.current.srcdoc = previewHtml;
-    } catch (error) {
-      console.error('❌ Preview Error:', error);
-      iframeRef.current.srcdoc = generateFallbackHtml((error as Error).message);
-    }
-  }, [files, key]);
+    // Detect the main component to render
+    const mainComponent = detectMainComponent(files);
+    const mainComponentName = mainComponent ?? "";
 
-  const handleRefresh = () => {
-    setKey(prev => prev + 1);
-  };
-
-  const deviceModeClass = {
-    desktop: 'w-full h-full',
-    tablet: 'w-[768px] h-full mx-auto border-x border-border',
-    mobile: 'w-[375px] h-full mx-auto border-x border-border',
-  }[deviceMode];
-
-  return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="flex items-center gap-2 p-2 border-b border-border bg-card">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setDeviceMode('desktop')}
-            className={`px-3 py-1 text-sm rounded ${
-              deviceMode === 'desktop' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-            }`}
-          >
-            Desktop
-          </button>
-          <button
-            onClick={() => setDeviceMode('tablet')}
-            className={`px-3 py-1 text-sm rounded ${
-              deviceMode === 'tablet' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-            }`}
-          >
-            Tablet
-          </button>
-          <button
-            onClick={() => setDeviceMode('mobile')}
-            className={`px-3 py-1 text-sm rounded ${
-              deviceMode === 'mobile' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-            }`}
-          >
-            Mobile
-          </button>
-        </div>
-        <button
-          onClick={handleRefresh}
-          className="ml-auto p-2 hover:bg-muted rounded"
-          title="Refresh preview"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <iframe
-          ref={iframeRef}
-          key={key}
-          className={`${deviceModeClass} transition-all duration-300`}
-          sandbox="allow-scripts allow-same-origin"
-          title="Preview"
-        />
-      </div>
-    </div>
-  );
-}
-
-// --- Bundled Preview Generator ---------------------------------------------------------------
-
-function generateBundledPreview(bundledCode: string): string {
-  return `<!DOCTYPE html>
-<html>
+    // Create HTML document with React app
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Preview</title>
-  <style>${PREVIEW_STYLES}</style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  <script>
-    // Enhanced React runtime with better component support
-    window.React = {
-      createElement(type, props, ...children) {
-        const flatChildren = children.flat().filter(c => c != null && c !== false);
-        return { type, props: props || {}, children: flatChildren };
-      }
-    };
-    
-    function renderVNode(vnode) {
-      // Handle null, undefined, false
-      if (vnode == null || vnode === false) {
-        return document.createTextNode('');
-      }
+  <div id="error-display" style="display: none; padding: 2rem; background: #1a1a1a; color: #fff; font-family: system-ui; position: relative; min-height: 100vh;">
+    <button 
+      id="fix-error-top" 
+      style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.625rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
+      onmouseover="this.style.background='#dc2626'"
+      onmouseout="this.style.background='#ef4444'"
+      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
+    >
+      🔧 Fix Error
+    </button>
+    <h2 style="color: #ef4444; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Preview Error</h2>
+    <div style="background: #2d2d2d; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 1.5rem;">
+      <pre id="error-message" style="white-space: pre-wrap; color: #fbbf24; margin: 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.6;"></pre>
+    </div>
+    <details style="margin-bottom: 2rem; background: #2d2d2d; padding: 1rem; border-radius: 8px;">
+      <summary style="cursor: pointer; color: #60a5fa; font-weight: 600; user-select: none;">📋 Stack Trace</summary>
+      <pre id="error-stack" style="white-space: pre-wrap; color: #9ca3af; margin-top: 1rem; font-family: 'Courier New', monospace; font-size: 0.75rem; line-height: 1.5; overflow-x: auto;"></pre>
+    </details>
+    <div id="error-data" style="display: none;"></div>
+    <button 
+      id="fix-error-bottom" 
+      style="padding: 1rem 2rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
+      onmouseover="this.style.background='#dc2626'; this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.background='#ef4444'; this.style.transform='translateY(0)'"
+      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
+    >
+      🤖 Please Fix This Error
+    </button>
+  </div>
+  <script type="text/babel" data-presets="env,react,typescript">
+    const { createElement: h, Fragment } = React;
+    const { createRoot } = ReactDOM;
+
+    // Global error handler to show errors in the error display
+    window.addEventListener('error', (event) => {
+      const errorDisplay = document.getElementById('error-display');
+      const errorMessage = document.getElementById('error-message');
+      const errorStack = document.getElementById('error-stack');
+      const errorData = document.getElementById('error-data');
+      const root = document.getElementById('root');
       
-      // Handle strings and numbers
-      if (typeof vnode === 'string' || typeof vnode === 'number') {
-        return document.createTextNode(String(vnode));
-      }
-      
-      // Handle arrays (from .map() etc)
-      if (Array.isArray(vnode)) {
-        const frag = document.createDocumentFragment();
-        vnode.forEach(child => {
-          const rendered = renderVNode(child);
-          if (rendered) frag.appendChild(rendered);
-        });
-        return frag;
-      }
-      
-      // Handle function components
-      if (typeof vnode.type === 'function') {
-        try {
-          const props = { ...vnode.props, children: vnode.children };
-          const rendered = vnode.type(props);
-          return renderVNode(rendered);
-        } catch (e) {
-          console.error('Error rendering component:', vnode.type.name, e);
-          const errorEl = document.createElement('div');
-          errorEl.style.color = 'red';
-          errorEl.textContent = 'Error: ' + e.message;
-          return errorEl;
+      if (errorDisplay && errorMessage && root) {
+        errorDisplay.style.display = 'block';
+        root.style.display = 'none';
+        errorMessage.textContent = event.message || 'Unknown error';
+        if (errorStack && event.error && event.error.stack) {
+          errorStack.textContent = event.error.stack;
+        }
+        if (errorData) {
+          errorData.textContent = JSON.stringify({
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            stack: event.error?.stack
+          }, null, 2);
         }
       }
-      
-      // Handle regular elements
-      const el = document.createElement(vnode.type);
-      
-      // Set properties
-      if (vnode.props) {
-        for (const key in vnode.props) {
-          if (key === 'className') {
-            el.className = vnode.props[key];
-          } else if (key === 'style' && typeof vnode.props[key] === 'object') {
-            Object.assign(el.style, vnode.props[key]);
-          } else if (key.startsWith('on')) {
-            // Skip event handlers for now
-            continue;
-          } else if (key !== 'children') {
-            try {
-              el.setAttribute(key, vnode.props[key]);
-            } catch (e) {
-              // Ignore invalid attributes
-            }
-          }
-        }
-      }
-      
-      // Render children
-      if (vnode.children && vnode.children.length > 0) {
-        vnode.children.forEach(child => {
-          const rendered = renderVNode(child);
-          if (rendered) el.appendChild(rendered);
-        });
-      }
-      
-      return el;
-    }
-    
+    });
+
     try {
-      // Execute bundled code
-      ${bundledCode}
-      
-      // Find and render the main component
-      let AppComponent = null;
-      
-      // Try to find the component (look for Page, App, or default export)
-      if (typeof Page !== 'undefined') {
-        AppComponent = Page;
-      } else if (typeof App !== 'undefined') {
-        AppComponent = App;
-      }
-      
-      if (AppComponent) {
-        const vnode = AppComponent();
-        const dom = renderVNode(vnode);
-        const root = document.getElementById('root');
-        root.appendChild(dom);
+      // All transformed code (each file already exposes its component on window)
+      ${transformedFiles.join("\n\n")}
+
+      // Render the detected main component
+      const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
+      console.log('Rendering component:', MAIN_COMPONENT_NAME);
+      const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
+        ? window[MAIN_COMPONENT_NAME]
+        : (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
+            h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
+            h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } },
+              'No Component Found'),
+            h('p', { style: { color: '#6b7280', marginBottom: '1rem' } },
+              'Could not detect a React component to render.'),
+            h('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } },
+              'Make sure your code exports a React component.')
+          ));
+
+      const root = document.getElementById('root');
+      if (root && typeof RootComponent === 'function') {
+        createRoot(root).render(h(RootComponent));
       } else {
-        throw new Error('No component found to render (looking for Page or App)');
+        throw new Error('Invalid component: ' + (typeof RootComponent));
       }
     } catch (error) {
-      console.error('Preview Error:', error);
-      document.getElementById('root').innerHTML = 
-        '<div style="padding:2rem;max-width:600px;margin:0 auto;font-family:system-ui;"><h2 style="color:#dc2626;margin-bottom:1rem;">Preview Error</h2><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow:auto;">' + 
-        error.stack + '</pre></div>';
+      console.error('Preview error:', error);
+      const errorDisplay = document.getElementById('error-display');
+      const errorMessage = document.getElementById('error-message');
+      const errorStack = document.getElementById('error-stack');
+      const errorData = document.getElementById('error-data');
+      const root = document.getElementById('root');
+      
+      if (errorDisplay && errorMessage && root) {
+        errorDisplay.style.display = 'block';
+        root.style.display = 'none';
+        errorMessage.textContent = error && error.message ? error.message : 'Unknown compilation error';
+        if (errorStack && error && error.stack) {
+          errorStack.textContent = error.stack;
+        }
+        if (errorData) {
+          errorData.textContent = JSON.stringify({
+            message: error?.message,
+            stack: error?.stack,
+            type: 'compilation'
+          }, null, 2);
+        }
+      }
     }
   </script>
 </body>
-</html>`;
-}
+</html>
+    `;
 
-function generatePreviewHtml(innerHtml: string, filePath: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preview - ${filePath}</title>
-  <style>${PREVIEW_STYLES}</style>
-</head>
-<body>
-  <div id="root">${innerHtml}</div>
-</body>
-</html>`;
-}
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+  }, [files, key]);
 
-function generateFallbackHtml(errorMessage?: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preview</title>
-  <style>${PREVIEW_STYLES}</style>
-</head>
-<body>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 space-y-4 border border-gray-200">
-      <div class="text-center">
-        <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
+  const handleRefresh = () => {
+    setKey((prev) => prev + 1);
+  };
+
+  const currentSize = deviceSizes[deviceMode];
+
+  return (
+    <div className="h-full flex flex-col bg-neutral-900">
+      {/* Preview toolbar */}
+      <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-300">Live Preview</span>
+          <span className="text-xs text-slate-500">•</span>
+          <span className="text-xs text-slate-500">Auto-refresh on save</span>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Preview Unavailable</h1>
-        ${errorMessage ? `
-          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-            <p class="text-sm text-amber-800 font-medium">Error: ${errorMessage}</p>
+
+        <div className="flex items-center gap-2">
+          {/* Device mode selector */}
+          <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+            <button
+              onClick={() => setDeviceMode("desktop")}
+              className={`p-1.5 rounded transition-colors ${
+                deviceMode === "desktop"
+                  ? "bg-white/10 text-sky-400"
+                  : "text-slate-400 hover:text-slate-300"
+              }`}
+              title="Desktop view"
+            >
+              <Monitor className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setDeviceMode("tablet")}
+              className={`p-1.5 rounded transition-colors ${
+                deviceMode === "tablet"
+                  ? "bg-white/10 text-sky-400"
+                  : "text-slate-400 hover:text-slate-300"
+              }`}
+              title="Tablet view"
+            >
+              <Tablet className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setDeviceMode("mobile")}
+              className={`p-1.5 rounded transition-colors ${
+                deviceMode === "mobile"
+                  ? "bg-white/10 text-sky-400"
+                  : "text-slate-400 hover:text-slate-300"
+              }`}
+              title="Mobile view"
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+            </button>
           </div>
-        ` : ''}
-        <p class="text-gray-600 mb-4">The page component couldn't be rendered as static HTML.</p>
-        <div class="space-y-2 text-left bg-gray-50 rounded-lg p-4">
-          <p class="text-sm text-gray-700 font-medium">Possible reasons:</p>
-          <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
-            <li>Custom components need to be imported</li>
-            <li>Dynamic JavaScript expressions</li>
-            <li>Complex JSX structure</li>
-          </ul>
+
+          <button
+            onClick={handleRefresh}
+            className="p-1.5 rounded-lg bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+            title="Refresh preview"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+          </button>
         </div>
-        <p class="text-xs text-gray-500 mt-4">Try simplifying src/app/page.tsx to use only native HTML elements</p>
+      </div>
+
+      {/* Preview iframe container */}
+      <div className="flex-1 overflow-auto bg-neutral-950 flex items-center justify-center p-4">
+        <div
+          className="bg-white shadow-2xl transition-all duration-300"
+          style={{
+            width: currentSize.width,
+            height: currentSize.height,
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }}
+        >
+          <iframe
+            ref={iframeRef}
+            key={key}
+            className="w-full h-full border-0"
+            sandbox="allow-scripts allow-same-origin"
+            title="Live Preview"
+          />
+        </div>
       </div>
     </div>
-  </div>
-</body>
-</html>`;
-}
+  );
+};
 
-function generateErrorHtml(error: Error, filePath: string): string {
-  const message = error.message || 'Unknown error';
-  const stack = error.stack || 'No stack trace';
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preview Error</title>
-  <style>${PREVIEW_STYLES}</style>
-</head>
-<body>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-    <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-6">
-      <h1 class="text-2xl font-bold text-gray-900 mb-4">Preview Error</h1>
-      <p class="text-gray-600 mb-2">File: <code>${filePath}</code></p>
-      <p class="text-gray-900 mb-4">${message}</p>
-      <pre class="p-4 bg-gray-100 rounded-lg text-sm overflow-auto">${stack}</pre>
-    </div>
-  </div>
-</body>
-</html>`;
-}
+export default LivePreview;
