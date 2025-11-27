@@ -35,7 +35,6 @@ const MENU_ITEMS = [
   { id: "roles", path: "/admin/roles", label: "Roles", icon: Layers },
   { id: "security", path: "/admin/security", label: "Security", icon: Shield },
   { id: "system", path: "/admin/system-monitoring", label: "System", icon: Activity },
-  { id: "communication", path: "/admin/communication", label: "Communication", icon: MessageCircle },
   { id: "analytics", path: "/admin/analytics", label: "Analytics", icon: Activity },
   { id: "advanced", path: "/admin/advanced", label: "Advanced", icon: SlidersHorizontal },
   { id: "settings", path: "/admin/settings", label: "Settings", icon: Cog },
