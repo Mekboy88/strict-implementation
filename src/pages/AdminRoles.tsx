@@ -1123,7 +1123,7 @@ const AdminRoles = () => {
             {/* Quick User Lookup */}
             <Dialog open={isQuickSearchOpen} onOpenChange={setIsQuickSearchOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-neutral-600 text-white hover:bg-neutral-700">
+                <Button variant="outline" className="border-neutral-600 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-300">
                   <Search className="w-4 h-4 mr-2" />
                   Quick Lookup
                 </Button>
