@@ -259,6 +259,230 @@ function UrDevEditorPage() {
     }
   }, [chatMessages]);
 
+  // Listen for error fix requests from LivePreview
+  React.useEffect(() => {
+    const handleErrorFix = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ error: string }>;
+      const errorData = customEvent.detail?.error;
+      
+      if (!errorData || isStreaming) return;
+      
+      // Parse error data
+      let errorDetails = '';
+      try {
+        const parsed = JSON.parse(errorData);
+        errorDetails = `**Error Message:** ${parsed.message || 'Unknown error'}\n\n`;
+        if (parsed.stack) {
+          errorDetails += `**Stack Trace:**\n\`\`\`\n${parsed.stack}\n\`\`\``;
+        }
+      } catch {
+        errorDetails = errorData;
+      }
+      
+      // Add error message to chat showing it's trying to fix
+      const errorMsg: ChatMsg = { 
+        id: `error-${Date.now()}`, 
+        role: 'user', 
+        content: `🔴 **Error Occurred - Trying to Fix**\n\n${errorDetails}` 
+      };
+      setChatMessages(prev => [...prev, errorMsg]);
+      
+      // Automatically trigger AI to fix the error
+      setIsStreaming(true);
+      
+      const apiMessages: StreamChatMessage[] = chatMessages
+        .filter(m => m.id !== 'welcome')
+        .map(m => ({ role: m.role, content: m.content }));
+      apiMessages.push({ 
+        role: 'user', 
+        content: `I encountered this error in the preview. Please analyze it and fix the code:\n\n${errorDetails}` 
+      });
+
+      let assistantContent = '';
+
+      const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
+
+When generating code, ALWAYS include the file path in this format:
+\`\`\`tsx // src/components/ComponentName.tsx
+// your code here
+\`\`\`
+
+Rules:
+- Always use TypeScript/TSX
+- Use Tailwind CSS for styling
+- Include proper imports
+- Generate complete, working code
+- Use the file path comment format shown above so the code can be added to the editor
+- When fixing errors, explain what was wrong and how you fixed it`;
+
+      try {
+        await streamChat({
+          messages: apiMessages,
+          systemPrompt,
+          onDelta: (delta) => {
+            assistantContent += delta;
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant' && last.id.startsWith('fixing-')) {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
+                );
+              }
+              return [...prev, { id: `fixing-${Date.now()}`, role: 'assistant', content: assistantContent }];
+            });
+          },
+          onDone: () => {
+            // Parse code blocks and update files
+            const codeBlocks = parseCodeBlocks(assistantContent);
+            if (codeBlocks.length > 0) {
+              handleCodeFromAI(codeBlocks);
+              // Keep preview open
+              setShowPreview(true);
+              
+              toast({
+                title: "Error Fixed",
+                description: "The code has been updated. Check the preview!",
+              });
+            }
+
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant') {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+                );
+              }
+              return prev;
+            });
+            setIsStreaming(false);
+          },
+          onError: (error) => {
+            toast({
+              title: "Auto-Fix Failed",
+              description: error.message || "Could not automatically fix the error",
+              variant: "destructive",
+            });
+            setIsStreaming(false);
+          },
+        });
+      } catch (error) {
+        toast({
+          title: "Auto-Fix Failed",
+          description: "Failed to connect to AI service",
+          variant: "destructive",
+        });
+        setIsStreaming(false);
+      }
+    };
+
+    window.addEventListener('request-error-fix', handleErrorFix as EventListener);
+    return () => window.removeEventListener('request-error-fix', handleErrorFix as EventListener);
+  }, [chatMessages, isStreaming]);
+
+  // Listen for cases where preview did not render anything
+  React.useEffect(() => {
+    const handlePreviewBlank = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ reason: string; fileCount: number }>;
+      const { reason, fileCount } = customEvent.detail || {};
+
+      if (isStreaming) return;
+
+      const message = `⚪ **Preview Not Rendering - Trying to Diagnose**\n\nReason detected: ${reason || 'unknown'} (files in project: ${fileCount ?? 0}).`;
+
+      const statusMsg: ChatMsg = {
+        id: `preview-blank-${Date.now()}`,
+        role: 'user',
+        content: message,
+      };
+      setChatMessages(prev => [...prev, statusMsg]);
+
+      setIsStreaming(true);
+
+      const apiMessages: StreamChatMessage[] = chatMessages
+        .filter(m => m.id !== 'welcome')
+        .map(m => ({ role: m.role, content: m.content }));
+      apiMessages.push({
+        role: 'user',
+        content: `${message}\n\nPlease analyze why the Live Preview might be blank and update the code so that the app renders correctly.`,
+      });
+
+      let assistantContent = '';
+
+      const systemPrompt = `You are UR-DEV AI, an expert coding assistant focused on making the preview render correctly.
+
+When generating code, ALWAYS include the file path in this format:
+\`\`\`tsx // src/components/ComponentName.tsx
+// your code here
+\`\`\`
+
+Rules:
+- Prefer fixing entry points and main page components first
+- Always use TypeScript/TSX and Tailwind CSS
+- Ensure there is a main React component rendered in the preview
+- Explain briefly what you changed to make the preview render again`;
+
+      try {
+        await streamChat({
+          messages: apiMessages,
+          systemPrompt,
+          onDelta: (delta) => {
+            assistantContent += delta;
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant' && last.id.startsWith('fixing-preview-')) {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
+                );
+              }
+              return [...prev, { id: `fixing-preview-${Date.now()}`, role: 'assistant', content: assistantContent }];
+            });
+          },
+          onDone: () => {
+            const codeBlocks = parseCodeBlocks(assistantContent);
+            if (codeBlocks.length > 0) {
+              handleCodeFromAI(codeBlocks);
+              setShowPreview(true);
+
+              toast({
+                title: "Preview Fixed",
+                description: "The code was updated to restore the preview.",
+              });
+            }
+
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant') {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+                );
+              }
+              return prev;
+            });
+            setIsStreaming(false);
+          },
+          onError: (error) => {
+            toast({
+              title: "Auto-Fix Failed",
+              description: error.message || "Could not automatically fix the blank preview",
+              variant: "destructive",
+            });
+            setIsStreaming(false);
+          },
+        });
+      } catch (error) {
+        toast({
+          title: "Auto-Fix Failed",
+          description: "Failed to connect to AI service",
+          variant: "destructive",
+        });
+        setIsStreaming(false);
+      }
+    };
+
+    window.addEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
+    return () => window.removeEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
+  }, [chatMessages, isStreaming]);
+
   const handleSendChat = async () => {
     if (!assistantInput.trim() || isStreaming) return;
     
@@ -413,6 +637,43 @@ Rules:
 
   const handleStopStreaming = () => {
     setIsStreaming(false);
+    
+    // Add interruption message to chat
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('streaming-')) {
+      // Update the last streaming message to mark it as interrupted
+      setChatMessages(prev => {
+        return prev.map((m, i) => {
+          if (i === prev.length - 1) {
+            return {
+              ...m,
+              id: `msg-${Date.now()}`,
+              content: m.content + '\n\n---\n_⏸️ Generation stopped by user_'
+            };
+          }
+          return m;
+        });
+      });
+    } else if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('fixing-')) {
+      // If it was fixing an error, also mark as interrupted
+      setChatMessages(prev => {
+        return prev.map((m, i) => {
+          if (i === prev.length - 1) {
+            return {
+              ...m,
+              id: `msg-${Date.now()}`,
+              content: m.content + '\n\n---\n_⏸️ Error fix interrupted by user_'
+            };
+          }
+          return m;
+        });
+      });
+    }
+    
+    toast({
+      title: "Generation Stopped",
+      description: "AI response generation has been interrupted",
+    });
   };
 
   const handleMakePlan = async () => {
@@ -1126,15 +1387,25 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   <div
                     className={`${
                       msg.role === 'user'
-                        ? 'max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
+                        ? msg.content.includes('🔴 **Error Occurred')
+                          ? 'max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3'
+                          : 'max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
                         : 'w-full'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap text-slate-200">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap text-slate-200">
+                      {msg.content}
+                      {msg.role === 'user' && msg.content.includes('🔴 **Error Occurred') && isStreaming && (
+                        <span className="inline-flex items-center gap-2 ml-2 text-sky-400">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span className="text-xs">AI is fixing...</span>
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
               ))}
-              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
+              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && !chatMessages[chatMessages.length - 1]?.content.includes('🔴 **Error Occurred') && (
                 <div className="flex gap-3 justify-start">
                   <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
                     <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
@@ -1379,10 +1650,10 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                     {isStreaming ? (
                       <button
                         onClick={handleStopStreaming}
-                        className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-3 py-1 text-red-400 hover:bg-red-500/30 text-xs"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1.5 text-red-400 hover:bg-red-500/30 transition-all hover:bg-red-500/40 text-xs font-medium"
                       >
                         <Square className="h-3 w-3 fill-current" />
-                        Stop
+                        Stop Generating
                       </button>
                     ) : (
                       <button
