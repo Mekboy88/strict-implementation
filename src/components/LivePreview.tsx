@@ -111,11 +111,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
 }
 
 function generatePreviewHtml(componentCode: string, componentName: string, filePath: string): string {
-  const escapedComponentCode = componentCode
-    .replace(/\\/g, "\\\\")
-    .replace(/`/g, "\\`")
-    .replace(/\$\{/g, "\\${");
-
+  // TEMP: super-simple test script to verify iframe scripts are running
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -128,33 +124,16 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
   <div id="root">Loading...</div>
   <script>
     try {
-      ${PREVIEW_RUNTIME}
-
-      // Safely inject converted component code
-      const componentSource = "${escapedComponentCode}";
-
-      // Evaluate the transformed component code
-      eval(componentSource);
-
       const root = document.getElementById('root');
-      const App = window.__APP__ || window['${componentName}'];
-
-      if (App && root) {
-        window.ReactDOM.render(window.jsx(App, {}), root);
-        console.log('✅ Rendered:', '${componentName}');
-      } else {
-        throw new Error('Component not found');
+      if (root) {
+        root.innerHTML = '<h1 style="font-size:24px;font-weight:bold;">Preview Script Ran</h1>' +
+                         '<p style="color:#4b5563;">If you see this, the iframe JavaScript is executing.</p>' +
+                         '<p style="color:#6b7280;font-size:12px;">Next step: wire in your actual component code.</p>';
       }
-    } catch (error) {
-      console.error('Preview Error:', error);
-      const rootEl = document.getElementById('root');
-      if (rootEl) {
-        const message = error && (error as any).message ? (error as any).message : 'Unknown error';
-        rootEl.innerHTML =
-          '<div style="padding: 2rem; color: #dc2626;">' +
-          '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
-          '<p style="color: #6b7280;">' + message + '</p>' +
-          '</div>';
+    } catch (e) {
+      const root = document.getElementById('root');
+      if (root) {
+        root.innerHTML = '<p style="color:#dc2626;">Preview script error: ' + (e && (e as any).message ? (e as any).message : 'Unknown') + '</p>';
       }
     }
   </script>
