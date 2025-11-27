@@ -47,6 +47,9 @@ const LivePreview = ({ files }: LivePreviewProps) => {
         (path.endsWith('.tsx') || path.endsWith('.jsx')) &&
         !path.includes('config') &&
         !path.includes('vite.config') &&
+        !path.includes('main.tsx') &&
+        !path.includes('main.jsx') &&
+        !path.includes('/main.') &&
         path !== 'package.json' &&
         path !== 'index.html'
       )
@@ -79,6 +82,26 @@ const LivePreview = ({ files }: LivePreviewProps) => {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 240 10% 3.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 3.9%;
+      --primary: 240 5.9% 10%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 240 4.8% 95.9%;
+      --secondary-foreground: 240 5.9% 10%;
+      --muted: 240 4.8% 95.9%;
+      --muted-foreground: 240 3.8% 46.1%;
+      --accent: 240 4.8% 95.9%;
+      --accent-foreground: 240 5.9% 10%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 5.9% 90%;
+      --input: 240 5.9% 90%;
+      --ring: 240 5.9% 10%;
+      --radius: 0.5rem;
+    }
   </style>
 </head>
 <body>

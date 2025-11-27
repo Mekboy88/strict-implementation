@@ -15,6 +15,11 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
     return { transformedCode: '', componentName: null };
   }
   
+  // Skip entry point files that mount React (prevents createRoot conflicts)
+  if (filename.includes('main.tsx') || filename.includes('main.jsx') || filename.includes('/main.')) {
+    return { transformedCode: '', componentName: null };
+  }
+  
   // Skip config files even if they have .ts extension
   if (filename.includes('config') || filename === 'package.json' || filename === 'index.html') {
     return { transformedCode: '', componentName: null };
