@@ -11,9 +11,20 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface ChatContext {
+  currentFile?: {
+    path: string;
+    content?: string;
+  };
+  projectFiles?: Array<{ path: string; type: string }>;
+  activePlatform?: 'web' | 'mobile';
+  selectedText?: string;
+}
+
 interface StreamChatOptions {
   messages: ChatMessage[];
   systemPrompt?: string;
+  context?: ChatContext;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError?: (error: Error) => void;
@@ -25,6 +36,7 @@ interface StreamChatOptions {
 export async function streamChat({
   messages,
   systemPrompt,
+  context,
   onDelta,
   onDone,
   onError,
@@ -37,7 +49,7 @@ export async function streamChat({
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'apikey': SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ messages, systemPrompt }),
+      body: JSON.stringify({ messages, systemPrompt, context }),
     });
 
     if (!response.ok) {

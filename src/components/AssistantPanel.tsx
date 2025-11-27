@@ -14,6 +14,40 @@ import { toast } from "@/hooks/use-toast";
 import { ChatMessage, createUserMessage, createAssistantMessage, getWelcomeMessage } from "@/services/chat/chatService";
 import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 
+// Format message content with code highlighting
+const formatMessageContent = (content: string): string => {
+  // Extract code blocks and format them
+  const codeBlockRegex = /```(\w+)?:?([^\n]*)\n([\s\S]*?)```/g;
+  
+  let formatted = content.replace(codeBlockRegex, (match, lang, path, code) => {
+    const fileName = path.trim();
+    return `<div class="my-3 rounded-lg overflow-hidden border border-slate-700">
+      ${fileName ? `<div class="bg-slate-800 px-3 py-1 text-xs text-slate-400 border-b border-slate-700">${fileName}</div>` : ''}
+      <pre class="bg-slate-900 p-3 overflow-x-auto"><code class="text-sm text-slate-100">${escapeHtml(code.trim())}</code></pre>
+    </div>`;
+  });
+  
+  // Format inline code
+  formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm text-sky-400">$1</code>');
+  
+  // Format bold
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+  
+  // Format newlines
+  formatted = formatted.replace(/\n/g, '<br>');
+  
+  return formatted;
+};
+
+const escapeHtml = (text: string): string => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 interface AssistantPanelProps {
   explorerOpen?: boolean;
   onToggleExplorer?: () => void;
@@ -63,11 +97,29 @@ const AssistantPanel = ({
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
     apiMessages.push({ role: 'user', content });
 
+    // Gather project context
+    const { activeFile, fileContent } = useEditorStore.getState();
+    const { getAllFiles } = useFileSystemStore.getState();
+    
+    const projectFiles = getAllFiles()
+      .filter(f => f.type === 'file')
+      .map(f => ({ path: f.path, type: f.type }));
+
+    const context = {
+      currentFile: activeFile ? {
+        path: activeFile,
+        content: fileContent,
+      } : undefined,
+      projectFiles,
+      activePlatform,
+    };
+
     let assistantContent = '';
 
     try {
       await streamChat({
         messages: apiMessages,
+        context,
         onDelta: (delta) => {
           assistantContent += delta;
           setMessages((prev) => {
@@ -201,7 +253,12 @@ const AssistantPanel = ({
                       : 'bg-muted'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div 
+                    className="text-sm prose prose-invert prose-pre:bg-slate-800 prose-pre:text-slate-100 max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: formatMessageContent(message.content)
+                    }}
+                  />
                 </div>
               </div>
             ))}
