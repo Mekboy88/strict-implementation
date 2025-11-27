@@ -183,7 +183,6 @@ function UrDevEditorPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isEditingEnabled, setIsEditingEnabled] = useState(false);
   const [showEditNotification, setShowEditNotification] = useState(false);
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showFileExplorer, setShowFileExplorer] = useState(false);
   const [assistantInput, setAssistantInput] = useState("");
   const [showDatabasePopup, setShowDatabasePopup] = useState(false);
@@ -819,8 +818,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
           <div className="flex flex-col items-center gap-1">
             <button
               type="button"
-              onClick={() => setViewMode('desktop')}
-              className={`transition-colors ${viewMode === 'desktop' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+              onClick={() => switchVariant('web')}
+              className={`transition-colors ${activeVariant === 'web' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
               title="Desktop files"
             >
               <svg fill="currentColor" height="16px" width="16px" version="1.1" viewBox="0 0 511.999 511.999" xmlns="http://www.w3.org/2000/svg">
@@ -853,8 +852,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             </button>
             <button
               type="button"
-              onClick={() => setViewMode('mobile')}
-              className={`transition-colors ${viewMode === 'mobile' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+              onClick={() => switchVariant('mobile')}
+              className={`transition-colors ${activeVariant === 'mobile' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
               title="Mobile files"
             >
               <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="16px" width="16px">
@@ -895,8 +894,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                 <span className="text-xs font-semibold text-slate-100">Explorer</span>
                 <button
                   type="button"
-                  onClick={() => setViewMode('desktop')}
-                  className={`transition-colors ${viewMode === 'desktop' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  onClick={() => switchVariant('web')}
+                  className={`transition-colors ${activeVariant === 'web' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
                   title="Desktop files"
                 >
                   <svg fill="currentColor" height="14px" width="14px" version="1.1" viewBox="0 0 511.999 511.999" xmlns="http://www.w3.org/2000/svg">
@@ -929,8 +928,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode('mobile')}
-                  className={`transition-colors ${viewMode === 'mobile' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
+                  onClick={() => switchVariant('mobile')}
+                  className={`transition-colors ${activeVariant === 'mobile' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'}`}
                   title="Mobile files"
                 >
                   <svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="14px" width="14px">
@@ -969,10 +968,10 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
 
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 text-[11px] text-slate-300">
             <div className="mb-2 px-2 text-slate-500 uppercase tracking-[0.16em] text-[10px]">
-              {viewMode === 'desktop' ? 'DESKTOP PROJECT' : 'MOBILE PROJECT'}
+              {activeVariant === 'web' ? 'WEB PROJECT' : 'MOBILE PROJECT'}
             </div>
             
-            {viewMode === 'desktop' ? (
+            {activeVariant === 'web' ? (
               <div className="space-y-1">
                 <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
                   <Folder className="h-3 w-3 flex-shrink-0" />
