@@ -1548,6 +1548,33 @@ export type Database = {
           },
         ]
       }
+      system_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          recorded_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          recorded_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          recorded_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string

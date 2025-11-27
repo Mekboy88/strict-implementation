@@ -37,9 +37,9 @@ export default function AdminSystemMonitoring() {
   const [adminAlerts, setAdminAlerts] = useState<AdminAlert[]>([]);
   const [performanceMetrics, setPerformanceMetrics] = useState({
     errorCount: 0,
-    avgLatency: 145,
+    avgLatency: null as number | null,
     uptime: 99.9,
-    cpuUsage: 45
+    cpuUsage: null as number | null
   });
 
   // Check admin access
@@ -81,7 +81,10 @@ export default function AdminSystemMonitoring() {
           schema: 'public',
           table: 'platform_errors'
         },
-        () => loadErrorLogs()
+        () => {
+          loadErrorLogs();
+          loadPerformanceMetrics();
+        }
       )
       .subscribe();
 
@@ -98,6 +101,19 @@ export default function AdminSystemMonitoring() {
       )
       .subscribe();
 
+    const metricsChannel = supabase
+      .channel('system_metrics_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'system_metrics'
+        },
+        () => loadPerformanceMetrics()
+      )
+      .subscribe();
+
     // Auto-refresh every 10 seconds
     const interval = setInterval(() => {
       loadAllData();
@@ -106,6 +122,7 @@ export default function AdminSystemMonitoring() {
     return () => {
       supabase.removeChannel(errorsChannel);
       supabase.removeChannel(alertsChannel);
+      supabase.removeChannel(metricsChannel);
       clearInterval(interval);
     };
   }, []);
@@ -139,33 +156,67 @@ export default function AdminSystemMonitoring() {
   };
 
   const loadPerformanceMetrics = async () => {
-    // Count errors in last hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // Get error count from platform_errors (last 24 hours)
     const { count: errorCount } = await supabase
-      .from('platform_errors')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', oneHourAgo);
+      .from("platform_errors")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
-    // Calculate metrics
-    const { data: logs } = await supabase
-      .from('activity_logs')
-      .select('created_at')
-      .order('created_at', { ascending: false })
+    // Calculate uptime from activity_logs
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    const { data: activityData } = await supabase
+      .from("activity_logs")
+      .select("created_at")
+      .gte("created_at", oneDayAgo.toISOString())
+      .order("created_at", { ascending: false })
       .limit(1000);
 
+    // Calculate uptime based on activity
     let uptime = 99.9;
-    if (logs && logs.length > 0) {
-      const now = new Date();
-      const oldest = new Date(logs[logs.length - 1].created_at);
-      const totalMinutes = (now.getTime() - oldest.getTime()) / (1000 * 60);
-      uptime = Math.min(99.99, 100 - (errorCount || 0) / totalMinutes);
+    if (activityData && activityData.length > 0) {
+      const totalMinutes = 24 * 60;
+      const activeMinutes = new Set(
+        activityData.map(log => 
+          Math.floor(new Date(log.created_at).getTime() / (60 * 1000))
+        )
+      ).size;
+      uptime = (activeMinutes / totalMinutes) * 100;
     }
+
+    // Get real metrics from system_metrics table (last 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    
+    const { data: latencyMetrics } = await supabase
+      .from("system_metrics")
+      .select("value")
+      .eq("metric_type", "latency")
+      .gte("recorded_at", fiveMinutesAgo)
+      .order("recorded_at", { ascending: false })
+      .limit(10);
+
+    const { data: cpuMetrics } = await supabase
+      .from("system_metrics")
+      .select("value")
+      .eq("metric_type", "cpu")
+      .gte("recorded_at", fiveMinutesAgo)
+      .order("recorded_at", { ascending: false })
+      .limit(10);
+
+    const avgLatency = latencyMetrics && latencyMetrics.length > 0
+      ? latencyMetrics.reduce((sum, m) => sum + Number(m.value), 0) / latencyMetrics.length
+      : null;
+
+    const avgCpu = cpuMetrics && cpuMetrics.length > 0
+      ? cpuMetrics.reduce((sum, m) => sum + Number(m.value), 0) / cpuMetrics.length
+      : null;
 
     setPerformanceMetrics({
       errorCount: errorCount || 0,
-      avgLatency: Math.floor(Math.random() * 50 + 100),
-      uptime: Math.max(95, uptime),
-      cpuUsage: Math.floor(Math.random() * 30 + 40)
+      avgLatency: avgLatency,
+      uptime: Number(uptime.toFixed(2)),
+      cpuUsage: avgCpu,
     });
   };
 
@@ -367,40 +418,82 @@ export default function AdminSystemMonitoring() {
         {/* Stats Summary */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="rounded-xl p-4 bg-neutral-800 border border-neutral-700">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-red-500/20">
-                <AlertTriangle className="h-4 w-4 text-red-400" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-red-500/20">
+                  <AlertTriangle className="h-4 w-4 text-red-400" />
+                </div>
+                <span className="text-sm text-neutral-400">Active Errors</span>
               </div>
-              <span className="text-sm text-neutral-400">Active Errors</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
+                Real-time
+              </span>
             </div>
             <p className="text-2xl font-bold text-red-400">{performanceMetrics.errorCount}</p>
           </div>
           <div className="rounded-xl p-4 bg-neutral-800 border border-neutral-700">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-yellow-500/20">
-                <Clock className="h-4 w-4 text-yellow-400" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-yellow-500/20">
+                  <Clock className="h-4 w-4 text-yellow-400" />
+                </div>
+                <span className="text-sm text-neutral-400">Avg Latency</span>
               </div>
-              <span className="text-sm text-neutral-400">Avg Latency</span>
+              {performanceMetrics.avgLatency !== null ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
+                  Real-time
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                  No Data
+                </span>
+              )}
             </div>
-            <p className="text-2xl font-bold text-neutral-100">{performanceMetrics.avgLatency}ms</p>
+            <p className="text-2xl font-bold text-neutral-100">
+              {performanceMetrics.avgLatency !== null 
+                ? `${performanceMetrics.avgLatency.toFixed(0)}ms`
+                : 'N/A'
+              }
+            </p>
           </div>
           <div className="rounded-xl p-4 bg-neutral-800 border border-neutral-700">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-emerald-500/20">
-                <Activity className="h-4 w-4 text-emerald-400" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-emerald-500/20">
+                  <Activity className="h-4 w-4 text-emerald-400" />
+                </div>
+                <span className="text-sm text-neutral-400">Uptime</span>
               </div>
-              <span className="text-sm text-neutral-400">Uptime</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
+                Real-time
+              </span>
             </div>
             <p className="text-2xl font-bold text-emerald-400">{performanceMetrics.uptime.toFixed(2)}%</p>
           </div>
           <div className="rounded-xl p-4 bg-neutral-800 border border-neutral-700">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-neutral-700">
-                <Cpu className="h-4 w-4 text-neutral-300" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-neutral-700">
+                  <Cpu className="h-4 w-4 text-neutral-300" />
+                </div>
+                <span className="text-sm text-neutral-400">CPU Usage</span>
               </div>
-              <span className="text-sm text-neutral-400">CPU Usage</span>
+              {performanceMetrics.cpuUsage !== null ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
+                  Real-time
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                  No Data
+                </span>
+              )}
             </div>
-            <p className="text-2xl font-bold text-neutral-100">{performanceMetrics.cpuUsage}%</p>
+            <p className="text-2xl font-bold text-neutral-100">
+              {performanceMetrics.cpuUsage !== null
+                ? `${performanceMetrics.cpuUsage.toFixed(1)}%`
+                : 'N/A'
+              }
+            </p>
           </div>
         </div>
 
