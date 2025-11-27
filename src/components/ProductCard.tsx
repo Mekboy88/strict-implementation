@@ -1,13 +1,4 @@
-import React from 'react'
-
-interface Product {
-  id: number
-  name: string
-  price: number
-  image: string
-}
-
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: any }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
       <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded" />
