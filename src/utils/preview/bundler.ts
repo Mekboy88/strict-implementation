@@ -11,6 +11,17 @@ export function bundleForPreview(
   files: { [key: string]: string },
   entryPoint: string = 'src/app/page.tsx'
 ): string {
+  // Ensure the bundler ALWAYS has a valid entry file so preview never breaks
+  if (!files[entryPoint] || !files[entryPoint].trim()) {
+    files[entryPoint] = `export default function Page() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-white">
+      <h1 className="text-2xl font-bold text-gray-900">Preview Works!</h1>
+    </main>
+  );
+}`;
+  }
+
   const transformedModules: TransformedModule[] = [];
   const processedFiles = new Set<string>();
 
