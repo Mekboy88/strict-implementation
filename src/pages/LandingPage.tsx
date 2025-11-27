@@ -252,16 +252,13 @@ const UrDevLandingPage: React.FC = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log("Checking admin role for user:", session.user.id);
-        const { data: roleData, error } = await supabase
+        const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", session.user.id)
           .in("role", ["owner", "admin"])
           .maybeSingle();
         
-        console.log("Role data:", roleData, "Error:", error);
-        console.log("Is Admin:", !!roleData);
         setIsAdmin(!!roleData);
       } else {
         setIsAdmin(false);
@@ -274,15 +271,13 @@ const UrDevLandingPage: React.FC = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log("Auth state changed - checking admin role for user:", session.user.id);
-        const { data: roleData, error } = await supabase
+        const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", session.user.id)
           .in("role", ["owner", "admin"])
           .maybeSingle();
         
-        console.log("Role data:", roleData, "Error:", error);
         setIsAdmin(!!roleData);
       } else {
         setIsAdmin(false);
