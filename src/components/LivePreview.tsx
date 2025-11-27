@@ -70,10 +70,13 @@ const LivePreview = ({ files }: LivePreviewProps) => {
 
     try {
       // All transformed code
-      ${transformedFiles.join("\n\n")}
+      const CODE_BUNDLE = ${'${JSON.stringify(transformedFiles.join("\n\n"))}'};
+      // Evaluate the bundled code safely
+      // eslint-disable-next-line no-eval
+      eval(CODE_BUNDLE);
 
       // Render the detected main component
-      const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
+      const MAIN_COMPONENT_NAME = ${'${JSON.stringify(mainComponentName)}'};
       const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
         ? window[MAIN_COMPONENT_NAME]
         : (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },

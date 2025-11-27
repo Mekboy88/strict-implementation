@@ -22,7 +22,7 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
     componentName = defaultFunctionMatch[1];
     transformedCode = transformedCode.replace(
       /export\s+default\s+function\s+(\w+)/,
-      'const $1 = function $1'
+      'function $1'
     );
   }
 
@@ -45,7 +45,7 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
     /export\s+function\s+(\w+)/g,
     (match, name) => {
       if (!componentName) componentName = name;
-      return `const ${name} = function ${name}`;
+      return `function ${name}`;
     }
   );
 
@@ -60,6 +60,11 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
 
   // Remove any remaining export statements
   transformedCode = transformedCode.replace(/export\s+{[^}]+};?\s*/g, '');
+
+  // If we detected a component name, expose it on window so the preview can find it
+  if (componentName) {
+    transformedCode += `\n;window.${componentName} = ${componentName};`;
+  }
 
   return { transformedCode, componentName };
 }
