@@ -505,14 +505,7 @@ const UrDevLandingPage: React.FC = () => {
                     </button>
                     {isAdmin && (
                       <button 
-                        onClick={() => {
-                          const isAdminAuthenticated = sessionStorage.getItem("admin_authenticated");
-                          if (isAdminAuthenticated) {
-                            navigate("/admin/dashboard");
-                          } else {
-                            navigate("/admin/login");
-                          }
-                        }}
+                        onClick={() => navigate("/admin/login")}
                         className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400 focus:outline-none focus:ring-0"
                       >
                         <Settings className="h-4 w-4" /> Admin Panel
