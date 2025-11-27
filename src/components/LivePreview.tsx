@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Smartphone, Monitor, Tablet } from "lucide-react";
 import { transformCodeForPreview, detectMainComponent, sortFilesByDependency } from "@/utils/preview/codeTransformer";
+import { INLINE_REACT_RUNTIME, INLINE_TAILWIND_RESET } from "@/utils/preview/inlineReactRuntime";
 
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -132,20 +133,15 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     
     console.log('LivePreview detected main component:', mainComponentName);
 
-    // Create HTML document with React app
+    // Create HTML document with React app (CDN-FREE VERSION)
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    ${INLINE_TAILWIND_RESET}
     :root {
       --background: 0 0% 100%;
       --foreground: 240 10% 3.9%;
@@ -166,13 +162,52 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       --ring: 240 5.9% 10%;
       --radius: 0.5rem;
     }
+    
+    /* Tailwind-like utility classes */
+    .min-h-screen { min-height: 100vh; }
+    .bg-background { background-color: hsl(var(--background)); }
+    .text-foreground { color: hsl(var(--foreground)); }
+    .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .p-8 { padding: 2rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .font-bold { font-weight: 700; }
+    .mb-4 { margin-bottom: 1rem; }
+    .max-w-2xl { max-width: 42rem; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .border { border-width: 1px; border-color: hsl(var(--border)); }
+    .bg-card { background-color: hsl(var(--card)); }
+    .bg-white { background-color: white; }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    .overflow-hidden { overflow: hidden; }
+    .grid { display: grid; }
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .object-cover { object-fit: cover; }
+    .h-48 { height: 12rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .font-semibold { font-weight: 600; }
+    .mb-2 { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
   <div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#f9fafb;">
       <div style="text-align:center;max-width:480px;padding:1.5rem;">
         <div style="font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;color:#6b7280;margin-bottom:0.25rem;font-weight:600;">UR-DEV · Live preview</div>
-        <div style="font-size:0.95rem;color:#111827;">Preparing preview… if this message stays, the scripts inside the iframe are failing to run.</div>
+        <div style="font-size:0.95rem;color:#111827;">Preparing CDN-free preview…</div>
       </div>
     </div></div>
   <div id="error-display" style="display: none; padding: 2rem; background: #1a1a1a; color: #fff; font-family: system-ui; position: relative; min-height: 100vh;">
@@ -204,11 +239,10 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       🤖 Please Fix This Error
     </button>
   </div>
-  <script type="text/babel" data-presets="env,react,typescript">
-    const { createElement: h, Fragment } = React;
-    const { createRoot } = ReactDOM;
+  <script>
+    ${INLINE_REACT_RUNTIME}
 
-    // Global error handler to show errors in the error display
+    // Global error handler
     window.addEventListener('error', (event) => {
       const errorDisplay = document.getElementById('error-display');
       const errorMessage = document.getElementById('error-message');
@@ -236,33 +270,34 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     });
 
     try {
-      // All transformed code (each file already exposes its component on window)
+      // All transformed code
       ${transformedFiles.join("\n\n")}
 
-      // Render the detected main component
+      // Render the main component
       const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
-      console.log('Rendering component:', MAIN_COMPONENT_NAME);
+      console.log('CDN-free preview rendering:', MAIN_COMPONENT_NAME);
+      
       const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
         ? window[MAIN_COMPONENT_NAME]
-        : (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
-            h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
-            h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } },
-              'No Component Found'),
-            h('p', { style: { color: '#6b7280', marginBottom: '1rem' } },
-              'Could not detect a React component to render.'),
-            h('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } },
-              'Make sure your code exports a React component.')
-          ));
+        : function() {
+            return React.createElement('div', { 
+              style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } 
+            },
+              React.createElement('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
+              React.createElement('h1', { 
+                style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } 
+              }, 'No Component Found'),
+              React.createElement('p', { style: { color: '#6b7280', marginBottom: '1rem' } },
+                'Could not detect a React component to render.'),
+              React.createElement('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } },
+                'Make sure your code exports a React component.')
+            );
+          };
 
       const root = document.getElementById('root');
       if (root && typeof RootComponent === 'function') {
-        createRoot(root).render(h(RootComponent));
-        // Notify parent window that preview rendered successfully
-        try {
-          window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
-        } catch (e) {
-          console.warn('Unable to notify parent about preview readiness', e);
-        }
+        ReactDOM.createRoot(root).render(React.createElement(RootComponent));
+        window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
       } else {
         throw new Error('Invalid component: ' + (typeof RootComponent));
       }
