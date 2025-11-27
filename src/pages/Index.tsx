@@ -49,7 +49,7 @@ import { ProjectDialog } from "@/components/ProjectDialog";
 import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
-import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles } from "@/utils/projectInitializer";
+import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles, getDefaultPageContent } from "@/utils/projectInitializer";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 
@@ -192,7 +192,8 @@ function UrDevEditorPage() {
   useEffect(() => {
     const initProject = async () => {
       try {
-        // Clear stale localStorage
+        // Reset in-memory store state and clear stale localStorage
+        fileSystemStore.resetProject();
         localStorage.removeItem('file-system-storage');
         
         // Initialize store
@@ -200,7 +201,7 @@ function UrDevEditorPage() {
         
         // Convert store files to editor format
         const allFiles = fileSystemStore.getAllFiles();
-        const editorFiles: FileItem[] = allFiles
+        let editorFiles: FileItem[] = allFiles
           .filter(node => node.type === 'file')
           .map(node => ({
             id: node.path,
@@ -212,6 +213,19 @@ function UrDevEditorPage() {
                      node.path.endsWith('.html') ? 'html' : 'plaintext',
             content: (node.content || '').split('\n'),
           }));
+        
+        // Ensure src/app/page.tsx exists for preview
+        const hasAppPage = editorFiles.some(f => f.path === 'src/app/page.tsx');
+        if (!hasAppPage) {
+          const defaultPageContent = getDefaultPageContent();
+          editorFiles.push({
+            id: 'src/app/page.tsx',
+            name: 'page.tsx',
+            path: 'src/app/page.tsx',
+            language: 'tsx',
+            content: defaultPageContent.split('\n'),
+          });
+        }
         
         if (editorFiles.length > 0) {
           setProjectFiles(editorFiles);

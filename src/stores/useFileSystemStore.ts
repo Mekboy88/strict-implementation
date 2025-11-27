@@ -354,6 +354,7 @@ export const useFileSystemStore = create<FileSystemState>()(
           const folders = [
             'public',
             'src',
+            'src/app',
             'src/assets',
             'src/components',
             'src/components/ui',
@@ -401,7 +402,7 @@ export const useFileSystemStore = create<FileSystemState>()(
       resetProject: () => {
         set({
           files: new Map(),
-          expandedFolders: new Set(['src', 'public', 'src/components', 'src/pages']),
+          expandedFolders: new Set(['src', 'src/app', 'public', 'src/components', 'src/pages']),
           currentProjectId: null,
         });
       },
