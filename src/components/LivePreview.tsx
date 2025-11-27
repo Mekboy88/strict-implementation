@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
-import { convertJSXToHTML } from '@/utils/preview/jsxToHtmlConverter';
+import { PREVIEW_RUNTIME, PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
 import { bundleForPreview } from '@/utils/preview/bundler';
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -43,24 +42,14 @@ export default function LivePreview({ files }: LivePreviewProps) {
     });
 
     try {
-      const source = filesForPreview[entryPath];
-      // First, try static JSX → HTML conversion (most reliable)
-      const conversion = convertJSXToHTML(source, entryPath);
-
-      if (conversion.success && conversion.html.trim()) {
-        console.log('✅ Static JSX→HTML preview used');
-        const htmlDoc = generatePreviewHtml(conversion.html, entryPath);
-        iframeRef.current.srcdoc = htmlDoc;
-        return;
-      } else {
-        console.warn('⚠️ JSX→HTML conversion failed, falling back to JS bundler', conversion.error);
-      }
-
-      // Fallback: JS bundler + inline React runtime
+      console.log('🔄 Bundling preview from:', entryPath);
+      
+      // Bundle the code with JSX compilation
       const bundledCode = bundleForPreview(filesForPreview, entryPath);
-      console.log('🧩 Bundled code snippet:', bundledCode.slice(0, 400));
+      console.log('✅ Bundle created, size:', bundledCode.length);
+      
+      // Generate HTML with runtime and bundled code
       const previewHtml = generateBundledPreview(bundledCode);
-      console.log('✅ Bundled Preview Generated');
       iframeRef.current.srcdoc = previewHtml;
     } catch (error) {
       console.error('❌ Preview Error:', error);
@@ -132,126 +121,47 @@ export default function LivePreview({ files }: LivePreviewProps) {
 // --- Bundled Preview Generator ---------------------------------------------------------------
 
 function generateBundledPreview(bundledCode: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Preview</title>
-  <style>${PREVIEW_STYLES}</style>
-</head>
-<body>
-  <div id="root"></div>
-  <script>
-    // Enhanced React runtime with better component support
-    window.React = {
-      createElement(type, props, ...children) {
-        const flatChildren = children.flat().filter(c => c != null && c !== false);
-        return { type, props: props || {}, children: flatChildren };
-      }
-    };
-    
-    function renderVNode(vnode) {
-      // Handle null, undefined, false
-      if (vnode == null || vnode === false) {
-        return document.createTextNode('');
-      }
-      
-      // Handle strings and numbers
-      if (typeof vnode === 'string' || typeof vnode === 'number') {
-        return document.createTextNode(String(vnode));
-      }
-      
-      // Handle arrays (from .map() etc)
-      if (Array.isArray(vnode)) {
-        const frag = document.createDocumentFragment();
-        vnode.forEach(child => {
-          const rendered = renderVNode(child);
-          if (rendered) frag.appendChild(rendered);
-        });
-        return frag;
-      }
-      
-      // Handle function components
-      if (typeof vnode.type === 'function') {
-        try {
-          const props = { ...vnode.props, children: vnode.children };
-          const rendered = vnode.type(props);
-          return renderVNode(rendered);
-        } catch (e) {
-          console.error('Error rendering component:', vnode.type.name, e);
-          const errorEl = document.createElement('div');
-          errorEl.style.color = 'red';
-          errorEl.textContent = 'Error: ' + e.message;
-          return errorEl;
-        }
-      }
-      
-      // Handle regular elements
-      const el = document.createElement(vnode.type);
-      
-      // Set properties
-      if (vnode.props) {
-        for (const key in vnode.props) {
-          if (key === 'className') {
-            el.className = vnode.props[key];
-          } else if (key === 'style' && typeof vnode.props[key] === 'object') {
-            Object.assign(el.style, vnode.props[key]);
-          } else if (key.startsWith('on')) {
-            // Skip event handlers for now
-            continue;
-          } else if (key !== 'children') {
-            try {
-              el.setAttribute(key, vnode.props[key]);
-            } catch (e) {
-              // Ignore invalid attributes
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>${PREVIEW_STYLES}</style>
+      </head>
+      <body>
+        <div id="root"></div>
+        <script>
+          // React-like runtime
+          ${PREVIEW_RUNTIME}
+          
+          // Bundled code
+          try {
+            console.log('Executing bundled code...');
+            ${bundledCode}
+            
+            // Render the component
+            if (window.__PREVIEW_RENDER__) {
+              console.log('Rendering component...');
+              const root = document.getElementById('root');
+              const vnode = window.__PREVIEW_RENDER__();
+              ReactDOM.render(vnode, root);
+              console.log('✅ Render complete');
+            } else {
+              console.error('❌ No __PREVIEW_RENDER__ found');
+              document.getElementById('root').innerHTML = 
+                '<div style="padding:2rem;text-align:center;"><h2>No Component Found</h2><p>Make sure your component exports a default Page or App function.</p></div>';
             }
+          } catch (error) {
+            console.error('❌ Preview execution error:', error);
+            document.getElementById('root').innerHTML = 
+              '<div style="padding:2rem;color:#dc2626;"><h2>Preview Error</h2><pre>' + 
+              error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
           }
-        }
-      }
-      
-      // Render children
-      if (vnode.children && vnode.children.length > 0) {
-        vnode.children.forEach(child => {
-          const rendered = renderVNode(child);
-          if (rendered) el.appendChild(rendered);
-        });
-      }
-      
-      return el;
-    }
-    
-    try {
-      // Execute bundled code
-      ${bundledCode}
-      
-      // Find and render the main component
-      let AppComponent = null;
-      
-      // Try to find the component (look for Page, App, or default export)
-      if (typeof Page !== 'undefined') {
-        AppComponent = Page;
-      } else if (typeof App !== 'undefined') {
-        AppComponent = App;
-      }
-      
-      if (AppComponent) {
-        const vnode = AppComponent();
-        const dom = renderVNode(vnode);
-        const root = document.getElementById('root');
-        root.appendChild(dom);
-      } else {
-        throw new Error('No component found to render (looking for Page or App)');
-      }
-    } catch (error) {
-      console.error('Preview Error:', error);
-      document.getElementById('root').innerHTML = 
-        '<div style="padding:2rem;max-width:600px;margin:0 auto;font-family:system-ui;"><h2 style="color:#dc2626;margin-bottom:1rem;">Preview Error</h2><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow:auto;">' + 
-        error.stack + '</pre></div>';
-    }
-  </script>
-</body>
-</html>`;
+        </script>
+      </body>
+    </html>
+  `;
 }
 
 function generatePreviewHtml(innerHtml: string, filePath: string): string {

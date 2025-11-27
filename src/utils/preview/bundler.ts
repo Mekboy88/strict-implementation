@@ -1,105 +1,78 @@
 /**
- * YOUAREDEV-STABLE PREVIEW BUNDLER
- * ---------------------------------------------
- * This bundler is 100% safe and guaranteed to work inside
- * Lovable's restricted iframe + sandbox preview environment.
- *
- * FEATURES:
- * - Works with multi-file imports
- * - Handles TSX stripping safely
- * - Converts JSX → React.createElement
- * - Preserves valid children, expressions, and components
- * - Ensures preview NEVER goes blank
- * - Produces clean, valid JS every time
+ * Complete Preview Bundler with JSX Compilation
+ * Transforms multi-file React applications into executable JavaScript
  */
 
-import { transformJSXToJS } from "./jsxTransformer";
+import { compileJSX } from "./jsxCompiler";
+import { resolveModules, stripImports } from "./moduleResolver";
 
-export function bundleForPreview(files: Record<string, string>, entryPoint: string = "src/app/page.tsx"): string {
-  // 1️⃣ Guarantee entry exists
-  let entry = files[entryPoint];
-
-  if (!entry || !entry.trim()) {
-    entry = `
-      export default function Page() {
-        return (
-          <main className="min-h-screen flex items-center justify-center bg-white">
-            <h1 className="text-2xl font-bold text-gray-900">Preview Ready</h1>
-          </main>
-        );
-      }
-    `;
-  }
-
-  // 2️⃣ Prepare module system
-  const visited = new Set<string>();
-  const output: string[] = [];
-
-  function resolve(path: string): string | null {
-    const endings = ["", ".tsx", ".ts", ".jsx", ".js"];
-
-    for (const end of endings) {
-      const full = path + end;
-      if (files[full]) return full;
+export function bundleForPreview(
+  files: Record<string, string>,
+  entryPoint: string = "src/app/page.tsx"
+): string {
+  try {
+    // Resolve all modules and their dependencies
+    const modules = resolveModules(files, entryPoint);
+    
+    if (modules.length === 0) {
+      console.error('No modules resolved');
+      return generateFallbackBundle();
     }
-    return null;
-  }
-
-  function extractImports(code: string): Array<{ spec: string; path: string }> {
-    const arr: Array<{ spec: string; path: string }> = [];
-
-    // import Something from "./path"
-    code.replace(/import\s+([\w\s{},*]+)\s+from\s+['"](.+?)['"]/g, (_, spec, path) => {
-      arr.push({ spec, path });
-      return "";
-    });
-
-    return arr;
-  }
-
-  function process(path: string) {
-    if (visited.has(path)) return;
-    visited.add(path);
-
-    const code = files[path];
-    if (!code) return;
-
-    const imports = extractImports(code);
-
-    for (const imp of imports) {
-      let target = imp.path;
-
-      if (target.startsWith("./") || target.startsWith("../")) {
-        const dir = path.split("/").slice(0, -1).join("/");
-        target = dir + "/" + target;
+    
+    // Transform each module
+    const transformedModules: string[] = [];
+    
+    for (const module of modules) {
+      try {
+        // Strip imports (they're already resolved)
+        let code = stripImports(module.code);
+        
+        // Remove export statements but keep the function/component
+        code = code.replace(/export\s+default\s+/g, '');
+        code = code.replace(/export\s+/g, '');
+        
+        // Compile JSX to React.createElement
+        code = compileJSX(code);
+        
+        transformedModules.push(`\n// ==== ${module.path} ====\n${code}\n`);
+      } catch (error) {
+        console.error(`Error transforming ${module.path}:`, error);
       }
-
-      if (target.startsWith("@/")) {
-        target = "src/" + target.slice(2);
-      }
-
-      const resolved = resolve(target);
-      if (resolved) process(resolved);
     }
+    
+    // Bundle everything together
+    const bundle = `
+${transformedModules.join('\n')}
 
-    const transformed = transformJSXToJS(code);
+// Auto-detect and expose the main component
+const __mainComponent__ = 
+  (typeof Page !== "undefined" && Page) ||
+  (typeof App !== "undefined" && App) ||
+  null;
 
-    output.push(`// ===== MODULE: ${path} =====\n${transformed}\n`);
+if (__mainComponent__) {
+  window.__PREVIEW_RENDER__ = __mainComponent__;
+} else {
+  console.error('No Page or App component found');
+}
+`;
+    
+    return bundle;
+  } catch (error) {
+    console.error('Bundle error:', error);
+    return generateFallbackBundle();
   }
+}
 
-  // 3️⃣ Build the dependency graph
-  process(entryPoint);
-
-  // 4️⃣ Bundle final code + auto Page/App resolver
+function generateFallbackBundle(): string {
   return `
-    ${output.join("\n")}
-
-    // AUTO-FIND DEFAULT COMPONENT
-    const __default__ =
-      (typeof Page !== "undefined" && Page) ||
-      (typeof App !== "undefined" && App) ||
-      null;
-
-    window.__PREVIEW_RENDER__ = __default__;
-  `;
+function Page() {
+  return React.createElement('div', 
+    { style: { padding: '2rem', textAlign: 'center' } },
+    React.createElement('h1', null, 'Preview Error'),
+    React.createElement('p', null, 'Could not compile the preview. Check console for details.')
+  );
+}
+window.__PREVIEW_RENDER__ = Page;
+`;
 }
