@@ -10,6 +10,16 @@ interface LivePreviewProps {
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
 
+declare global {
+  interface Window {
+    __APP__?: any;
+    __PREVIEW_RUNTIME_INITIALIZED__?: boolean;
+    React?: any;
+    ReactDOM?: any;
+    jsx?: any;
+  }
+}
+
 export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
@@ -18,34 +28,64 @@ export default function LivePreview({ files }: LivePreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    // Render src/app/page.tsx inside the iframe using the inline React-like runtime
+    // Find main entry (for now we only support src/app/page.tsx)
     const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
 
     if (!mainEntry) {
-      const fallbackHtml = generateFallbackHtml();
-      iframeRef.current.srcdoc = fallbackHtml;
+      iframeRef.current.srcdoc = generateFallbackHtml();
       return;
     }
 
     const [filePath, fileContent] = mainEntry;
 
     try {
+      // 1) Initialize lightweight React-like runtime in the parent window (once)
+      if (!window.__PREVIEW_RUNTIME_INITIALIZED__) {
+        // eslint-disable-next-line no-new-func
+        const runtimeFn = new Function(PREVIEW_RUNTIME);
+        runtimeFn();
+        window.__PREVIEW_RUNTIME_INITIALIZED__ = true;
+      }
+
+      // 2) Transform JSX to jsx() calls
       const convertedCode = convertJsxToJsxCalls(fileContent);
       const componentName = extractComponentName(fileContent);
-      const previewHtml = generatePreviewHtml(convertedCode, componentName, filePath);
 
-      console.log('🎯 Preview Generated:', {
-        file: filePath,
-        component: componentName,
-        codeLength: convertedCode.length,
-        convertedPreview: convertedCode.substring(0, 200) + '...'
-      });
+      // 3) Execute transformed component code in parent window
+      window.__APP__ = undefined;
+      // eslint-disable-next-line no-new-func
+      const componentFn = new Function(convertedCode);
+      componentFn();
 
-      iframeRef.current.srcdoc = previewHtml;
+      const App = window.__APP__ || (window as any)[componentName];
+
+      if (!App) {
+        throw new Error(`Component '${componentName}' not found on window after execution`);
+      }
+
+      // 4) Render into an off-screen container using the inline runtime
+      const container = document.createElement('div');
+      container.id = 'preview-temp-root';
+      document.body.appendChild(container);
+
+      try {
+        window.ReactDOM.render(window.jsx(App, {}), container);
+        const innerHtml = container.innerHTML;
+        const previewHtml = generatePreviewHtml(innerHtml, filePath);
+
+        console.log('🎯 Static Preview Generated:', {
+          file: filePath,
+          component: componentName,
+          htmlLength: innerHtml.length,
+        });
+
+        iframeRef.current.srcdoc = previewHtml;
+      } finally {
+        container.remove();
+      }
     } catch (error) {
-      console.error('❌ Preview Error:', error);
-      const errorHtml = generateErrorHtml(error as Error, filePath);
-      iframeRef.current.srcdoc = errorHtml;
+      console.error('❌ Preview Error (parent runtime):', error);
+      iframeRef.current.srcdoc = generateErrorHtml(error as Error, filePath);
     }
   }, [files, key]);
 
@@ -102,7 +142,8 @@ export default function LivePreview({ files }: LivePreviewProps) {
           ref={iframeRef}
           key={key}
           className={`${deviceModeClass} transition-all duration-300`}
-          sandbox="allow-scripts allow-same-origin"
+          // No scripts needed inside iframe; we render HTML statically from parent
+          sandbox="allow-same-origin"
           title="Preview"
         />
       </div>
@@ -110,53 +151,17 @@ export default function LivePreview({ files }: LivePreviewProps) {
   );
 }
 
-function generatePreviewHtml(componentCode: string, componentName: string, filePath: string): string {
-  // TEMP: super-simple test script to verify iframe scripts are running
+function generatePreviewHtml(innerHtml: string, filePath: string): string {
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preview</title>
+  <title>Preview - ${filePath}</title>
   <style>${PREVIEW_STYLES}</style>
 </head>
 <body>
-  <div id="root">Loading...</div>
-  <script>
-    try {
-      const root = document.getElementById('root');
-      if (root) {
-        root.innerHTML = '<h1 style="font-size:24px;font-weight:bold;">Preview Script Ran</h1>' +
-                         '<p style="color:#4b5563;">If you see this, the iframe JavaScript is executing.</p>' +
-                         '<p style="color:#6b7280;font-size:12px;">Next step: wire in your actual component code.</p>';
-      }
-    } catch (e) {
-      const root = document.getElementById('root');
-      if (root) {
-        root.innerHTML = '<p style="color:#dc2626;">Preview script error: ' + (e && (e as any).message ? (e as any).message : 'Unknown') + '</p>';
-      }
-    }
-  </script>
-</body>
-</html>`;
-}
-
-// TEMP: fixed demo HTML so preview is never blank while we debug runtime
-function generateFixedDemoHtml(): string {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UR-DEV Preview Demo</title>
-  <style>${PREVIEW_STYLES}</style>
-</head>
-<body class="min-h-screen flex items-center justify-center bg-gray-50">
-  <div class="max-w-2xl w-full text-center space-y-4 p-8 bg-white border border-gray-200 rounded-lg shadow-lg">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4">UR-DEV Preview Demo</h1>
-    <p class="text-lg text-gray-600">Preview engine is online and rendering a safe demo layout.</p>
-    <p class="text-sm text-gray-600 mt-2">Your code will be wired into this preview once the runtime pipeline is fully stable.</p>
-  </div>
+  <div id="root">${innerHtml}</div>
 </body>
 </html>`;
 }
@@ -183,6 +188,9 @@ function generateFallbackHtml(): string {
 }
 
 function generateErrorHtml(error: Error, filePath: string): string {
+  const message = error.message || 'Unknown error';
+  const stack = error.stack || 'No stack trace';
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -196,8 +204,8 @@ function generateErrorHtml(error: Error, filePath: string): string {
     <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg p-6">
       <h1 class="text-2xl font-bold text-gray-900 mb-4">Preview Error</h1>
       <p class="text-gray-600 mb-2">File: <code>${filePath}</code></p>
-      <p class="text-gray-900 mb-4">${error.message}</p>
-      <pre class="p-4 bg-gray-100 rounded-lg text-sm overflow-auto">${error.stack || 'No stack trace'}</pre>
+      <p class="text-gray-900 mb-4">${message}</p>
+      <pre class="p-4 bg-gray-100 rounded-lg text-sm overflow-auto">${stack}</pre>
     </div>
   </div>
 </body>
