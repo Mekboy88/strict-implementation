@@ -405,11 +405,6 @@ const UrDevLandingPage: React.FC = () => {
   const requireAuth = (callback: () => void) => {
     if (!user) {
       setSignInDropdownOpen(true);
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to use this feature",
-        variant: "destructive",
-      });
       return;
     }
     callback();
@@ -706,11 +701,6 @@ const UrDevLandingPage: React.FC = () => {
                       onFocus={() => {
                         if (!user) {
                           setSignInDropdownOpen(true);
-                          toast({
-                            title: "Sign in required",
-                            description: "Please sign in to start building",
-                            variant: "destructive",
-                          });
                         }
                       }}
                       onChange={(e) => {
