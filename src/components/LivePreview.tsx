@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { PREVIEW_RUNTIME, PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
-import { convertJsxToJsxCalls, extractComponentName } from '@/utils/preview/simpleJsxConverter';
+import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
 
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -9,16 +8,6 @@ interface LivePreviewProps {
 }
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-
-declare global {
-  interface Window {
-    __APP__?: any;
-    __PREVIEW_RUNTIME_INITIALIZED__?: boolean;
-    React?: any;
-    ReactDOM?: any;
-    jsx?: any;
-  }
-}
 
 export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -28,7 +17,6 @@ export default function LivePreview({ files }: LivePreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    // Find main entry (for now we only support src/app/page.tsx)
     const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
 
     if (!mainEntry) {
@@ -39,52 +27,17 @@ export default function LivePreview({ files }: LivePreviewProps) {
     const [filePath, fileContent] = mainEntry;
 
     try {
-      // 1) Initialize lightweight React-like runtime in the parent window (once)
-      if (!window.__PREVIEW_RUNTIME_INITIALIZED__) {
-        // eslint-disable-next-line no-new-func
-        const runtimeFn = new Function(PREVIEW_RUNTIME);
-        runtimeFn();
-        window.__PREVIEW_RUNTIME_INITIALIZED__ = true;
-      }
+      const innerHtml = extractStaticHtmlFromReactComponent(fileContent);
+      const previewHtml = generatePreviewHtml(innerHtml, filePath);
 
-      // 2) Transform JSX to jsx() calls
-      const convertedCode = convertJsxToJsxCalls(fileContent);
-      const componentName = extractComponentName(fileContent);
+      console.log('🎯 Static Preview Generated (no JS eval):', {
+        file: filePath,
+        htmlLength: innerHtml.length,
+      });
 
-      // 3) Execute transformed component code in parent window
-      window.__APP__ = undefined;
-      // eslint-disable-next-line no-new-func
-      const componentFn = new Function(convertedCode);
-      componentFn();
-
-      const App = window.__APP__ || (window as any)[componentName];
-
-      if (!App) {
-        throw new Error(`Component '${componentName}' not found on window after execution`);
-      }
-
-      // 4) Render into an off-screen container using the inline runtime
-      const container = document.createElement('div');
-      container.id = 'preview-temp-root';
-      document.body.appendChild(container);
-
-      try {
-        window.ReactDOM.render(window.jsx(App, {}), container);
-        const innerHtml = container.innerHTML;
-        const previewHtml = generatePreviewHtml(innerHtml, filePath);
-
-        console.log('🎯 Static Preview Generated:', {
-          file: filePath,
-          component: componentName,
-          htmlLength: innerHtml.length,
-        });
-
-        iframeRef.current.srcdoc = previewHtml;
-      } finally {
-        container.remove();
-      }
+      iframeRef.current.srcdoc = previewHtml;
     } catch (error) {
-      console.error('❌ Preview Error (parent runtime):', error);
+      console.error('❌ Preview Error (static extractor):', error);
       iframeRef.current.srcdoc = generateErrorHtml(error as Error, filePath);
     }
   }, [files, key]);
@@ -96,7 +49,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
   const deviceModeClass = {
     desktop: 'w-full h-full',
     tablet: 'w-[768px] h-full mx-auto border-x border-border',
-    mobile: 'w-[375px] h-full mx-auto border-x border-border'
+    mobile: 'w-[375px] h-full mx-auto border-x border-border',
   }[deviceMode];
 
   return (
@@ -142,13 +95,33 @@ export default function LivePreview({ files }: LivePreviewProps) {
           ref={iframeRef}
           key={key}
           className={`${deviceModeClass} transition-all duration-300`}
-          // No scripts needed inside iframe; we render HTML statically from parent
           sandbox="allow-same-origin"
           title="Preview"
         />
       </div>
     </div>
   );
+}
+
+// --- Helpers ---------------------------------------------------------------
+
+function extractStaticHtmlFromReactComponent(source: string): string {
+  // Very small, safe extractor for components like:
+  // export default function Page() { return (<main>...</main>); }
+  const match = source.match(/return\s*\(([\s\S]*?)\);/);
+  if (!match) {
+    throw new Error('Could not find JSX return in component');
+  }
+
+  let jsxBlock = match[1].trim();
+
+  // Convert React-specific attributes to HTML
+  jsxBlock = jsxBlock.replace(/className=/g, 'class=');
+
+  // Remove enclosing fragments <>...</> if present (very simple)
+  jsxBlock = jsxBlock.replace(/^<>[\s\S]*?<\/>$/m, (m) => m.slice(2, -3));
+
+  return jsxBlock;
 }
 
 function generatePreviewHtml(innerHtml: string, filePath: string): string {
