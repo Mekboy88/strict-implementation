@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Smartphone, Monitor, Tablet } from "lucide-react";
-import { transformCodeForPreview, detectMainComponent } from "@/utils/preview/codeTransformer";
+import { transformCodeForPreview, detectMainComponent, sortFilesByDependency } from "@/utils/preview/codeTransformer";
 
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -26,8 +26,11 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     const doc = iframeRef.current.contentDocument;
     if (!doc) return;
 
+    // Sort files by dependency (components before pages)
+    const sortedFiles = sortFilesByDependency(files);
+    
     // Transform all files to browser-compatible code
-    const transformedFiles = Object.entries(files).map(([id, content]) => {
+    const transformedFiles = sortedFiles.map(([id, content]) => {
       const result = transformCodeForPreview(content, id);
       return result.transformedCode;
     });
@@ -69,14 +72,17 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     });
 
     try {
-      // All transformed code
-      const CODE_BUNDLE = ${'${JSON.stringify(transformedFiles.join("\n\n"))}'};
+      // All transformed code bundled together
+      const CODE_BUNDLE = ${JSON.stringify(transformedFiles.join("\n\n"))};
+      console.log('Loading components...', ${JSON.stringify(Object.keys(files))});
+      
       // Evaluate the bundled code safely
       // eslint-disable-next-line no-eval
       eval(CODE_BUNDLE);
 
       // Render the detected main component
-      const MAIN_COMPONENT_NAME = ${'${JSON.stringify(mainComponentName)}'};
+      const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
+      console.log('Rendering component:', MAIN_COMPONENT_NAME);
       const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
         ? window[MAIN_COMPONENT_NAME]
         : (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
