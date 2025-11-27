@@ -99,24 +99,24 @@ export function bundleForPreview(
     result = result.replace(/:\s*[A-Za-z0-9_\[\]\<\>\| ]+/g, "");
     // Remove TypeScript generics on functions/components like <T>
     result = result.replace(/<[^>]+>\s*\(/g, "(");
-    
+
     // Remove imports
     result = result.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
-    
-    // Remove export default
+
+    // Normalize exports so our runtime can find the component
     result = result.replace(/export\s+default\s+function\s+(\w+)/, 'function $1');
     result = result.replace(/export\s+default\s+/, '');
     result = result.replace(/export\s+function\s+/g, 'function ');
     result = result.replace(/export\s+const\s+/g, 'const ');
-    
-    // Transform JSX to React.createElement calls
+
+    // --- JSX -> React.createElement transformation -----------------------------------------
     let iterations = 0;
     let prev = '';
-    
+
     while (result !== prev && iterations < 50) {
       prev = result;
       iterations++;
-      
+
       // Self-closing tags with props: <Component prop="value" />
       result = result.replace(
         /<(\w+)\s+([^>\/]+?)\s*\/>/g,
@@ -125,13 +125,13 @@ export function bundleForPreview(
           return `React.createElement(${formatTagName(tag)}, ${props})`;
         }
       );
-      
+
       // Self-closing without props: <Component />
       result = result.replace(
         /<(\w+)\s*\/>/g,
         (_, tag) => `React.createElement(${formatTagName(tag)}, null)`
       );
-      
+
       // Opening tags with props: <div className="x">
       result = result.replace(
         /<(\w+)\s+([^>]+?)>/g,
@@ -140,17 +140,46 @@ export function bundleForPreview(
           return `React.createElement(${formatTagName(tag)}, ${props}, `;
         }
       );
-      
+
       // Opening tags without props: <div>
       result = result.replace(
         /<(\w+)>/g,
         (_, tag) => `React.createElement(${formatTagName(tag)}, null, `
       );
-      
+
       // Closing tags
       result = result.replace(/<\/\w+>/g, ')');
     }
-    
+
+    // Post-processing: wrap simple text children in quotes so the JS stays valid.
+    // We only touch calls where the third argument is a plain text node.
+    result = result.replace(
+      /React\.createElement\(([^,]+),\s*([^,]+),\s*([^)]*)\)/g,
+      (match, type, props, children) => {
+        const trimmed = String(children).trim();
+        if (!trimmed) return match;
+
+        // Leave complex children (other elements, arrays, expressions, or already-quoted
+        // strings) untouched.
+        if (
+          trimmed.startsWith('React.createElement') ||
+          trimmed.startsWith('[') ||
+          trimmed.startsWith('{') ||
+          trimmed.startsWith('(') ||
+          trimmed.startsWith('`') ||
+          trimmed.startsWith('"') ||
+          trimmed.startsWith("'")
+        ) {
+          return match;
+        }
+
+        // Treat everything else as literal text content.
+        const normalized = trimmed.replace(/\s+/g, ' ');
+        const escaped = normalized.replace(/"/g, '\\"');
+        return `React.createElement(${type}, ${props}, "${escaped}")`;
+      }
+    );
+
     return result;
   }
 
