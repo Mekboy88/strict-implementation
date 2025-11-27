@@ -16,8 +16,8 @@ const AdminLoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col p-10">
-      {/* BACK BUTTON */}
-      <div className="w-full mb-6">
+      {/* TOP ROW: BACK BUTTON AND HEADER */}
+      <div className="w-full flex items-center justify-between mb-12">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-neutral-400 hover:text-neutral-100 transition"
@@ -25,19 +25,20 @@ const AdminLoginPage: React.FC = () => {
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Home</span>
         </button>
+        
+        <div className="text-center flex-1 mx-8">
+          <h1 className="text-5xl font-extrabold tracking-tight text-neutral-100 drop-shadow-xl">
+            Leadership isn't power — it's responsibility.
+          </h1>
+          <p className="mt-3 text-2xl text-neutral-400 font-medium">
+            Being an admin doesn't give you privileges — it gives you responsibility.
+          </p>
+        </div>
+        
+        <div className="w-32"></div> {/* Spacer for balance */}
       </div>
       
       <div className="flex flex-col items-center flex-1">
-
-      {/* TOP HEADER */}
-      <div className="w-full text-center mb-12 mt-4">
-        <h1 className="text-5xl font-extrabold tracking-tight text-neutral-100 drop-shadow-xl">
-          Leadership isn't power — it's responsibility.
-        </h1>
-        <p className="mt-3 text-2xl text-neutral-400 font-medium">
-          Being an admin doesn't give you privileges — it gives you responsibility.
-        </p>
-      </div>
 
       {/* LOGIN CARD */}
       <div className="w-full max-w-md bg-neutral-900 rounded-2xl p-8 shadow-2xl border border-neutral-800">
