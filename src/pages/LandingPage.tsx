@@ -716,10 +716,10 @@ const UrDevLandingPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleBuildClick}
-                    className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400"
+                    className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-1.5 text-[11px] font-semibold text-black shadow-[0_0_26px_rgba(59,130,246,0.9)] hover:bg-sky-400 cursor-pointer"
                   >
-                    <span>Build with UR-DEV</span>
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px]">
+                    <span className="pointer-events-none">Build with UR-DEV</span>
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/20 text-[10px] pointer-events-none">
                       →
                     </span>
                   </button>
