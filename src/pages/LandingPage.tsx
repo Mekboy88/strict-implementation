@@ -312,19 +312,26 @@ const UrDevLandingPage: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    console.log("Sign Out button clicked");
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
+      console.log("Supabase signOut successful");
+      
       // Clear admin session
       sessionStorage.removeItem("admin_authenticated");
       setIsAdmin(false);
-      
+      setUser(null);
+
       toast({
         title: "Success",
         description: "Logged out successfully",
       });
+
+      navigate("/");
     } catch (error: any) {
+      console.error("Error during logout", error);
       toast({
         title: "Error",
         description: error.message || "Failed to logout",
