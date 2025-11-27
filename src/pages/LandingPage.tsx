@@ -400,58 +400,28 @@ const UrDevLandingPage: React.FC = () => {
     callback();
   };
 
-  const handleBuildClick = async () => {
-    requireAuth(async () => {
+  const handleBuildClick = () => {
+    requireAuth(() => {
       if (!prompt.trim()) {
-        handleUseSamplePrompt();
+        toast({
+          title: "No Request",
+          description: "Please describe what you want to build.",
+          variant: "destructive",
+        });
         return;
       }
       
-      setPromptStatus("Analyzing prompt with AI agents");
+      // Store the prompt in session storage to use in the editor
+      sessionStorage.setItem('build_prompt', prompt);
+      sessionStorage.setItem('build_platform', promptMode);
       
-      try {
-        const { data, error } = await supabase.functions.invoke('chat', {
-          body: {
-            messages: [
-              { role: 'user', content: prompt }
-            ],
-            context: {
-              activePlatform: promptMode
-            }
-          }
-        });
-
-        if (error) {
-          console.error('Error calling chat function:', error);
-          toast({
-            title: "Error",
-            description: "Failed to process your request. Please try again.",
-            variant: "destructive",
-          });
-          setPromptStatus("Draft");
-          return;
-        }
-
-        setPromptStatus("Draft layout generated – open the IDE to refine.");
-        toast({
-          title: "Success",
-          description: "Your project request has been processed!",
-        });
-        
-        // Navigate to the main editor
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
-        
-      } catch (error) {
-        console.error('Error:', error);
-        toast({
-          title: "Error",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
-        setPromptStatus("Draft");
-      }
+      toast({
+        title: "Opening Editor",
+        description: "Starting your project...",
+      });
+      
+      // Navigate to the main editor immediately
+      navigate("/");
     });
   };
 
