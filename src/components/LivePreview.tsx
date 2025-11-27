@@ -25,6 +25,9 @@ export default function LivePreview({ files }: LivePreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
+    console.log('📁 LivePreview received files:', Object.keys(files));
+    console.log('📄 Has src/app/page.tsx:', !!files['src/app/page.tsx']);
+
     const entryPath = 'src/app/page.tsx';
     const filesForPreview = { ...files };
 
