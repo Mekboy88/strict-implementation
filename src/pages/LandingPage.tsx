@@ -420,8 +420,8 @@ const UrDevLandingPage: React.FC = () => {
         description: "Starting your project...",
       });
       
-      // Navigate to the main editor immediately
-      navigate("/");
+      // Navigate to the main editor route
+      navigate("/editor");
     });
   };
 
@@ -763,6 +763,12 @@ const UrDevLandingPage: React.FC = () => {
                         if (user) {
                           setPrompt(e.target.value);
                           setPromptStatus("Draft");
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleBuildClick();
                         }
                       }}
                       placeholder={user ? "Hey UR-Dev, let's go!" : "Sign in to start building..."}
