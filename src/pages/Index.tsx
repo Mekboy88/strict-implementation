@@ -315,6 +315,8 @@ Rules:
           const codeBlocks = parseCodeBlocks(assistantContent);
           if (codeBlocks.length > 0) {
             handleCodeFromAI(codeBlocks);
+            // Automatically show preview when code is generated
+            setShowPreview(true);
           }
 
           // Extract tasks from the response
