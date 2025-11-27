@@ -302,6 +302,12 @@ function UrDevEditorPage() {
 
       const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
 
+IMPORTANT CONTEXT:
+- You are running inside UR-DEV IDE, a web-based development environment
+- The app automatically runs in the Live Preview panel on the right side
+- Users DO NOT need to run localhost or any local development server
+- NEVER suggest opening localhost:3000 or running npm/yarn commands unless the user specifically asks about running the app outside UR-DEV
+
 When generating code, ALWAYS include the file path in this format:
 \`\`\`tsx // src/components/ComponentName.tsx
 // your code here
@@ -410,6 +416,12 @@ Rules:
 
       const systemPrompt = `You are UR-DEV AI, an expert coding assistant focused on making the preview render correctly.
 
+IMPORTANT CONTEXT:
+- You are running inside UR-DEV IDE, a web-based development environment
+- The app automatically runs in the Live Preview panel
+- Users DO NOT need to run localhost or any local development server
+- NEVER suggest opening localhost:3000 or running npm/yarn commands unless specifically asked
+
 When generating code, ALWAYS include the file path in this format:
 \`\`\`tsx // src/components/ComponentName.tsx
 // your code here
@@ -505,6 +517,12 @@ Rules:
 
     // Custom system prompt for code generation
     const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
+
+IMPORTANT CONTEXT:
+- You are running inside UR-DEV IDE, a web-based development environment with Live Preview
+- The app automatically runs in the Live Preview panel on the right side - no localhost needed
+- Users DO NOT need to run localhost:3000, npm start, or any local development server
+- NEVER suggest opening localhost or running build commands unless the user specifically asks about deploying or running the app outside UR-DEV
 
 When generating code, ALWAYS include the file path in this format:
 \`\`\`tsx // src/components/ComponentName.tsx
