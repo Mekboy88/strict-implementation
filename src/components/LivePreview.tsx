@@ -41,6 +41,14 @@ export default function LivePreview({ files }: LivePreviewProps) {
       totalFiles: Object.keys(filesForPreview).length,
     });
 
+    // Add timeout protection
+    const timeoutId = setTimeout(() => {
+      console.error('⏱️ Preview bundling timeout');
+      if (iframeRef.current) {
+        iframeRef.current.srcdoc = generateFallbackHtml('Bundling timeout - code may be too complex');
+      }
+    }, 5000); // 5 second timeout
+
     try {
       console.log('🔄 Bundling preview from:', entryPath);
       
@@ -48,10 +56,14 @@ export default function LivePreview({ files }: LivePreviewProps) {
       const bundledCode = bundleForPreview(filesForPreview, entryPath);
       console.log('✅ Bundle created, size:', bundledCode.length);
       
+      // Clear timeout since we succeeded
+      clearTimeout(timeoutId);
+      
       // Generate HTML with runtime and bundled code
       const previewHtml = generateBundledPreview(bundledCode);
       iframeRef.current.srcdoc = previewHtml;
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('❌ Preview Error:', error);
       iframeRef.current.srcdoc = generateFallbackHtml((error as Error).message);
     }

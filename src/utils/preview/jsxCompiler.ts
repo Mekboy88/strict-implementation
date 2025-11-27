@@ -37,8 +37,12 @@ function stripTypeScript(code: string): string {
 function transformJSXInCode(code: string): string {
   let result = '';
   let i = 0;
+  const MAX_ITERATIONS = code.length * 2; // Safety limit
+  let iterations = 0;
   
-  while (i < code.length) {
+  while (i < code.length && iterations < MAX_ITERATIONS) {
+    iterations++;
+    
     // Check if we're at the start of JSX (after return, =>, or parenthesis)
     if (code[i] === '<' && isJSXStart(code, i)) {
       const jsxResult = parseJSXElement(code, i);
@@ -50,24 +54,41 @@ function transformJSXInCode(code: string): string {
     }
   }
   
+  if (iterations >= MAX_ITERATIONS) {
+    console.error('JSX compiler exceeded iteration limit');
+    return code; // Return original code if we hit the limit
+  }
+  
   return result;
 }
 
 function isJSXStart(code: string, index: number): boolean {
   // Check if this < is likely JSX and not a comparison
   const before = code.slice(Math.max(0, index - 20), index).trim();
-  return (
-    before.endsWith('return') ||
-    before.endsWith('=>') ||
-    before.endsWith('(') ||
-    before.endsWith(',') ||
-    /\?\s*$/.test(before) ||
-    /:\s*$/.test(before)
-  );
+  
+  // Common JSX contexts
+  if (before.endsWith('return') || 
+      before.endsWith('=>') || 
+      before.endsWith('(') ||
+      before.endsWith(',') ||
+      /\?\s*$/.test(before) ||
+      /:\s*$/.test(before)) {
+    return true;
+  }
+  
+  // Also check if we're inside JSX (after > of opening tag)
+  const lastChar = before[before.length - 1];
+  if (lastChar === '>') {
+    return true;
+  }
+  
+  return false;
 }
 
 function parseJSXElement(code: string, startIndex: number): { code: string; endIndex: number } {
   let i = startIndex;
+  const MAX_PARSE_ITERATIONS = 10000;
+  let iterations = 0;
   
   // Parse opening tag
   if (code[i] !== '<') {
@@ -78,14 +99,17 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
   
   // Get tag name
   let tagName = '';
-  while (i < code.length && /[a-zA-Z0-9_.-]/.test(code[i])) {
+  while (i < code.length && /[a-zA-Z0-9_.-]/.test(code[i]) && iterations < MAX_PARSE_ITERATIONS) {
+    iterations++;
     tagName += code[i];
     i++;
   }
   
   // Parse attributes
   const attributes: { [key: string]: string } = {};
-  while (i < code.length && code[i] !== '>' && code[i] !== '/') {
+  while (i < code.length && code[i] !== '>' && code[i] !== '/' && iterations < MAX_PARSE_ITERATIONS) {
+    iterations++;
+    
     // Skip whitespace
     while (i < code.length && /\s/.test(code[i])) i++;
     
@@ -97,6 +121,8 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
       attrName += code[i];
       i++;
     }
+    
+    if (!attrName) break;
     
     // Skip whitespace and =
     while (i < code.length && (/\s/.test(code[i]) || code[i] === '=')) i++;
@@ -142,7 +168,9 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
   
   // Parse children
   const children: string[] = [];
-  while (i < code.length) {
+  while (i < code.length && iterations < MAX_PARSE_ITERATIONS) {
+    iterations++;
+    
     // Check for closing tag
     if (code[i] === '<' && code[i + 1] === '/') {
       // Found closing tag
@@ -157,7 +185,7 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
     }
     
     // Check for nested JSX element
-    if (code[i] === '<' && isJSXStart(code, i)) {
+    if (code[i] === '<') {
       const childResult = parseJSXElement(code, i);
       children.push(childResult.code);
       i = childResult.endIndex;
@@ -190,6 +218,14 @@ function parseJSXElement(code: string, startIndex: number): { code: string; endI
     if (text) {
       children.push(JSON.stringify(text));
     }
+  }
+  
+  if (iterations >= MAX_PARSE_ITERATIONS) {
+    console.error('JSX parser exceeded iteration limit');
+    return {
+      code: `React.createElement('div', null, 'Parse error')`,
+      endIndex: i
+    };
   }
   
   // Build React.createElement call

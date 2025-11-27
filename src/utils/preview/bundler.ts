@@ -11,7 +11,51 @@ export function bundleForPreview(
   entryPoint: string = "src/app/page.tsx"
 ): string {
   try {
-    // Resolve all modules and their dependencies
+    // Fast path: If entry point has no imports, just compile it directly
+    const entryCode = files[entryPoint];
+    if (!entryCode) {
+      console.error('Entry point not found:', entryPoint);
+      return generateFallbackBundle();
+    }
+    
+    const hasImports = /^import\s+/m.test(entryCode);
+    
+    if (!hasImports) {
+      // Simple single-file compilation
+      try {
+        let code = entryCode;
+        
+        // Remove export statements but keep the function/component
+        code = code.replace(/export\s+default\s+/g, '');
+        code = code.replace(/export\s+/g, '');
+        
+        // Compile JSX to React.createElement
+        code = compileJSX(code);
+        
+        const bundle = `
+${code}
+
+// Auto-detect and expose the main component
+const __mainComponent__ = 
+  (typeof Page !== "undefined" && Page) ||
+  (typeof App !== "undefined" && App) ||
+  null;
+
+if (__mainComponent__) {
+  window.__PREVIEW_RENDER__ = __mainComponent__;
+} else {
+  console.error('No Page or App component found');
+}
+`;
+        
+        return bundle;
+      } catch (error) {
+        console.error('Simple compilation error:', error);
+        return generateFallbackBundle();
+      }
+    }
+    
+    // Complex path: Resolve modules and bundle
     const modules = resolveModules(files, entryPoint);
     
     if (modules.length === 0) {
