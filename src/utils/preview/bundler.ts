@@ -180,6 +180,10 @@ export function bundleForPreview(
       }
     );
 
+    // Post-processing: ensure sibling React.createElement calls inside the
+    // same parent call are separated by commas so the JS is valid.
+    result = result.replace(/\)\s+(React\.createElement)/g, ', $1');
+
     return result;
   }
 
