@@ -445,7 +445,11 @@ const UrDevLandingPage: React.FC = () => {
                     {getUserInitial()}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-72 bg-neutral-900 text-neutral-100 rounded-2xl shadow-2xl p-4 border border-neutral-800 z-50">
+                <DropdownMenuContent 
+                  align="end"
+                  className="w-72 bg-neutral-900 text-neutral-100 rounded-2xl shadow-2xl p-4 border border-neutral-800 z-[9999]"
+                  style={{ backgroundColor: 'rgb(23, 23, 23)' }}
+                >
                   {/* User Info */}
                   <div className="flex items-center gap-4 pb-4 border-b border-neutral-800">
                     <div className="h-12 w-12 rounded-xl bg-neutral-700 flex items-center justify-center text-lg font-semibold">
@@ -501,10 +505,18 @@ const UrDevLandingPage: React.FC = () => {
                     </button>
                     {isAdmin && (
                       <button 
-                        onClick={() => navigate("/admin/login")}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400"
+                        onClick={() => {
+                          const isAdminAuthenticated = sessionStorage.getItem("admin_authenticated");
+                          if (isAdminAuthenticated) {
+                            navigate("/admin/dashboard");
+                          } else {
+                            navigate("/admin/login");
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400 focus:outline-none focus:ring-0"
                       >
-                        <Settings className="h-4 w-4" /> Admin Login
+                        <Settings className="h-4 w-4" /> Admin Panel
+                        <span className="ml-auto text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md">Admin</span>
                       </button>
                     )}
                   </div>
