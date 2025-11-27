@@ -60,56 +60,35 @@ interface FileItem {
 
 const defaultFiles: FileItem[] = [
   {
-    id: "banner",
-    name: "banner.tsx",
-    path: "src/components/banner.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "",
-      "export function Banner() {",
-      "  return (",
-      '    <section className="px-8 py-10 bg-card/60 border-b border-border">',
-      '      <h1 className="text-2xl font-semibold text-foreground">UR-DEV Banner</h1>',
-      '      <p className="mt-2 text-sm text-muted-foreground max-w-xl">',
-      "        This is a demo banner component rendered inside the editor preview.",
-      "      </p>",
-      "    </section>",
-      "  )",
-      "}",
-    ],
-  },
-  {
-    id: "layout",
-    name: "layout.tsx",
-    path: "src/app/layout.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "",
-      "export default function RootLayout({ children }) {",
-      "  return (",
-      '    <html lang="en">',
-      '      <body className="bg-background text-foreground">{children}</body>',
-      "    </html>",
-      "  )",
-      "}",
-    ],
-  },
-  {
     id: "page",
     name: "page.tsx",
     path: "src/app/page.tsx",
     language: "tsx",
     content: [
       "import React from 'react'",
-      "import { Banner } from '../components/banner'",
       "",
       "export default function Page() {",
       "  return (",
-      '    <main className="min-h-screen bg-background">',
-      "      <Banner />",
-      "    </main>",
+      '    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">',
+      '      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">',
+      '        <div className="mb-6">',
+      '          <div className="text-6xl mb-4">🚀</div>',
+      '          <h1 className="text-4xl font-bold text-gray-800 mb-3">Welcome to UR-DEV</h1>',
+      '          <p className="text-lg text-gray-600">',
+      "            Your AI-powered development environment is ready!",
+      '          </p>',
+      '        </div>',
+      '        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">',
+      '          <p className="text-sm text-gray-700 mb-2">',
+      '            <strong>👋 Start building:</strong>',
+      '          </p>',
+      '          <p className="text-sm text-gray-600">',
+      '            Use the AI chat below to create pages, components, and features.',
+      '            The Live Preview will update automatically!',
+      '          </p>',
+      '        </div>',
+      '      </div>',
+      '    </main>',
       "  )",
       "}",
     ],
@@ -375,6 +354,62 @@ function UrDevEditorPage() {
 
       if (isStreaming) return;
 
+      // CRITICAL FIX: Auto-generate default page.tsx if missing
+      const hasPageFile = projectFiles.some(f => f.path.includes('app/page.tsx'));
+      
+      if (!hasPageFile) {
+        console.log('🚨 NO page.tsx DETECTED - Auto-generating default page...');
+        
+        const defaultPageContent = `import React from 'react'
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
+        <div className="mb-6">
+          <div className="text-6xl mb-4">🚀</div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">UR-DEV Live Preview</h1>
+          <p className="text-lg text-gray-600">
+            Your preview is now active and ready!
+          </p>
+        </div>
+        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-gray-700 mb-2">
+            <strong>👋 Start building:</strong>
+          </p>
+          <p className="text-sm text-gray-600">
+            Use the AI chat to create pages and components.
+            Everything renders here automatically!
+          </p>
+        </div>
+      </div>
+    </main>
+  )
+}`;
+
+        const pageFileId = generateFileId('src/app/page.tsx');
+        const newPageFile: FileItem = {
+          id: pageFileId,
+          name: 'page.tsx',
+          path: 'src/app/page.tsx',
+          language: 'tsx',
+          content: defaultPageContent.split('\n'),
+        };
+        
+        setProjectFiles(prev => [...prev, newPageFile]);
+        setFileContents(prev => ({
+          ...prev,
+          [pageFileId]: defaultPageContent
+        }));
+        
+        toast({
+          title: "Preview Fixed",
+          description: "Created default page.tsx - preview should now display",
+        });
+        
+        return; // Don't trigger AI response if we just created the file
+      }
+
       const message = `⚪ **Preview Not Rendering - Trying to Diagnose**\n\nReason detected: ${reason || 'unknown'} (files in project: ${fileCount ?? 0}).`;
 
       const statusMsg: ChatMsg = {
@@ -458,7 +493,7 @@ function UrDevEditorPage() {
 
     window.addEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
     return () => window.removeEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
-  }, [chatMessages, isStreaming]);
+  }, [chatMessages, isStreaming, projectFiles]);
 
   const handleSendChat = async () => {
     if (!assistantInput.trim() || isStreaming) return;
