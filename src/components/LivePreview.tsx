@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Smartphone, Monitor, Tablet } from "lucide-react";
-import { transformCodeForPreview, detectMainComponent, sortFilesByDependency } from "@/utils/preview/codeTransformer";
-import { INLINE_REACT_RUNTIME, INLINE_TAILWIND_RESET } from "@/utils/preview/inlineReactRuntime";
+import { convertJSXToHTML, extractComponentName } from "@/utils/preview/jsxToHtmlConverter";
+import { INLINE_TAILWIND_RESET } from "@/utils/preview/inlineReactRuntime";
 
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -9,6 +9,18 @@ interface LivePreviewProps {
 }
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
+
+// Helper function to escape HTML
+function escapeHtml(text: string): string {
+  const htmlEscapes: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+}
 
 const LivePreview = ({ files }: LivePreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -51,6 +63,7 @@ const LivePreview = ({ files }: LivePreviewProps) => {
         (path.endsWith('.tsx') || path.endsWith('.jsx')) &&
         !path.includes('config') &&
         !path.includes('vite.config') &&
+        !path.includes('tailwind.config') &&
         !path.includes('main.tsx') &&
         !path.includes('main.jsx') &&
         !path.includes('/main.') &&
@@ -60,9 +73,34 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     );
 
     console.log('LivePreview filtered to React files:', Object.keys(reactFiles));
+    
+    // Find the main page component (prioritize page.tsx, app.tsx, index.tsx)
+    const priorityPatterns = [
+      /page\.tsx?$/i,
+      /app\.tsx?$/i,
+      /index\.tsx?$/i,
+    ];
+    
+    let mainFilePath: string | null = null;
+    let mainFileContent: string | null = null;
+    
+    for (const pattern of priorityPatterns) {
+      const entry = Object.entries(reactFiles).find(([path]) => pattern.test(path));
+      if (entry) {
+        [mainFilePath, mainFileContent] = entry;
+        break;
+      }
+    }
+    
+    // If no priority file found, use the first available
+    if (!mainFilePath && Object.keys(reactFiles).length > 0) {
+      [mainFilePath, mainFileContent] = Object.entries(reactFiles)[0];
+    }
+    
+    console.log('LivePreview main file:', mainFilePath);
 
-    // If there are no React files, show an explicit blank-preview debug screen
-    if (Object.keys(reactFiles).length === 0) {
+    // If there are no React files or no main file, show debug screen
+    if (!mainFilePath || !mainFileContent) {
       console.warn('LivePreview: no React files detected for preview. All files:', Object.keys(files));
       const debugHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -118,22 +156,46 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       return;
     }
 
-    // Sort files by dependency (components before pages)
-    const sortedFiles = sortFilesByDependency(reactFiles);
+    // Convert JSX to static HTML
+    console.log('Converting JSX to HTML for:', mainFilePath);
+    const conversionResult = convertJSXToHTML(mainFileContent, mainFilePath);
     
-    // Transform all files to browser-compatible code
-    const transformedFiles = sortedFiles.map(([id, content]) => {
-      const result = transformCodeForPreview(content, id);
-      return result.transformedCode;
-    });
+    if (!conversionResult.success) {
+      console.error('JSX to HTML conversion failed:', conversionResult.error);
+      
+      // Show error in preview
+      const errorHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: system-ui; background: #1a1a1a; color: #fff; margin: 0; padding: 2rem; }
+    .error { max-width: 600px; margin: 0 auto; }
+    h1 { color: #ef4444; margin-bottom: 1rem; }
+    pre { background: #2d2d2d; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="error">
+    <h1>⚠️ Preview Error</h1>
+    <p>Failed to convert JSX to HTML for preview.</p>
+    <pre>${escapeHtml(conversionResult.error || 'Unknown error')}</pre>
+    <p style="margin-top: 1rem; color: #9ca3af;">File: <code>${mainFilePath}</code></p>
+  </div>
+</body>
+</html>`;
+      
+      doc.open();
+      doc.write(errorHtml);
+      doc.close();
+      return;
+    }
 
-    // Detect the main component to render
-    const mainComponent = detectMainComponent(reactFiles);
-    const mainComponentName = mainComponent ?? "";
-    
-    console.log('LivePreview detected main component:', mainComponentName);
+    const componentName = extractComponentName(mainFileContent);
+    console.log('Component name:', componentName, 'HTML length:', conversionResult.html.length);
 
-    // Create HTML document with React app (CDN-FREE VERSION)
+    // Create static HTML document (NO JAVASCRIPT EXECUTION)
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -163,169 +225,92 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       --radius: 0.5rem;
     }
     
-    /* Tailwind-like utility classes */
+    /* Comprehensive Tailwind utility classes */
+    * { box-sizing: border-box; }
     .min-h-screen { min-height: 100vh; }
     .bg-background { background-color: hsl(var(--background)); }
     .text-foreground { color: hsl(var(--foreground)); }
     .text-muted-foreground { color: hsl(var(--muted-foreground)); }
     .flex { display: flex; }
+    .flex-col { flex-direction: column; }
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .space-y-4 > * + * { margin-top: 1rem; }
+    .space-y-2 > * + * { margin-top: 0.5rem; }
     .p-8 { padding: 2rem; }
     .p-4 { padding: 1rem; }
     .p-6 { padding: 1.5rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
     .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
     .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
     .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
     .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
     .mb-4 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-8 { margin-top: 2rem; }
+    .max-w-7xl { max-width: 80rem; }
+    .max-w-6xl { max-width: 72rem; }
+    .max-w-4xl { max-width: 56rem; }
     .max-w-2xl { max-width: 42rem; }
+    .max-w-xl { max-width: 36rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
     .w-full { width: 100%; }
+    .h-full { height: 100%; }
     .text-center { text-align: center; }
     .rounded-lg { border-radius: 0.5rem; }
-    .border { border-width: 1px; border-color: hsl(var(--border)); }
+    .rounded { border-radius: 0.25rem; }
+    .border { border-width: 1px; }
+    .border-border { border-color: hsl(var(--border)); }
     .bg-card { background-color: hsl(var(--card)); }
+    .bg-primary { background-color: hsl(var(--primary)); }
+    .bg-secondary { background-color: hsl(var(--secondary)); }
+    .bg-muted { background-color: hsl(var(--muted)); }
     .bg-white { background-color: white; }
-    .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    .bg-gray-50 { background-color: rgb(249 250 251); }
+    .bg-gray-100 { background-color: rgb(243 244 246); }
+    .text-primary-foreground { color: hsl(var(--primary-foreground)); }
+    .text-secondary-foreground { color: hsl(var(--secondary-foreground)); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
     .overflow-hidden { overflow: hidden; }
     .grid { display: grid; }
     .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .gap-4 { gap: 1rem; }
     .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
     .object-cover { object-fit: cover; }
     .h-48 { height: 12rem; }
-    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-    .font-semibold { font-weight: 600; }
-    .mb-2 { margin-bottom: 0.5rem; }
+    .h-64 { height: 16rem; }
+    .container { width: 100%; padding-left: 1rem; padding-right: 1rem; margin-left: auto; margin-right: auto; }
+    @media (min-width: 640px) { .container { max-width: 640px; } }
+    @media (min-width: 768px) { .container { max-width: 768px; } }
+    @media (min-width: 1024px) { .container { max-width: 1024px; } }
+    @media (min-width: 1280px) { .container { max-width: 1280px; } }
   </style>
 </head>
 <body>
-  <div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#f9fafb;">
-      <div style="text-align:center;max-width:480px;padding:1.5rem;">
-        <div style="font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;color:#6b7280;margin-bottom:0.25rem;font-weight:600;">UR-DEV · Live preview</div>
-        <div style="font-size:0.95rem;color:#111827;">Preparing CDN-free preview…</div>
-      </div>
-    </div></div>
-  <div id="error-display" style="display: none; padding: 2rem; background: #1a1a1a; color: #fff; font-family: system-ui; position: relative; min-height: 100vh;">
-    <button 
-      id="fix-error-top" 
-      style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.625rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
-      onmouseover="this.style.background='#dc2626'"
-      onmouseout="this.style.background='#ef4444'"
-      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
-    >
-      🔧 Fix Error
-    </button>
-    <h2 style="color: #ef4444; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Preview Error</h2>
-    <div style="background: #2d2d2d; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 1.5rem;">
-      <pre id="error-message" style="white-space: pre-wrap; color: #fbbf24; margin: 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.6;"></pre>
-    </div>
-    <details style="margin-bottom: 2rem; background: #2d2d2d; padding: 1rem; border-radius: 8px;">
-      <summary style="cursor: pointer; color: #60a5fa; font-weight: 600; user-select: none;">📋 Stack Trace</summary>
-      <pre id="error-stack" style="white-space: pre-wrap; color: #9ca3af; margin-top: 1rem; font-family: 'Courier New', monospace; font-size: 0.75rem; line-height: 1.5; overflow-x: auto;"></pre>
-    </details>
-    <div id="error-data" style="display: none;"></div>
-    <button 
-      id="fix-error-bottom" 
-      style="padding: 1rem 2rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
-      onmouseover="this.style.background='#dc2626'; this.style.transform='translateY(-2px)'"
-      onmouseout="this.style.background='#ef4444'; this.style.transform='translateY(0)'"
-      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
-    >
-      🤖 Please Fix This Error
-    </button>
+  <div id="app">
+    ${conversionResult.html}
   </div>
-  <script>
-    ${INLINE_REACT_RUNTIME}
-
-    // Global error handler
-    window.addEventListener('error', (event) => {
-      const errorDisplay = document.getElementById('error-display');
-      const errorMessage = document.getElementById('error-message');
-      const errorStack = document.getElementById('error-stack');
-      const errorData = document.getElementById('error-data');
-      const root = document.getElementById('root');
-      
-      if (errorDisplay && errorMessage && root) {
-        errorDisplay.style.display = 'block';
-        root.style.display = 'none';
-        errorMessage.textContent = event.message || 'Unknown error';
-        if (errorStack && event.error && event.error.stack) {
-          errorStack.textContent = event.error.stack;
-        }
-        if (errorData) {
-          errorData.textContent = JSON.stringify({
-            message: event.message,
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            stack: event.error?.stack
-          }, null, 2);
-        }
-      }
-    });
-
-    try {
-      // All transformed code
-      ${transformedFiles.join("\n\n")}
-
-      // Render the main component
-      const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
-      console.log('CDN-free preview rendering:', MAIN_COMPONENT_NAME);
-      
-      const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
-        ? window[MAIN_COMPONENT_NAME]
-        : function() {
-            return React.createElement('div', { 
-              style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } 
-            },
-              React.createElement('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
-              React.createElement('h1', { 
-                style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } 
-              }, 'No Component Found'),
-              React.createElement('p', { style: { color: '#6b7280', marginBottom: '1rem' } },
-                'Could not detect a React component to render.'),
-              React.createElement('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } },
-                'Make sure your code exports a React component.')
-            );
-          };
-
-      const root = document.getElementById('root');
-      if (root && typeof RootComponent === 'function') {
-        ReactDOM.createRoot(root).render(React.createElement(RootComponent));
-        window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
-      } else {
-        throw new Error('Invalid component: ' + (typeof RootComponent));
-      }
-    } catch (error) {
-      console.error('Preview error:', error);
-      const errorDisplay = document.getElementById('error-display');
-      const errorMessage = document.getElementById('error-message');
-      const errorStack = document.getElementById('error-stack');
-      const errorData = document.getElementById('error-data');
-      const root = document.getElementById('root');
-      
-      if (errorDisplay && errorMessage && root) {
-        errorDisplay.style.display = 'block';
-        root.style.display = 'none';
-        errorMessage.textContent = error && error.message ? error.message : 'Unknown compilation error';
-        if (errorStack && error && error.stack) {
-          errorStack.textContent = error.stack;
-        }
-        if (errorData) {
-          errorData.textContent = JSON.stringify({
-            message: error?.message,
-            stack: error?.stack,
-            type: 'compilation'
-          }, null, 2);
-        }
-      }
-    }
-  </script>
+  <div style="position: fixed; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-family: monospace;">
+    ✓ Static HTML • CDN-Free ${componentName ? `• ${componentName}` : ''}
+  </div>
 </body>
 </html>
     `;
