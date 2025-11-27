@@ -134,31 +134,47 @@ function generateBundledPreview(bundledCode: string): string {
       <body>
         <div id="root"></div>
         <script>
+          // Catch any early errors
+          window.onerror = function(msg, url, line, col, error) {
+            console.error('[Preview Global Error]', msg, error);
+            document.getElementById('root').innerHTML = 
+              '<div style="padding:2rem;color:red;font-family:monospace;"><h2>JavaScript Error</h2><pre>' + msg + '</pre></div>';
+            return true;
+          };
+          
           // React-like runtime
-          ${PREVIEW_RUNTIME}
+          try {
+            ${PREVIEW_RUNTIME}
+            console.log('[Preview] Runtime loaded');
+          } catch (e) {
+            console.error('[Preview] Runtime error:', e);
+            document.getElementById('root').innerHTML = 
+              '<div style="padding:2rem;color:red;"><h2>Runtime Error</h2><pre>' + e.message + '</pre></div>';
+          }
           
           // Bundled code
           try {
-            console.log('Executing bundled code...');
+            console.log('[Preview] Executing bundled code...');
             ${bundledCode}
+            console.log('[Preview] Bundled code executed');
             
             // Render the component
             if (window.__PREVIEW_RENDER__) {
-              console.log('Rendering component...');
+              console.log('[Preview] Found component, rendering...');
               const root = document.getElementById('root');
               const vnode = window.__PREVIEW_RENDER__();
               ReactDOM.render(vnode, root);
-              console.log('✅ Render complete');
+              console.log('[Preview] ✅ Render complete');
             } else {
-              console.error('❌ No __PREVIEW_RENDER__ found');
+              console.error('[Preview] ❌ No __PREVIEW_RENDER__ found');
               document.getElementById('root').innerHTML = 
                 '<div style="padding:2rem;text-align:center;"><h2>No Component Found</h2><p>Make sure your component exports a default Page or App function.</p></div>';
             }
           } catch (error) {
-            console.error('❌ Preview execution error:', error);
+            console.error('[Preview] ❌ Execution error:', error);
             document.getElementById('root').innerHTML = 
-              '<div style="padding:2rem;color:#dc2626;"><h2>Preview Error</h2><pre>' + 
-              error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
+              '<div style="padding:2rem;color:#dc2626;font-family:monospace;"><h2>Preview Error</h2><pre>' + 
+              error.message + '\\n\\nStack:\\n' + (error.stack || 'No stack trace') + '</pre></div>';
           }
         </script>
       </body>
