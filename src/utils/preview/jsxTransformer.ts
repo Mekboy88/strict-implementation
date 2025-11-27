@@ -1,88 +1,89 @@
 /**
- * Lightweight JSX to createElement transformer
- * Transforms JSX syntax to h() calls without requiring Babel
+ * Lightweight JSX to plain JavaScript transformer
+ * Transforms JSX syntax WITHOUT requiring Babel or external CDNs
  */
 
-export function transformJSXToCreateElement(code: string): string {
-  let transformed = code;
-
-  // Transform self-closing tags: <Component />
-  transformed = transformed.replace(
-    /<(\w+)([^>]*?)\/>/g,
-    (match, tagName, attrs) => {
-      const props = parseAttributes(attrs);
-      return `h('${tagName}', ${props})`;
-    }
-  );
-
-  // Transform opening tags: <Component>
-  transformed = transformed.replace(
-    /<(\w+)([^>]*?)>/g,
-    (match, tagName, attrs) => {
-      const props = parseAttributes(attrs);
-      return `h('${tagName}', ${props}, `;
-    }
-  );
-
-  // Transform closing tags: </Component>
-  transformed = transformed.replace(
-    /<\/(\w+)>/g,
-    ')'
-  );
-
-  // Transform fragments: <> and </>
-  transformed = transformed.replace(/<>/g, "h(Fragment, null, ");
-  transformed = transformed.replace(/<\/>/g, ")");
-
-  return transformed;
-}
-
-function parseAttributes(attrString: string): string {
-  if (!attrString || !attrString.trim()) {
-    return 'null';
-  }
-
-  const attrs: Record<string, any> = {};
-  const attrRegex = /(\w+)=\{([^}]+)\}|(\w+)="([^"]+)"|(\w+)='([^']+)'|(\w+)/g;
+/**
+ * Simple JSX to JavaScript transformer
+ * Converts JSX elements to React.createElement calls
+ */
+export function transformJSXToJS(code: string): string {
+  let result = code;
   
-  let match;
-  while ((match = attrRegex.exec(attrString)) !== null) {
-    if (match[1]) {
-      // Attribute with curly braces: attr={value}
-      attrs[match[1]] = match[2];
-    } else if (match[3]) {
-      // Attribute with double quotes: attr="value"
-      attrs[match[3]] = `"${match[4]}"`;
-    } else if (match[5]) {
-      // Attribute with single quotes: attr='value'
-      attrs[match[5]] = `"${match[6]}"`;
-    } else if (match[7]) {
-      // Boolean attribute: attr
-      attrs[match[7]] = 'true';
-    }
-  }
-
-  if (Object.keys(attrs).length === 0) {
-    return 'null';
-  }
-
-  const propsString = Object.entries(attrs)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ');
-
-  return `{ ${propsString} }`;
+  // Remove import statements (they're not needed in the preview iframe)
+  result = result.replace(/^import\s+.*?from\s+['"].*?['"];?\s*$/gm, '');
+  
+  // Replace export default with window assignment for component detection
+  result = result.replace(/export\s+default\s+function\s+(\w+)/g, 'window.$1 = function $1');
+  result = result.replace(/export\s+default\s+/g, 'window.DefaultExport = ');
+  
+  // Simple JSX to createElement transformation
+  // This handles basic JSX syntax without needing Babel
+  
+  // Transform self-closing JSX tags: <div /> or <Component />
+  result = result.replace(/<(\w+)([^>]*?)\/>/g, (match, tag, attrs) => {
+    const props = parseJSXAttributes(attrs.trim());
+    return `React.createElement('${tag}', ${props})`;
+  });
+  
+  // Transform JSX opening tags with attributes: <div className="...">
+  result = result.replace(/<(\w+)([^>]*?)>/g, (match, tag, attrs) => {
+    const props = parseJSXAttributes(attrs.trim());
+    return `React.createElement('${tag}', ${props}, `;
+  });
+  
+  // Transform JSX closing tags: </div>
+  result = result.replace(/<\/\w+>/g, ')');
+  
+  return result;
 }
 
 /**
- * Extract component code and prepare for rendering
+ * Parse JSX attributes into a props object string
  */
-export function prepareComponentCode(code: string): string {
-  // Remove import statements
-  let prepared = code.replace(/^import\s+.+?\s+from\s+['"][^'"]+['"];?\s*$/gm, '');
+function parseJSXAttributes(attrString: string): string {
+  if (!attrString) return 'null';
   
-  // Remove export statements but keep the code
-  prepared = prepared.replace(/^export\s+default\s+/gm, 'return ');
-  prepared = prepared.replace(/^export\s+/gm, '');
+  const props: string[] = [];
   
-  return prepared;
+  // Match className="value" or className='value'
+  const stringAttrRegex = /(\w+)=["']([^"']+)["']/g;
+  let match;
+  
+  while ((match = stringAttrRegex.exec(attrString)) !== null) {
+    const key = match[1];
+    const value = match[2];
+    props.push(`${key}: "${value}"`);
+  }
+  
+  // Match attribute={expression}
+  const exprAttrRegex = /(\w+)=\{([^}]+)\}/g;
+  while ((match = exprAttrRegex.exec(attrString)) !== null) {
+    const key = match[1];
+    const value = match[2];
+    props.push(`${key}: ${value}`);
+  }
+  
+  if (props.length === 0) return 'null';
+  
+  return `{ ${props.join(', ')} }`;
+}
+
+/**
+ * Extract just the component name from code
+ */
+export function extractComponentName(code: string): string | null {
+  // Try to find: export default function ComponentName
+  let match = code.match(/export\s+default\s+function\s+(\w+)/);
+  if (match) return match[1];
+  
+  // Try to find: function ComponentName
+  match = code.match(/function\s+(\w+)\s*\(/);
+  if (match) return match[1];
+  
+  // Try to find: const ComponentName = 
+  match = code.match(/const\s+(\w+)\s*=/);
+  if (match) return match[1];
+  
+  return null;
 }

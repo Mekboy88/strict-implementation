@@ -5,8 +5,10 @@ interface TransformResult {
 
 /**
  * Transforms ES6 module code to browser-compatible code for iframe preview
- * - Strips import statements (React/ReactDOM are loaded via CDN)
+ * CDN-FREE VERSION: Transforms JSX to React.createElement calls
+ * - Strips import statements
  * - Converts exports to global variable declarations
+ * - Transforms JSX to createElement calls (NO BABEL NEEDED)
  * - Extracts the main component name
  */
 export function transformCodeForPreview(code: string, filename: string): TransformResult {
@@ -20,8 +22,14 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
     return { transformedCode: '', componentName: null };
   }
   
-  // Skip config files even if they have .ts extension
-  if (filename.includes('config') || filename === 'package.json' || filename === 'index.html') {
+  // Skip config files
+  if (
+    filename.includes('config') || 
+    filename.includes('vite.config') ||
+    filename.includes('tailwind.config') ||
+    filename === 'package.json' || 
+    filename === 'index.html'
+  ) {
     return { transformedCode: '', componentName: null };
   }
   
@@ -76,12 +84,90 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
   // Remove any remaining export statements
   transformedCode = transformedCode.replace(/export\s+{[^}]+};?\s*/g, '');
 
+  // CRITICAL: Transform JSX to React.createElement calls (CDN-FREE JSX TRANSFORMATION)
+  transformedCode = transformJSXToCreateElement(transformedCode);
+
   // If we detected a component name, expose it on window so the preview can find it
   if (componentName) {
     transformedCode += `\n;window.${componentName} = ${componentName};`;
   }
 
   return { transformedCode, componentName };
+}
+
+/**
+ * Simple JSX to React.createElement transformer
+ * Handles basic JSX patterns without requiring Babel
+ */
+function transformJSXToCreateElement(code: string): string {
+  let result = code;
+  
+  // Transform self-closing tags: <div className="test" /> → React.createElement('div', { className: "test" })
+  result = result.replace(
+    /<(\w+)([^>]*?)\/>/g,
+    (match, tag, attrs) => {
+      const props = parseJSXAttributes(attrs.trim());
+      return `React.createElement('${tag}', ${props})`;
+    }
+  );
+  
+  // Transform opening tags: <div className="test"> → React.createElement('div', { className: "test" }, 
+  result = result.replace(
+    /<(\w+)([^>]*?)>/g,
+    (match, tag, attrs) => {
+      const props = parseJSXAttributes(attrs.trim());
+      return `React.createElement('${tag}', ${props}, `;
+    }
+  );
+  
+  // Transform closing tags: </div> → )
+  result = result.replace(/<\/\w+>/g, ')');
+  
+  // Handle string literals within JSX (text content)
+  // This is already handled by React.createElement which accepts children as arguments
+  
+  return result;
+}
+
+/**
+ * Parse JSX attributes to props object
+ */
+function parseJSXAttributes(attrString: string): string {
+  if (!attrString) return 'null';
+  
+  const props: string[] = [];
+  
+  // Match className="value" or className='value' (string attributes)
+  const stringAttrRegex = /(\w+)=["']([^"']*?)["']/g;
+  let match;
+  
+  while ((match = stringAttrRegex.exec(attrString)) !== null) {
+    const key = match[1];
+    const value = match[2];
+    props.push(`${key}: "${value}"`);
+  }
+  
+  // Match attribute={expression} (expression attributes)
+  const exprAttrRegex = /(\w+)=\{([^}]+)\}/g;
+  while ((match = exprAttrRegex.exec(attrString)) !== null) {
+    const key = match[1];
+    const value = match[2];
+    props.push(`${key}: ${value}`);
+  }
+  
+  // Match boolean attributes (e.g., disabled, checked)
+  const boolAttrRegex = /\b(\w+)(?=\s|$|>)/g;
+  const usedAttrs = new Set(props.map(p => p.split(':')[0]));
+  while ((match = boolAttrRegex.exec(attrString)) !== null) {
+    const key = match[1];
+    if (!usedAttrs.has(key) && !['className', 'style', 'onClick', 'onChange'].includes(key)) {
+      props.push(`${key}: true`);
+    }
+  }
+  
+  if (props.length === 0) return 'null';
+  
+  return `{ ${props.join(', ')} }`;
 }
 
 /**
