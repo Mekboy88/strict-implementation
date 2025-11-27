@@ -27,24 +27,16 @@ export default function LivePreview({ files }: LivePreviewProps) {
       setKey(prev => prev + 1);
     }
 
-    // Find React component files
-    const reactFiles = Object.entries(files).filter(([path]) => 
-      path.endsWith('.tsx') || path.endsWith('.jsx')
-    );
+    // For now, only render a single safe entry: src/app/page.tsx
+    const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
 
-    if (reactFiles.length === 0) {
+    if (!mainEntry) {
       const fallbackHtml = generateFallbackHtml();
       iframeRef.current.srcdoc = fallbackHtml;
       return;
     }
 
-    // Find main entry point (prefer simple pages, avoid Index.tsx IDE file)
-    const mainFile = reactFiles.find(([path]) => path === 'src/app/page.tsx') ||
-                     reactFiles.find(([path]) => path.includes('App.tsx') && !path.includes('/pages/')) ||
-                     reactFiles.find(([path]) => !path.includes('/pages/Index.tsx')) ||
-                     reactFiles[0];
-
-    const [filePath, fileContent] = mainFile;
+    const [filePath, fileContent] = mainEntry;
 
     try {
       const convertedCode = convertJsxToJsxCalls(fileContent);
@@ -143,9 +135,8 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
     try {
       ${PREVIEW_RUNTIME}
       
-      // Component code (evaluated safely inside try/catch)
-      const componentSource = ${JSON.stringify(componentCode)};
-      eval(componentSource);
+      // Component code (already plain JS with jsx() calls)
+      ${componentCode}
       
       // Render
       const root = document.getElementById("root");
