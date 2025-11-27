@@ -9,6 +9,14 @@ interface LivePreviewProps {
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
 
+const DEFAULT_PAGE_TSX = `export default function Page() {
+  return (
+    <main className=\"min-h-screen flex items-center justify-center bg-white\">
+      <h1 className=\"text-2xl font-bold text-gray-900\">Preview Works!</h1>
+    </main>
+  );
+}`;
+
 export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
@@ -17,24 +25,21 @@ export default function LivePreview({ files }: LivePreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
+    const entryPath = 'src/app/page.tsx';
+    const filesForPreview = { ...files };
 
-    if (!mainEntry) {
-      console.warn('⚠️ No src/app/page.tsx found in files');
-      iframeRef.current.srcdoc = generateFallbackHtml();
-      return;
+    if (!filesForPreview[entryPath] || !filesForPreview[entryPath].trim()) {
+      console.warn('⚠️ No valid src/app/page.tsx content found, using default preview page');
+      filesForPreview[entryPath] = DEFAULT_PAGE_TSX;
     }
 
-    const [filePath, fileContent] = mainEntry;
-    
     console.log('🔍 Bundling app for preview:', {
-      file: filePath,
-      totalFiles: Object.keys(files).length,
+      file: entryPath,
+      totalFiles: Object.keys(filesForPreview).length,
     });
 
     try {
-      // Bundle all components together and transform to executable JS
-      const bundledCode = bundleForPreview(files, filePath);
+      const bundledCode = bundleForPreview(filesForPreview, entryPath);
       const previewHtml = generateBundledPreview(bundledCode);
       console.log('✅ Bundled Preview Generated');
       iframeRef.current.srcdoc = previewHtml;
