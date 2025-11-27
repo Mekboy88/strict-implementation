@@ -1,4 +1,4 @@
-# 📱 Mobile Native App
+# 📱 Mobile Native App (iOS & Android)
 
 This is the **native mobile app version** - 100% separate from the desktop web app.
 
@@ -10,18 +10,61 @@ Your mobile app uses **Capacitor** to create a true native app that can:
 - ✅ Work offline with full native performance
 - ✅ Feel like a real native app (because it is!)
 
-## 📁 File Structure
+## 📁 Complete File Structure
 
 ```
 mobile/
-├── src/           → Mobile app source code
-├── public/        → Mobile assets and preview files
-├── components/    → Mobile-only components
-├── pages/         → Mobile app pages
-└── README.md      → This file
+├── public/
+│   ├── favicon.ico
+│   ├── placeholder.svg
+│   └── robots.txt
+├── src/
+│   ├── assets/
+│   │   ├── baguette.jpg
+│   │   ├── chocolate-cake.jpg
+│   │   ├── cinnamon-rolls.jpg
+│   │   ├── croissant.jpg
+│   │   ├── hero-bread.jpg
+│   │   ├── sourdough.jpg
+│   │   └── whole-wheat.jpg
+│   ├── components/
+│   │   └── ui/
+│   │       ├── CartDrawer.tsx
+│   │       ├── CategoryFilter.tsx
+│   │       ├── NavLink.tsx
+│   │       └── ProductCard.tsx
+│   ├── data/
+│   │   └── products.ts
+│   ├── hooks/
+│   │   ├── use-mobile.tsx
+│   │   └── use-toast.ts
+│   ├── lib/
+│   │   └── utils.ts
+│   ├── pages/
+│   │   ├── Index.tsx
+│   │   ├── NotFound.tsx
+│   │   └── ProductDetail.tsx
+│   ├── App.css
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── .gitignore
+├── capacitor.config.ts
+├── components.json
+├── eslint.config.js
+├── index.html
+├── package.json
+├── postcss.config.js
+├── README.md
+├── tailwind.config.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
 ```
 
-**IMPORTANT:** Mobile files are completely separate from desktop files!
+**CRITICAL:** Mobile files are 100% separate from desktop files. Never mix them!
 
 ## 🚀 Setup Instructions
 
