@@ -508,10 +508,10 @@ export default function Page() {
     return () => window.removeEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
   }, [chatMessages, isStreaming, projectFiles]);
 
-  const handleSendChat = async () => {
-    if (!assistantInput.trim() || isStreaming) return;
-    
-    const userMsg: ChatMsg = { id: `user-${Date.now()}`, role: 'user', content: assistantInput.trim() };
+  const sendChat = async (content: string) => {
+    if (!content.trim() || isStreaming) return;
+
+    const userMsg: ChatMsg = { id: `user-${Date.now()}`, role: 'user', content: content.trim() };
     setChatMessages(prev => [...prev, userMsg]);
     setAssistantInput("");
     setIsStreaming(true);
@@ -597,6 +597,21 @@ export default function Page() {
       setIsStreaming(false);
     }
   };
+
+  const handleSendChat = () => {
+    if (!assistantInput.trim() || isStreaming) return;
+    sendChat(assistantInput.trim());
+  };
+
+  React.useEffect(() => {
+    const storedPrompt = sessionStorage.getItem('build_prompt');
+    if (storedPrompt) {
+      sessionStorage.removeItem('build_prompt');
+      sessionStorage.removeItem('build_platform');
+      // Automatically send the stored prompt as the first chat message
+      sendChat(storedPrompt);
+    }
+  }, []);
 
   // Handle code blocks from AI - create or update files
   const handleCodeFromAI = (codeBlocks: ParsedCodeBlock[]) => {
