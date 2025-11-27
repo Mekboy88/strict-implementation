@@ -14,15 +14,40 @@ export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [key, setKey] = useState(0);
-  const [lastFilesHash, setLastFilesHash] = useState('');
 
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    // TEMP: render a guaranteed-safe demo preview independent of project files
-    const demoHtml = generateFixedDemoHtml();
-    iframeRef.current.srcdoc = demoHtml;
-  }, [key]);
+    // Render src/app/page.tsx inside the iframe using the inline React-like runtime
+    const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
+
+    if (!mainEntry) {
+      const fallbackHtml = generateFallbackHtml();
+      iframeRef.current.srcdoc = fallbackHtml;
+      return;
+    }
+
+    const [filePath, fileContent] = mainEntry;
+
+    try {
+      const convertedCode = convertJsxToJsxCalls(fileContent);
+      const componentName = extractComponentName(fileContent);
+      const previewHtml = generatePreviewHtml(convertedCode, componentName, filePath);
+
+      console.log('🎯 Preview Generated:', {
+        file: filePath,
+        component: componentName,
+        codeLength: convertedCode.length,
+        convertedPreview: convertedCode.substring(0, 200) + '...'
+      });
+
+      iframeRef.current.srcdoc = previewHtml;
+    } catch (error) {
+      console.error('❌ Preview Error:', error);
+      const errorHtml = generateErrorHtml(error as Error, filePath);
+      iframeRef.current.srcdoc = errorHtml;
+    }
+  }, [files, key]);
 
   const handleRefresh = () => {
     setKey(prev => prev + 1);
@@ -101,6 +126,38 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
 </head>
 <body>
   <div id="root">Loading...</div>
+  <script>
+    try {
+      ${PREVIEW_RUNTIME}
+
+      // Safely inject converted component code
+      const componentSource = "${escapedComponentCode}";
+
+      // Evaluate the transformed component code
+      eval(componentSource);
+
+      const root = document.getElementById('root');
+      const App = window.__APP__ || window['${componentName}'];
+
+      if (App && root) {
+        window.ReactDOM.render(window.jsx(App, {}), root);
+        console.log('✅ Rendered:', '${componentName}');
+      } else {
+        throw new Error('Component not found');
+      }
+    } catch (error) {
+      console.error('Preview Error:', error);
+      const rootEl = document.getElementById('root');
+      if (rootEl) {
+        const message = error && (error as any).message ? (error as any).message : 'Unknown error';
+        rootEl.innerHTML =
+          '<div style="padding: 2rem; color: #dc2626;">' +
+          '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
+          '<p style="color: #6b7280;">' + message + '</p>' +
+          '</div>';
+      }
+    }
+  </script>
 </body>
 </html>`;
 }
