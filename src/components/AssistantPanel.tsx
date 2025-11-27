@@ -21,19 +21,24 @@ const formatMessageContent = (content: string): string => {
   
   let formatted = content.replace(codeBlockRegex, (match, lang, path, code) => {
     const fileName = path.trim();
-    return `<div class="my-3 rounded-lg overflow-hidden border border-slate-700">
-      ${fileName ? `<div class="bg-slate-800 px-3 py-1 text-xs text-slate-400 border-b border-slate-700">${fileName}</div>` : ''}
-      <pre class="bg-slate-900 p-3 overflow-x-auto"><code class="text-sm text-slate-100">${escapeHtml(code.trim())}</code></pre>
+    return `<div class="my-3 rounded-lg overflow-hidden bg-slate-800/50">
+      ${fileName ? `<div class="bg-slate-800/70 px-3 py-1.5 text-xs text-slate-300 font-mono">${escapeHtml(fileName)}</div>` : ''}
+      <pre class="bg-slate-900/50 p-3 overflow-x-auto"><code class="text-sm text-slate-200 font-mono leading-relaxed">${escapeHtml(code.trim())}</code></pre>
     </div>`;
   });
   
   // Format inline code
-  formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-800 px-1.5 py-0.5 rounded text-sm text-sky-400">$1</code>');
+  formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-800/50 px-1.5 py-0.5 rounded text-sm text-slate-200 font-mono">$1</code>');
   
-  // Format bold
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+  // Remove bold markdown symbols and just use regular text
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
+  formatted = formatted.replace(/\*([^*]+)\*/g, '$1');
+  
+  // Remove any remaining markdown symbols
+  formatted = formatted.replace(/[_~]/g, '');
   
   // Format newlines
+  formatted = formatted.replace(/\n\n/g, '<br><br>');
   formatted = formatted.replace(/\n/g, '<br>');
   
   return formatted;
@@ -242,19 +247,19 @@ const AssistantPanel = ({
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-ide-active flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-slate-300" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[80%] px-4 py-3 ${
                     message.role === 'user'
-                      ? 'bg-ide-active text-white'
-                      : 'bg-muted'
+                      ? 'bg-slate-700/50 text-white rounded-2xl'
+                      : ''
                   }`}
                 >
                   <div 
-                    className="text-sm prose prose-invert prose-pre:bg-slate-800 prose-pre:text-slate-100 max-w-none"
+                    className="text-sm text-slate-200 leading-relaxed"
                     dangerouslySetInnerHTML={{
                       __html: formatMessageContent(message.content)
                     }}
