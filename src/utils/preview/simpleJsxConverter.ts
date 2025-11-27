@@ -1,31 +1,46 @@
 /**
  * Simple JSX to jsx() function converter
- * Much more reliable than JSX to HTML conversion
+ * Converts JSX syntax to jsx() function calls for preview runtime
  */
 
 export function convertJsxToJsxCalls(code: string): string {
   // Remove imports
   code = code.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
+  code = code.replace(/import\s+['"].*?['"];?\s*/g, '');
   
   // Convert export default to window assignment
   code = code.replace(/export\s+default\s+function\s+(\w+)/, 'function $1');
   code = code.replace(/export\s+default\s+/, 'window.__APP__ = ');
   
-  // Convert JSX elements to jsx() calls
-  // Self-closing tags: <div /> -> jsx("div", {})
-  code = code.replace(/<(\w+)\s*([^>]*?)\s*\/>/g, (match, tag, attrs) => {
-    const props = parseAttributes(attrs);
-    return `jsx("${tag}", ${props})`;
-  });
+  // Process JSX from inside out
+  let previousCode = '';
+  let iterations = 0;
+  const maxIterations = 50; // Prevent infinite loops
   
-  // Opening tags: <div className="test"> -> jsx("div", { className: "test" }
-  code = code.replace(/<(\w+)\s*([^>]*?)>/g, (match, tag, attrs) => {
-    const props = parseAttributes(attrs);
-    return `jsx("${tag}", ${props}, `;
-  });
-  
-  // Closing tags: </div> -> )
-  code = code.replace(/<\/\w+>/g, ')');
+  while (code !== previousCode && iterations < maxIterations) {
+    previousCode = code;
+    iterations++;
+    
+    // Self-closing tags: <div /> -> jsx("div", {})
+    code = code.replace(/<(\w+)\s*([^>]*?)\s*\/>/g, (match, tag, attrs) => {
+      const props = parseAttributes(attrs);
+      return `jsx("${tag}", ${props})`;
+    });
+    
+    // Match innermost paired tags with their content
+    // Pattern: <tag attrs>content</tag> where content has no nested tags of same type
+    code = code.replace(/<(\w+)\s*([^>]*?)>([^<]*?)<\/\1>/g, (match, tag, attrs, content) => {
+      const props = parseAttributes(attrs);
+      const textContent = content.trim();
+      
+      if (textContent) {
+        // Escape quotes in text content
+        const escapedText = textContent.replace(/"/g, '\\"');
+        return `jsx("${tag}", ${props}, "${escapedText}")`;
+      }
+      return `jsx("${tag}", ${props})`;
+    });
+  }
   
   return code;
 }

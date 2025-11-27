@@ -83,7 +83,15 @@ function renderVNode(vnode) {
 export const PREVIEW_STYLES = `
 /* Tailwind-like utilities */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+  line-height: 1.5; 
+  background: white;
+  color: #111827;
+}
+#root {
+  min-height: 100vh;
+}
 
 /* Layout */
 .min-h-screen { min-height: 100vh; }
