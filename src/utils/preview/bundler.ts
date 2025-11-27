@@ -1,6 +1,6 @@
 /**
- * Complete Preview Bundler with JSX Compilation
- * Transforms multi-file React applications into executable JavaScript
+ * Preview Bundler with Error Handling
+ * Bundles React code for preview iframe
  */
 
 import { compileJSX } from "./jsxCompiler";
@@ -11,110 +11,116 @@ export function bundleForPreview(
   entryPoint: string = "src/app/page.tsx"
 ): string {
   try {
-    // Fast path: If entry point has no imports, just compile it directly
     const entryCode = files[entryPoint];
     if (!entryCode) {
-      console.error('Entry point not found:', entryPoint);
-      return generateFallbackBundle();
+      console.error('[Bundler] Entry point not found:', entryPoint);
+      return generateErrorBundle('Entry point not found: ' + entryPoint);
     }
     
+    console.log('[Bundler] Starting bundle for:', entryPoint);
+    
+    // Check if entry has imports
     const hasImports = /^import\s+/m.test(entryCode);
     
     if (!hasImports) {
-      // Simple single-file compilation
-      try {
-        let code = entryCode;
-        
-        // Remove export statements but keep the function/component
-        code = code.replace(/export\s+default\s+/g, '');
-        code = code.replace(/export\s+/g, '');
-        
-        // Compile JSX to React.createElement
-        code = compileJSX(code);
-        
-        const bundle = `
-${code}
-
-// Auto-detect and expose the main component
-const __mainComponent__ = 
-  (typeof Page !== "undefined" && Page) ||
-  (typeof App !== "undefined" && App) ||
-  null;
-
-if (__mainComponent__) {
-  window.__PREVIEW_RENDER__ = __mainComponent__;
-} else {
-  console.error('No Page or App component found');
-}
-`;
-        
-        return bundle;
-      } catch (error) {
-        console.error('Simple compilation error:', error);
-        return generateFallbackBundle();
-      }
+      console.log('[Bundler] Fast path: no imports detected');
+      return bundleSingleFile(entryCode);
     }
     
-    // Complex path: Resolve modules and bundle
-    const modules = resolveModules(files, entryPoint);
+    console.log('[Bundler] Complex path: resolving modules');
+    return bundleWithModules(files, entryPoint);
     
-    if (modules.length === 0) {
-      console.error('No modules resolved');
-      return generateFallbackBundle();
-    }
-    
-    // Transform each module
-    const transformedModules: string[] = [];
-    
-    for (const module of modules) {
-      try {
-        // Strip imports (they're already resolved)
-        let code = stripImports(module.code);
-        
-        // Remove export statements but keep the function/component
-        code = code.replace(/export\s+default\s+/g, '');
-        code = code.replace(/export\s+/g, '');
-        
-        // Compile JSX to React.createElement
-        code = compileJSX(code);
-        
-        transformedModules.push(`\n// ==== ${module.path} ====\n${code}\n`);
-      } catch (error) {
-        console.error(`Error transforming ${module.path}:`, error);
-      }
-    }
-    
-    // Bundle everything together
-    const bundle = `
-${transformedModules.join('\n')}
-
-// Auto-detect and expose the main component
-const __mainComponent__ = 
-  (typeof Page !== "undefined" && Page) ||
-  (typeof App !== "undefined" && App) ||
-  null;
-
-if (__mainComponent__) {
-  window.__PREVIEW_RENDER__ = __mainComponent__;
-} else {
-  console.error('No Page or App component found');
-}
-`;
-    
-    return bundle;
   } catch (error) {
-    console.error('Bundle error:', error);
-    return generateFallbackBundle();
+    console.error('[Bundler] Fatal error:', error);
+    return generateErrorBundle(error instanceof Error ? error.message : String(error));
   }
 }
 
-function generateFallbackBundle(): string {
+function bundleSingleFile(code: string): string {
+  try {
+    // Remove exports
+    code = code.replace(/export\s+default\s+/g, '');
+    code = code.replace(/export\s+/g, '');
+    
+    // Compile JSX
+    code = compileJSX(code);
+    
+    console.log('[Bundler] Single file compiled, size:', code.length);
+    
+    return `
+${code}
+
+// Auto-detect and expose component
+const __main__ = (typeof Page !== "undefined") ? Page : 
+                 (typeof App !== "undefined") ? App : null;
+
+if (__main__) {
+  window.__PREVIEW_RENDER__ = __main__;
+  console.log('[Preview] Component exposed:', __main__.name);
+} else {
+  console.error('[Preview] No Page or App component found');
+}
+`;
+  } catch (error) {
+    console.error('[Bundler] Single file compilation failed:', error);
+    throw error;
+  }
+}
+
+function bundleWithModules(files: Record<string, string>, entryPoint: string): string {
+  try {
+    const modules = resolveModules(files, entryPoint);
+    console.log('[Bundler] Resolved', modules.length, 'modules');
+    
+    if (modules.length === 0) {
+      throw new Error('No modules resolved');
+    }
+    
+    const transformedModules: string[] = [];
+    
+    // Process dependencies first, entry last
+    for (const module of modules) {
+      try {
+        let code = stripImports(module.code);
+        code = code.replace(/export\s+default\s+/g, '');
+        code = code.replace(/export\s+(function|const|class)\s+/g, '$1 ');
+        code = compileJSX(code);
+        
+        transformedModules.push(`\n// Module: ${module.path}\n${code}\n`);
+        console.log('[Bundler] Transformed:', module.path);
+      } catch (error) {
+        console.error(`[Bundler] Failed to transform ${module.path}:`, error);
+        // Continue with other modules
+      }
+    }
+    
+    return `
+${transformedModules.join('\n')}
+
+// Auto-detect and expose component
+const __main__ = (typeof Page !== "undefined") ? Page : 
+                 (typeof App !== "undefined") ? App : null;
+
+if (__main__) {
+  window.__PREVIEW_RENDER__ = __main__;
+  console.log('[Preview] Component exposed:', __main__.name);
+} else {
+  console.error('[Preview] No Page or App component found');
+}
+`;
+  } catch (error) {
+    console.error('[Bundler] Module bundling failed:', error);
+    throw error;
+  }
+}
+
+function generateErrorBundle(errorMessage: string): string {
   return `
 function Page() {
   return React.createElement('div', 
-    { style: { padding: '2rem', textAlign: 'center' } },
-    React.createElement('h1', null, 'Preview Error'),
-    React.createElement('p', null, 'Could not compile the preview. Check console for details.')
+    { style: { padding: '2rem', color: '#dc2626', fontFamily: 'monospace' } },
+    React.createElement('h2', null, 'Preview Build Error'),
+    React.createElement('p', null, errorMessage)
   );
 }
 window.__PREVIEW_RENDER__ = Page;
