@@ -22,12 +22,13 @@ export interface ChatContext {
 }
 
 const stripMarkdown = (text: string): string => {
-  // Remove bold/italic markers and asterisks/underscores used for formatting
+  // Remove markdown markers and any remaining asterisks/underscores
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
     .replace(/__(.*?)__/g, '$1')
-    .replace(/_(.*?)_/g, '$1');
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/[*_]/g, '');
 };
 
 interface StreamChatOptions {
