@@ -96,7 +96,10 @@ export function bundleForPreview(
     // Remove simple interface declarations
     result = result.replace(/interface\s+\w+\s*{[\s\S]*?}/g, "");
     // Remove basic type annotations like ": string", ": number", etc.
-    result = result.replace(/:\s*[A-Za-z0-9_\[\]\<\>\| ]+/g, "");
+    // Be careful not to break function parameters with destructuring like
+    //   function CarCard({ car }: { car: Car })
+    // Only strip annotations that are followed by ",", ";", ")" or "=" (not "{").
+    result = result.replace(/:\s*[A-Za-z0-9_\[\]<>| ]+(?=\s*[,;)=])/g, "");
     // Remove TypeScript generics on functions/components like <T>
     result = result.replace(/<[^>]+>\s*\(/g, "(");
 
