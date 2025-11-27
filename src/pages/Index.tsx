@@ -259,126 +259,6 @@ function UrDevEditorPage() {
     }
   }, [chatMessages]);
 
-  // Listen for error fix requests from LivePreview
-  React.useEffect(() => {
-    const handleErrorFix = async (event: Event) => {
-      const customEvent = event as CustomEvent<{ error: string }>;
-      const errorData = customEvent.detail?.error;
-      
-      if (!errorData || isStreaming) return;
-      
-      // Parse error data
-      let errorDetails = '';
-      try {
-        const parsed = JSON.parse(errorData);
-        errorDetails = `**Error Message:** ${parsed.message || 'Unknown error'}\n\n`;
-        if (parsed.stack) {
-          errorDetails += `**Stack Trace:**\n\`\`\`\n${parsed.stack}\n\`\`\``;
-        }
-      } catch {
-        errorDetails = errorData;
-      }
-      
-      // Add error message to chat showing it's trying to fix
-      const errorMsg: ChatMsg = { 
-        id: `error-${Date.now()}`, 
-        role: 'user', 
-        content: `🔴 **Error Occurred - Trying to Fix**\n\n${errorDetails}` 
-      };
-      setChatMessages(prev => [...prev, errorMsg]);
-      
-      // Automatically trigger AI to fix the error
-      setIsStreaming(true);
-      
-      const apiMessages: StreamChatMessage[] = chatMessages
-        .filter(m => m.id !== 'welcome')
-        .map(m => ({ role: m.role, content: m.content }));
-      apiMessages.push({ 
-        role: 'user', 
-        content: `I encountered this error in the preview. Please analyze it and fix the code:\n\n${errorDetails}` 
-      });
-
-      let assistantContent = '';
-
-      const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
-
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
-\`\`\`
-
-Rules:
-- Always use TypeScript/TSX
-- Use Tailwind CSS for styling
-- Include proper imports
-- Generate complete, working code
-- Use the file path comment format shown above so the code can be added to the editor
-- When fixing errors, explain what was wrong and how you fixed it`;
-
-      try {
-        await streamChat({
-          messages: apiMessages,
-          systemPrompt,
-          onDelta: (delta) => {
-            assistantContent += delta;
-            setChatMessages(prev => {
-              const last = prev[prev.length - 1];
-              if (last?.role === 'assistant' && last.id.startsWith('fixing-')) {
-                return prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
-                );
-              }
-              return [...prev, { id: `fixing-${Date.now()}`, role: 'assistant', content: assistantContent }];
-            });
-          },
-          onDone: () => {
-            // Parse code blocks and update files
-            const codeBlocks = parseCodeBlocks(assistantContent);
-            if (codeBlocks.length > 0) {
-              handleCodeFromAI(codeBlocks);
-              // Keep preview open
-              setShowPreview(true);
-              
-              toast({
-                title: "Error Fixed",
-                description: "The code has been updated. Check the preview!",
-              });
-            }
-
-            setChatMessages(prev => {
-              const last = prev[prev.length - 1];
-              if (last?.role === 'assistant') {
-                return prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
-                );
-              }
-              return prev;
-            });
-            setIsStreaming(false);
-          },
-          onError: (error) => {
-            toast({
-              title: "Auto-Fix Failed",
-              description: error.message || "Could not automatically fix the error",
-              variant: "destructive",
-            });
-            setIsStreaming(false);
-          },
-        });
-      } catch (error) {
-        toast({
-          title: "Auto-Fix Failed",
-          description: "Failed to connect to AI service",
-          variant: "destructive",
-        });
-        setIsStreaming(false);
-      }
-    };
-
-    window.addEventListener('request-error-fix', handleErrorFix as EventListener);
-    return () => window.removeEventListener('request-error-fix', handleErrorFix as EventListener);
-  }, [chatMessages, isStreaming]);
-
   const handleSendChat = async () => {
     if (!assistantInput.trim() || isStreaming) return;
     
@@ -1246,25 +1126,15 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   <div
                     className={`${
                       msg.role === 'user'
-                        ? msg.content.includes('🔴 **Error Occurred')
-                          ? 'max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3'
-                          : 'max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
+                        ? 'max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
                         : 'w-full'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap text-slate-200">
-                      {msg.content}
-                      {msg.role === 'user' && msg.content.includes('🔴 **Error Occurred') && isStreaming && (
-                        <span className="inline-flex items-center gap-2 ml-2 text-sky-400">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          <span className="text-xs">AI is fixing...</span>
-                        </span>
-                      )}
-                    </p>
+                    <p className="text-sm whitespace-pre-wrap text-slate-200">{msg.content}</p>
                   </div>
                 </div>
               ))}
-              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && !chatMessages[chatMessages.length - 1]?.content.includes('🔴 **Error Occurred') && (
+              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
                 <div className="flex gap-3 justify-start">
                   <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
                     <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
