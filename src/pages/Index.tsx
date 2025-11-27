@@ -59,16 +59,13 @@ interface FileItem {
   content: string[];
 }
 
-// Minimal starting files - AI will generate everything based on user's request
-const defaultFiles: FileItem[] = [
-  {
-    id: 'page',
-    name: 'page.tsx',
-    path: 'src/app/page.tsx',
-    language: 'tsx',
-    content: [`export default function Page() {`, `  return (`, `    <div className="min-h-screen flex items-center justify-center">`, `      <h1 className="text-2xl">Ready to build...</h1>`, `    </div>`, `  )`, `}`],
-  }
-];
+const defaultFiles: FileItem[] = CORE_PROJECT_FILES.map(coreFile => ({
+  id: coreFile.id,
+  name: coreFile.name,
+  path: coreFile.path,
+  language: coreFile.language,
+  content: coreFile.content.split('\n'),
+})).filter(f => f.path.endsWith('.tsx') || f.path.endsWith('.ts'));
 
 function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
@@ -124,7 +121,7 @@ function UrDevPreviewFrame() {
 function UrDevEditorPage() {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeFileId, setActiveFileId] = useState("banner");
+  const [activeFileId, setActiveFileId] = useState(defaultFiles[0]?.id ?? "");
   const [projectFiles, setProjectFiles] = useState<FileItem[]>(defaultFiles);
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
     buildInitialContents(defaultFiles)
@@ -185,8 +182,46 @@ function UrDevEditorPage() {
     }
   }, [currentProject, convertProjectFilesToEditor]);
 
-  // Only auto-initialize critical files if preview fails, not on startup
-  // Let the AI generate everything based on user's request
+  // 🚨 CRITICAL: Auto-initialize missing core files
+  useEffect(() => {
+    const missingFiles = getMissingCoreFiles(projectFiles);
+    
+    if (missingFiles.length > 0) {
+      console.log(`🔧 Auto-creating ${missingFiles.length} missing core files...`);
+      
+      missingFiles.forEach(coreFile => {
+        const fileId = generateFileId(coreFile.path);
+        const newFile: FileItem = {
+          id: fileId,
+          name: coreFile.name,
+          path: coreFile.path,
+          language: coreFile.language,
+          content: coreFile.content.split('\n'),
+        };
+        
+        setProjectFiles(prev => {
+          // Don't add if already exists
+          if (prev.some(f => f.path === coreFile.path)) return prev;
+          return [...prev, newFile];
+        });
+        
+        setFileContents(prev => {
+          if (prev[fileId]) return prev;
+          return {
+            ...prev,
+            [fileId]: coreFile.content
+          };
+        });
+      });
+      
+      if (missingFiles.length > 0) {
+        toast({
+          title: "Core Files Initialized",
+          description: `Auto-created ${missingFiles.length} essential files for preview stability`,
+        });
+      }
+    }
+  }, [projectFiles]);
 
   const handleSaveProject = async () => {
     if (!currentProject) {
