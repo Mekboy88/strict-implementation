@@ -15,6 +15,7 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   ArrowLeft,
   Database,
   X,
@@ -151,6 +152,9 @@ function UrDevEditorPage() {
   const [showUsePlanButton, setShowUsePlanButton] = useState(false);
   const [planContent, setPlanContent] = useState("");
   const [showPlanWizard, setShowPlanWizard] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(['src', 'src/components', 'src/pages', 'public'])
+  );
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -230,6 +234,19 @@ function UrDevEditorPage() {
     fileSystemStore.updateFile(filePath, content);
   }, [fileSystemStore]);
 
+  // Toggle folder expansion
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderPath)) {
+        newSet.delete(folderPath);
+      } else {
+        newSet.add(folderPath);
+      }
+      return newSet;
+    });
+  };
+
   // Render dynamic file tree
   const renderFileTree = () => {
     const folders: Record<string, FileItem[]> = {
@@ -270,75 +287,155 @@ function UrDevEditorPage() {
       </button>
     );
 
+    const isFolderExpanded = (path: string) => expandedFolders.has(path);
+
     return (
       <>
         {folders.root.map(renderFile)}
         
+        {/* public folder */}
         {folders.public.length > 0 && (
-          <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-            <Folder className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">public</span>
-          </button>
+          <>
+            <button 
+              onClick={() => toggleFolder('public')}
+              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
+            >
+              {isFolderExpanded('public') ? (
+                <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              ) : (
+                <ChevronRight className="h-3 w-3 flex-shrink-0" />
+              )}
+              <Folder className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">public</span>
+            </button>
+            {isFolderExpanded('public') && (
+              <div className="ml-4 space-y-1">
+                {folders.public.map(renderFile)}
+              </div>
+            )}
+          </>
         )}
         
-        <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
+        {/* src folder */}
+        <button 
+          onClick={() => toggleFolder('src')}
+          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0"
+        >
+          {isFolderExpanded('src') ? (
+            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+          ) : (
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+          )}
           <Folder className="h-3 w-3 flex-shrink-0" />
           <span className="truncate">src</span>
         </button>
         
-        <div className="ml-5 space-y-1 min-w-0">
-          {folders['src/components'].length > 0 && (
-            <>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">components</span>
-              </button>
-              {folders['src/components'].map(renderFile)}
-              
-              {folders['src/components/ui'].length > 0 && (
-                <div className="ml-4 space-y-1">
-                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                    <Folder className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">ui</span>
-                  </button>
-                  {folders['src/components/ui'].map(renderFile)}
-                </div>
-              )}
-            </>
-          )}
-          
-          {folders['src/hooks'].length > 0 && (
-            <>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">hooks</span>
-              </button>
-              {folders['src/hooks'].map(renderFile)}
-            </>
-          )}
-          
-          {folders['src/lib'].length > 0 && (
-            <>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">lib</span>
-              </button>
-              {folders['src/lib'].map(renderFile)}
-            </>
-          )}
-          
-          {folders['src/pages'].length > 0 && (
-            <>
-              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                <Folder className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">pages</span>
-              </button>
-              {folders['src/pages'].map(renderFile)}
-            </>
-          )}
-          
-          {folders.src.map(renderFile)}
-        </div>
+        {isFolderExpanded('src') && (
+          <div className="ml-5 space-y-1 min-w-0">
+            {/* components folder */}
+            {folders['src/components'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/components')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/components') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">components</span>
+                </button>
+                
+                {isFolderExpanded('src/components') && (
+                  <>
+                    {folders['src/components'].map(renderFile)}
+                    
+                    {/* ui subfolder */}
+                    {folders['src/components/ui'].length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        <button 
+                          onClick={() => toggleFolder('src/components/ui')}
+                          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                        >
+                          {isFolderExpanded('src/components/ui') ? (
+                            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                          )}
+                          <Folder className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">ui</span>
+                        </button>
+                        {isFolderExpanded('src/components/ui') && folders['src/components/ui'].map(renderFile)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            
+            {/* hooks folder */}
+            {folders['src/hooks'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/hooks')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/hooks') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">hooks</span>
+                </button>
+                {isFolderExpanded('src/hooks') && folders['src/hooks'].map(renderFile)}
+              </>
+            )}
+            
+            {/* lib folder */}
+            {folders['src/lib'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/lib')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/lib') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">lib</span>
+                </button>
+                {isFolderExpanded('src/lib') && folders['src/lib'].map(renderFile)}
+              </>
+            )}
+            
+            {/* pages folder */}
+            {folders['src/pages'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/pages')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/pages') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">pages</span>
+                </button>
+                {isFolderExpanded('src/pages') && folders['src/pages'].map(renderFile)}
+              </>
+            )}
+            
+            {/* root src files */}
+            {folders.src.map(renderFile)}
+          </div>
+        )}
       </>
     );
   };
