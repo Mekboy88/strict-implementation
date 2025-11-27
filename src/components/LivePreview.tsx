@@ -20,6 +20,21 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     mobile: { width: "375px", height: "667px" },
   };
 
+  // Listen for fix error messages from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'FIX_ERROR') {
+        console.log('Fix error requested from preview:', event.data.error);
+        // Trigger a custom event that can be picked up by the chat component
+        window.dispatchEvent(new CustomEvent('request-error-fix', { 
+          detail: { error: event.data.error } 
+        }));
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   useEffect(() => {
     if (!iframeRef.current) return;
 
@@ -57,17 +72,63 @@ const LivePreview = ({ files }: LivePreviewProps) => {
 </head>
 <body>
   <div id="root"></div>
+  <div id="error-display" style="display: none; padding: 2rem; background: #1a1a1a; color: #fff; font-family: system-ui; position: relative; min-height: 100vh;">
+    <button 
+      id="fix-error-top" 
+      style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.625rem 1.25rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
+      onmouseover="this.style.background='#dc2626'"
+      onmouseout="this.style.background='#ef4444'"
+      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
+    >
+      🔧 Fix Error
+    </button>
+    <h2 style="color: #ef4444; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700;">Preview Error</h2>
+    <div style="background: #2d2d2d; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 1.5rem;">
+      <pre id="error-message" style="white-space: pre-wrap; color: #fbbf24; margin: 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.6;"></pre>
+    </div>
+    <details style="margin-bottom: 2rem; background: #2d2d2d; padding: 1rem; border-radius: 8px;">
+      <summary style="cursor: pointer; color: #60a5fa; font-weight: 600; user-select: none;">📋 Stack Trace</summary>
+      <pre id="error-stack" style="white-space: pre-wrap; color: #9ca3af; margin-top: 1rem; font-family: 'Courier New', monospace; font-size: 0.75rem; line-height: 1.5; overflow-x: auto;"></pre>
+    </details>
+    <div id="error-data" style="display: none;"></div>
+    <button 
+      id="fix-error-bottom" 
+      style="padding: 1rem 2rem; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.2s;"
+      onmouseover="this.style.background='#dc2626'; this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.background='#ef4444'; this.style.transform='translateY(0)'"
+      onclick="window.parent.postMessage({ type: 'FIX_ERROR', error: document.getElementById('error-data').textContent }, '*')"
+    >
+      🤖 Please Fix This Error
+    </button>
+  </div>
   <script type="text/babel" data-presets="env,react,typescript">
     const { createElement: h, Fragment } = React;
     const { createRoot } = ReactDOM;
 
-    // Global error handler to surface issues in the preview iframe
+    // Global error handler to show errors in the error display
     window.addEventListener('error', (event) => {
+      const errorDisplay = document.getElementById('error-display');
+      const errorMessage = document.getElementById('error-message');
+      const errorStack = document.getElementById('error-stack');
+      const errorData = document.getElementById('error-data');
       const root = document.getElementById('root');
-      if (root) {
-        root.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c; font-family: monospace; white-space: pre-wrap;">' +
-          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') +
-          '<br/><br/>' + (event.filename ? 'File: ' + event.filename + ':' + event.lineno : '') + '</div>';
+      
+      if (errorDisplay && errorMessage && root) {
+        errorDisplay.style.display = 'block';
+        root.style.display = 'none';
+        errorMessage.textContent = event.message || 'Unknown error';
+        if (errorStack && event.error && event.error.stack) {
+          errorStack.textContent = event.error.stack;
+        }
+        if (errorData) {
+          errorData.textContent = JSON.stringify({
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            stack: event.error?.stack
+          }, null, 2);
+        }
       }
     });
 
@@ -98,14 +159,26 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       }
     } catch (error) {
       console.error('Preview error:', error);
+      const errorDisplay = document.getElementById('error-display');
+      const errorMessage = document.getElementById('error-message');
+      const errorStack = document.getElementById('error-stack');
+      const errorData = document.getElementById('error-data');
       const root = document.getElementById('root');
-      if (root) {
-        root.innerHTML =
-          '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap; max-width: 800px;">' +
-          '<strong style="font-size: 1.25rem;">Compilation Error</strong><br/><br/>' +
-          (error && error.message ? error.message : 'Unknown error') +
-          (error && error.stack ? '<br/><br/><details><summary style="cursor: pointer;">Stack trace</summary><pre style="margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px; overflow-x: auto;">' + error.stack + '</pre></details>' : '') +
-          '</div>';
+      
+      if (errorDisplay && errorMessage && root) {
+        errorDisplay.style.display = 'block';
+        root.style.display = 'none';
+        errorMessage.textContent = error && error.message ? error.message : 'Unknown compilation error';
+        if (errorStack && error && error.stack) {
+          errorStack.textContent = error.stack;
+        }
+        if (errorData) {
+          errorData.textContent = JSON.stringify({
+            message: error?.message,
+            stack: error?.stack,
+            type: 'compilation'
+          }, null, 2);
+        }
       }
     }
   </script>
