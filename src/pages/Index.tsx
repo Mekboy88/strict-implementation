@@ -1,5 +1,5 @@
 import LivePreview from "@/components/LivePreview";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AccountSettings from "@/pages/AccountSettings";
@@ -49,6 +49,7 @@ import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
 import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles } from "@/utils/projectInitializer";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 
 interface FileItem {
@@ -120,6 +121,7 @@ function UrDevPreviewFrame() {
 
 function UrDevEditorPage() {
   const navigate = useNavigate();
+  const fileSystemStore = useFileSystemStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeFileId, setActiveFileId] = useState(defaultFiles[0]?.id ?? "");
   const [projectFiles, setProjectFiles] = useState<FileItem[]>(defaultFiles);
@@ -182,46 +184,38 @@ function UrDevEditorPage() {
     }
   }, [currentProject, convertProjectFilesToEditor]);
 
-  // 🚨 CRITICAL: Auto-initialize missing core files
+  // Sync with file system store on mount
   useEffect(() => {
-    const missingFiles = getMissingCoreFiles(projectFiles);
+    // Initialize the store with all core files
+    fileSystemStore.initializeProject();
     
-    if (missingFiles.length > 0) {
-      console.log(`🔧 Auto-creating ${missingFiles.length} missing core files...`);
-      
-      missingFiles.forEach(coreFile => {
-        const fileId = generateFileId(coreFile.path);
-        const newFile: FileItem = {
-          id: fileId,
-          name: coreFile.name,
-          path: coreFile.path,
-          language: coreFile.language,
-          content: coreFile.content.split('\n'),
-        };
-        
-        setProjectFiles(prev => {
-          // Don't add if already exists
-          if (prev.some(f => f.path === coreFile.path)) return prev;
-          return [...prev, newFile];
-        });
-        
-        setFileContents(prev => {
-          if (prev[fileId]) return prev;
-          return {
-            ...prev,
-            [fileId]: coreFile.content
-          };
-        });
-      });
-      
-      if (missingFiles.length > 0) {
-        toast({
-          title: "Core Files Initialized",
-          description: `Auto-created ${missingFiles.length} essential files for preview stability`,
-        });
+    // Sync projectFiles with the store
+    const allFiles = fileSystemStore.getAllFiles();
+    const editorFiles: FileItem[] = allFiles
+      .filter(node => node.type === 'file')
+      .map(node => ({
+        id: node.path,
+        name: node.name,
+        path: node.path,
+        language: node.path.endsWith('.tsx') || node.path.endsWith('.ts') ? 'tsx' : 
+                 node.path.endsWith('.css') ? 'css' : 
+                 node.path.endsWith('.json') ? 'json' : 'plaintext',
+        content: (node.content || '').split('\n'),
+      }));
+    
+    if (editorFiles.length > 0) {
+      setProjectFiles(editorFiles);
+      setFileContents(buildInitialContents(editorFiles));
+      if (editorFiles[0]) {
+        setActiveFileId(editorFiles[0].id);
       }
     }
-  }, [projectFiles]);
+  }, []);
+  
+  // Sync file changes back to store
+  const syncToStore = useCallback((filePath: string, content: string) => {
+    fileSystemStore.updateFile(filePath, content);
+  }, [fileSystemStore]);
 
   const handleSaveProject = async () => {
     if (!currentProject) {

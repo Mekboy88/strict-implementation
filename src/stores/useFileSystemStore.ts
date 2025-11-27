@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { projectService } from '@/services/projects/projectService';
+import { CORE_PROJECT_FILES } from '@/utils/projectInitializer';
 
 export interface FileNode {
   id: string;
@@ -345,364 +346,54 @@ export const useFileSystemStore = create<FileSystemState>()(
         }
 
         // Fallback: Initialize in-memory without database (for non-authenticated users)
-        console.log('Initializing project in local memory (no authentication)');
+        console.log('Initializing project with ALL core files');
         
         if (!fileExists('src')) {
-          // Create web/desktop folders
-          createFolder('src');
-          createFolder('src/components');
-          createFolder('src/pages');
-          createFolder('src/hooks');
-          createFolder('src/lib');
-          createFolder('public');
+          // Create all necessary folders
+          const folders = [
+            'public',
+            'src',
+            'src/assets',
+            'src/components',
+            'src/components/ui',
+            'src/hooks',
+            'src/lib',
+            'src/pages',
+          ];
           
-          // Desktop/Web files
-          await createFile('src/App.tsx', `import React from 'react';
-
-function App() {
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <h1 className="text-4xl font-bold mb-4">Welcome to UR-DEV</h1>
-      <p className="text-gray-400">Start building with AI assistance.</p>
-    </div>
-  );
-}
-
-export default App;`);
+          folders.forEach(folder => createFolder(folder));
           
-          await createFile('src/main.tsx', `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);`);
-
-          await createFile('src/index.css', `@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}`);
-
-          await createFile('package.json', `{
-  "name": "ur-dev-project",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.11"
-  }
-}`);
-
-          await createFile('README.md', `# UR-DEV Project
-
-Built with UR-DEV AI Assistant.
-
-## Getting Started
-
-\`\`\`bash
-npm install
-npm run dev
-\`\`\`
-`);
-
-          await createFile('index.html', `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UR-DEV Project</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`);
-
-          await createFile('public/robots.txt', `User-agent: *
-Allow: /`);
+          // Create all core files
+          for (const coreFile of CORE_PROJECT_FILES) {
+            if (!coreFile.path.startsWith('mobile/')) {
+              await createFile(coreFile.path, coreFile.content);
+            }
+          }
         }
 
-          // Ensure mobile structure exists even for existing projects
-          if (!fileExists('mobile')) {
-            // Create mobile folders
-            createFolder('mobile');
-            createFolder('mobile/src');
-            createFolder('mobile/src/components');
-            createFolder('mobile/src/pages');
-            createFolder('mobile/public');
-            createFolder('mobile/ios');
-            createFolder('mobile/android');
-            
-            // Create mobile/public/preview.html placeholder
-            await createFile('mobile/public/preview.html', `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Mobile Preview</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white min-h-screen">
-  <div class="min-h-screen flex items-center justify-center p-6">
-    <div class="text-center space-y-4">
-      <div class="text-6xl">📱</div>
-      <h1 class="text-3xl font-bold">Mobile App Ready</h1>
-      <p class="text-gray-300">Ask the AI to build your first mobile screen</p>
-    </div>
-  </div>
-</body>
-</html>`);
-
-          // Mobile app files
-          await createFile('mobile/src/MobileApp.tsx', `import React from 'react';
-
-function MobileApp() {
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
-      <h1 className="text-3xl font-bold mb-4">Mobile App</h1>
-      <p className="text-gray-400">Start building your mobile app with AI assistance.</p>
-    </div>
-  );
-}
-
-export default MobileApp;`);
+        // Ensure mobile structure exists
+        if (!fileExists('mobile')) {
+          // Create mobile folders
+          const mobileFolders = [
+            'mobile',
+            'mobile/src',
+            'mobile/src/pages',
+            'mobile/src/components',
+            'mobile/src/components/ui',
+            'mobile/src/hooks',
+            'mobile/src/lib',
+            'mobile/src/data',
+            'mobile/public',
+          ];
           
-          await createFile('mobile/src/main.tsx', `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import MobileApp from './MobileApp';
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <MobileApp />
-  </React.StrictMode>
-);`);
-
-          await createFile('mobile/src/index.css', `@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}`);
-
-          // Capacitor configuration
-          await createFile('mobile/capacitor.config.ts', `import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'app.urdev.mobile',
-  appName: 'UR-DEV Mobile',
-  webDir: 'dist',
-  bundledWebRuntime: false,
-  server: {
-    androidScheme: 'https'
-  }
-};
-
-export default config;`);
-
-          await createFile('mobile/package.json', `{
-  "name": "ur-dev-mobile",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/ios": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
-  },
-  "devDependencies": {
-    "@capacitor/cli": "^6.0.0",
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.11"
-  }
-}`);
-
-          await createFile('mobile/vite.config.ts', `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  }
-})`);
-
-          await createFile('mobile/tsconfig.json', `{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
-}`);
-
-          await createFile('mobile/tsconfig.node.json', `{
-  "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["vite.config.ts"]
-}`);
-
-          await createFile('mobile/index.html', `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>UR-DEV Mobile App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`);
-
-          await createFile('mobile/README.md', `# UR-DEV Native Mobile App (Capacitor)
-
-## Setup Instructions
-
-### 1. Install Dependencies
-\`\`\`bash
-cd mobile
-npm install
-\`\`\`
-
-### 2. Build Web App
-\`\`\`bash
-npm run build
-\`\`\`
-
-### 3. Add Native Platforms
-\`\`\`bash
-# Add iOS (requires macOS with Xcode)
-npx cap add ios
-
-# Add Android (requires Android Studio)
-npx cap add android
-\`\`\`
-
-### 4. Sync Changes
-After modifying code, sync to native platforms:
-\`\`\`bash
-npm run build
-npx cap sync
-\`\`\`
-
-### 5. Open Native IDE
-\`\`\`bash
-# Open iOS in Xcode
-npx cap open ios
-
-# Open Android in Android Studio
-npx cap open android
-\`\`\`
-
-## File Structure
-
-- **src/** - React/TypeScript source code
-- **dist/** - Built web app (auto-generated)
-- **ios/** - iOS native project (created by \`npx cap add ios\`)
-- **android/** - Android native project (created by \`npx cap add android\`)
-- **capacitor.config.ts** - Capacitor configuration
-
-## Important Notes
-
-- The ios/ and android/ folders are NOT included initially
-- Run \`npx cap add ios\` and \`npx cap add android\` to generate them
-- Always run \`npm run build\` before \`npx cap sync\`
-- You need Xcode (Mac) for iOS and Android Studio for Android
-`);
-
-          // Platform placeholders
-          await createFile('mobile/ios/README.md', `# iOS Platform
-
-This folder will be created when you run:
-
-\`\`\`bash
-npx cap add ios
-\`\`\`
-
-Requirements:
-- macOS with Xcode installed
-- iOS development certificates
-
-After running the command above, this folder will contain your full Xcode project.
-`);
-
-          await createFile('mobile/android/README.md', `# Android Platform
-
-This folder will be created when you run:
-
-\`\`\`bash
-npx cap add android
-\`\`\`
-
-Requirements:
-- Android Studio installed
-- Android SDK configured
-
-After running the command above, this folder will contain your full Android Studio project.
-`);
+          mobileFolders.forEach(folder => createFolder(folder));
+          
+          // Create mobile core files
+          for (const coreFile of CORE_PROJECT_FILES) {
+            if (coreFile.path.startsWith('mobile/')) {
+              await createFile(coreFile.path, coreFile.content);
+            }
+          }
         }
       },
     }),
