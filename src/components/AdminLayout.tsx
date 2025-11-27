@@ -74,9 +74,9 @@ const AdminLayout: React.FC = () => {
   }, [navigate]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    // Only clear admin session, don't logout from account
     sessionStorage.removeItem("admin_authenticated");
-    navigate("/admin/login");
+    navigate("/");
   };
 
   if (loading) {
