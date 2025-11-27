@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,17 @@ const AdminLoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col items-center p-10">
+      {/* BACK BUTTON */}
+      <div className="w-full max-w-4xl mb-6">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-neutral-400 hover:text-neutral-100 transition"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Back to Home</span>
+        </button>
+      </div>
+
       {/* TOP HEADER */}
       <div className="w-full text-center mb-12 mt-4">
         <h1 className="text-5xl font-extrabold tracking-tight text-neutral-100 drop-shadow-xl">
