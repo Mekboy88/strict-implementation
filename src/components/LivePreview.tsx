@@ -120,6 +120,11 @@ export default function LivePreview({ files }: LivePreviewProps) {
 }
 
 function generatePreviewHtml(componentCode: string, componentName: string, filePath: string): string {
+  const escapedComponentCode = componentCode
+    .replace(/\\/g, "\\\\")
+    .replace(/`/g, "\\`")
+    .replace(/\$\{/g, "\\${");
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -135,28 +140,33 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
     try {
       ${PREVIEW_RUNTIME}
       
-      // Component code (already plain JS with jsx() calls)
-      ${componentCode}
+      // Safely inject converted component code
+      const componentSource = '${escapedComponentCode}';
+      
+      eval(componentSource);
       
       // Render
       const root = document.getElementById("root");
-      const App = window.__APP__ || window.${componentName};
+      const App = (window as any).__APP__ || (window as any).${componentName};
       
       if (App) {
-        ReactDOM.render(jsx(App, {}), root);
+        (window as any).ReactDOM.render((window as any).jsx(App, {}), root);
         console.log("✅ Rendered:", "${componentName}");
       } else {
         throw new Error("Component not found");
       }
     } catch (error) {
       console.error("Preview Error:", error);
-      document.getElementById("root").innerHTML = 
-        '<div style="padding: 2rem; color: #dc2626;">' +
-        '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
-        '<p style="color: #6b7280;">' + error.message + '</p>' +
-        '<pre style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; overflow: auto;">' +
-        (error.stack || '') + '</pre>' +
-        '</div>';
+      const rootEl = document.getElementById("root");
+      if (rootEl) {
+        rootEl.innerHTML = 
+          '<div style="padding: 2rem; color: #dc2626;">' +
+          '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
+          '<p style="color: #6b7280;">' + (error as any).message + '</p>' +
+          '<pre style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; overflow: auto;">' +
+          ((error as any).stack || '') + '</pre>' +
+          '</div>';
+      }
     }
   </script>
 </body>
