@@ -247,38 +247,43 @@ const UrDevLandingPage: React.FC = () => {
     navigate("/");
   };
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
+    const fetchUserRole = async (userId: string) => {
+      try {
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", session.user.id)
+          .eq("user_id", userId)
           .in("role", ["owner", "admin"])
           .maybeSingle();
-        
+
         setIsAdmin(!!roleData);
+      } catch (error) {
+        console.error("Error fetching user role", error);
+        setIsAdmin(false);
+      }
+    };
+
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        await fetchUserRole(session.user.id);
       } else {
         setIsAdmin(false);
       }
     };
-    
+
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .in("role", ["owner", "admin"])
-          .maybeSingle();
-        
-        setIsAdmin(!!roleData);
+        setIsAdmin(false);
+        setTimeout(() => {
+          fetchUserRole(session.user!.id);
+        }, 0);
       } else {
         setIsAdmin(false);
       }
