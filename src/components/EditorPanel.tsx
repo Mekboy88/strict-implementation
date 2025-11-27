@@ -1,12 +1,15 @@
 import { useEditorStore } from "@/stores/useEditorStore";
 import { usePreviewStore } from "@/stores/usePreviewStore";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 import Editor from "@monaco-editor/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Eye, AlertCircle } from "lucide-react";
+import LivePreview from "./LivePreview";
 
 const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) => {
   const { activeFile, fileContent, updateFileContent } = useEditorStore();
   const { desktopPreviewHtml } = usePreviewStore();
+  const allFiles = useFileSystemStore((state) => state.getAllFiles());
   const editorRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [previewError, setPreviewError] = useState(false);
@@ -71,22 +74,16 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Determine language from file extension
-  const getLanguage = (filename: string | null) => {
-    if (!filename) return "typescript";
-    const ext = filename.split('.').pop()?.toLowerCase();
-    const languageMap: Record<string, string> = {
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'json': 'json',
-      'css': 'css',
-      'html': 'html',
-      'md': 'markdown',
-    };
-    return languageMap[ext || ''] || 'typescript';
-  };
+  // Build React preview file map from project files
+  const previewFiles = useMemo(() => {
+    const filesMap: { [key: string]: string } = {};
+    allFiles
+      .filter((f) => f.type === "file" && f.content && (f.path.endsWith(".tsx") || f.path.endsWith(".jsx")))
+      .forEach((f) => {
+        filesMap[f.path] = f.content as string;
+      });
+    return filesMap;
+  }, [allFiles]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden" data-editor-pane>
@@ -96,7 +93,7 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
         className="flex-1 min-h-0 relative"
       >
         {viewMode === 'preview' ? (
-          /* Preview Mode - Show live application */
+          /* Preview Mode - Prefer HTML pipeline, fallback to LivePreview */
           desktopPreviewHtml && isValidHtml(desktopPreviewHtml) ? (
             previewError ? (
               /* Error fallback */
@@ -151,6 +148,9 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
                 />
               </>
             )
+          ) : Object.keys(previewFiles).length > 0 ? (
+            // Fallback: generate live React preview from project files
+            <LivePreview files={previewFiles} activeFileId={activeFile || ''} />
           ) : (
             /* Empty state - no preview available */
             <div className="w-full h-full bg-ide-editor flex items-center justify-center">
@@ -167,7 +167,7 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
         ) : activeFile !== null ? (
           <Editor
             height="100%"
-            language={getLanguage(activeFile)}
+            language={"typescript"}
             value={fileContent}
             onChange={handleEditorChange}
             onMount={(editor) => { editorRef.current = editor; }}
