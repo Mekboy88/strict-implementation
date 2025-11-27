@@ -18,9 +18,10 @@ interface ConversionResult {
 
 export function convertJSXToHTML(jsxCode: string, filename: string): ConversionResult {
   try {
-    const match = jsxCode.match(/return\s*\(?([\s\S]*?)\)?\s*[\);]/m);
-
-    if (!match) {
+    // Extract JSX using balanced parenthesis matching instead of brittle regex
+    const jsx = extractJSXReturn(jsxCode);
+    
+    if (!jsx) {
       return {
         html: "",
         success: false,
@@ -28,7 +29,6 @@ export function convertJSXToHTML(jsxCode: string, filename: string): ConversionR
       };
     }
 
-    const jsx = match[1].trim();
     const html = parseNode(jsx).html;
 
     return { html, success: true };
@@ -39,6 +39,55 @@ export function convertJSXToHTML(jsxCode: string, filename: string): ConversionR
       error: e?.message || "Unknown parsing error",
     };
   }
+}
+
+/**
+ * Extract JSX return block using balanced parenthesis counting
+ * Handles: return (<div>...</div>); and return <div>...</div>;
+ */
+function extractJSXReturn(code: string): string | null {
+  const returnIndex = code.indexOf('return');
+  if (returnIndex === -1) return null;
+
+  let i = returnIndex + 6; // Skip "return"
+  
+  // Skip whitespace
+  while (i < code.length && /\s/.test(code[i])) i++;
+
+  // Check if we have opening paren
+  const hasOpenParen = code[i] === '(';
+  if (hasOpenParen) i++; // Skip opening paren
+
+  // Find the JSX content
+  const start = i;
+  let depth = hasOpenParen ? 1 : 0;
+  let inJSX = false;
+  
+  while (i < code.length) {
+    const char = code[i];
+    
+    if (char === '<') inJSX = true;
+    
+    if (hasOpenParen) {
+      if (char === '(') depth++;
+      if (char === ')') {
+        depth--;
+        if (depth === 0) {
+          // Found matching closing paren
+          return code.slice(start, i).trim();
+        }
+      }
+    } else {
+      // No opening paren, look for semicolon after JSX closes
+      if (inJSX && char === ';') {
+        return code.slice(start, i).trim();
+      }
+    }
+    
+    i++;
+  }
+
+  return null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +128,18 @@ function parseNode(src: string): { html: string; len: number } {
   const attrStr = openMatch[2] || "";
   const openTag = openMatch[0];
   const openLen = openTag.length;
+
+  // Handle custom components (PascalCase) - render as placeholder
+  if (/^[A-Z]/.test(tag)) {
+    const selfClosing = openTag.endsWith("/>");
+    const endTag = selfClosing ? "" : `</${tag}>`;
+    const endLen = selfClosing ? 0 : endTag.length;
+    
+    return {
+      html: `<div class="border border-dashed border-border rounded p-2 bg-muted/30 text-muted-foreground text-xs">[${tag}]</div>`,
+      len: openLen + (selfClosing ? 0 : src.slice(openLen).indexOf(endTag) + endLen),
+    };
+  }
 
   // SELF-CLOSING
   if (openTag.endsWith("/>")) {

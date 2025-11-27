@@ -20,30 +20,40 @@ export default function LivePreview({ files }: LivePreviewProps) {
     const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
 
     if (!mainEntry) {
+      console.warn('⚠️ No src/app/page.tsx found in files');
       iframeRef.current.srcdoc = generateFallbackHtml();
       return;
     }
 
     const [filePath, fileContent] = mainEntry;
+    
+    console.log('🔍 Converting JSX to HTML:', {
+      file: filePath,
+      contentLength: fileContent.length,
+      contentPreview: fileContent.slice(0, 200) + '...',
+    });
 
     try {
       const { html, success, error } = convertJSXToHTML(fileContent, filePath);
 
       if (!success) {
-        throw new Error(error || 'Failed to convert JSX to HTML');
+        console.error('❌ JSX Conversion Failed:', error);
+        console.log('📄 File content:', fileContent);
+        iframeRef.current.srcdoc = generateFallbackHtml(error);
+        return;
       }
 
-      const innerHtml = html;
-      const previewHtml = generatePreviewHtml(innerHtml, filePath);
-      console.log('🎯 Static Preview Generated (no JS eval):', {
+      const previewHtml = generatePreviewHtml(html, filePath);
+      console.log('✅ Static Preview Generated:', {
         file: filePath,
-        htmlLength: innerHtml.length,
+        htmlLength: html.length,
       });
 
       iframeRef.current.srcdoc = previewHtml;
     } catch (error) {
-      console.error('❌ Preview Error (static extractor):', error);
-      iframeRef.current.srcdoc = generateErrorHtml(error as Error, filePath);
+      console.error('❌ Preview Error:', error);
+      console.log('📄 File content:', fileContent);
+      iframeRef.current.srcdoc = generateFallbackHtml((error as Error).message);
     }
   }, [files, key]);
 
@@ -150,7 +160,7 @@ function generatePreviewHtml(innerHtml: string, filePath: string): string {
 </html>`;
 }
 
-function generateFallbackHtml(): string {
+function generateFallbackHtml(errorMessage?: string): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -160,11 +170,31 @@ function generateFallbackHtml(): string {
   <style>${PREVIEW_STYLES}</style>
 </head>
 <body>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="text-center space-y-4 p-8">
-      <h1 class="text-2xl font-bold text-gray-900">No Preview Available</h1>
-      <p class="text-gray-600">No React components found in project</p>
-      <p class="text-sm text-gray-600">Create a .tsx or .jsx file to see preview</p>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 space-y-4 border border-gray-200">
+      <div class="text-center">
+        <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Preview Unavailable</h1>
+        ${errorMessage ? `
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+            <p class="text-sm text-amber-800 font-medium">Error: ${errorMessage}</p>
+          </div>
+        ` : ''}
+        <p class="text-gray-600 mb-4">The page component couldn't be rendered as static HTML.</p>
+        <div class="space-y-2 text-left bg-gray-50 rounded-lg p-4">
+          <p class="text-sm text-gray-700 font-medium">Possible reasons:</p>
+          <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
+            <li>Custom components need to be imported</li>
+            <li>Dynamic JavaScript expressions</li>
+            <li>Complex JSX structure</li>
+          </ul>
+        </div>
+        <p class="text-xs text-gray-500 mt-4">Try simplifying src/app/page.tsx to use only native HTML elements</p>
+      </div>
     </div>
   </div>
 </body>

@@ -44,15 +44,31 @@ export default Index;`
     path: 'src/app/page.tsx',
     language: 'tsx',
     required: true,
-    content: `import { Hero } from "@/components/Hero";
-import { Header } from "@/components/ui/Header";
-
-export default function Page() {
+    content: `export default function Page() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <Hero />
-    </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-8">
+      <div className="max-w-2xl w-full text-center space-y-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
+            ✅ Welcome to Your App
+          </h1>
+          <p className="text-lg text-slate-600 mb-6">
+            Start building your dream application with instant live preview!
+          </p>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 space-y-3">
+            <p className="text-sm font-medium text-slate-800">
+              ✨ Ready to build:
+            </p>
+            <ul className="text-sm text-slate-700 space-y-2 text-left">
+              <li>• Beautiful UI components with Tailwind CSS</li>
+              <li>• Full TypeScript support</li>
+              <li>• Live preview as you code</li>
+              <li>• Production-ready starter template</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }`
   },
