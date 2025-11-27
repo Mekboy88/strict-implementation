@@ -202,6 +202,7 @@ const UrDevLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showPlanWizard, setShowPlanWizard] = useState(false);
   const [showPlatformSelector, setShowPlatformSelector] = useState(false);
@@ -272,6 +273,8 @@ const UrDevLandingPage: React.FC = () => {
       } else {
         setIsAdmin(false);
       }
+
+      setAuthReady(true);
     };
 
     checkUser();
@@ -287,6 +290,8 @@ const UrDevLandingPage: React.FC = () => {
       } else {
         setIsAdmin(false);
       }
+
+      setAuthReady(true);
     });
 
     return () => subscription.unsubscribe();
