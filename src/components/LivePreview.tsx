@@ -19,44 +19,10 @@ export default function LivePreview({ files }: LivePreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    // Create hash of files to detect changes
-    const filesHash = Object.keys(files).sort().join(',');
-    if (filesHash !== lastFilesHash) {
-      setLastFilesHash(filesHash);
-      // Force iframe refresh when files change
-      setKey(prev => prev + 1);
-    }
-
-    // For now, only render a single safe entry: src/app/page.tsx
-    const mainEntry = Object.entries(files).find(([path]) => path === 'src/app/page.tsx');
-
-    if (!mainEntry) {
-      const fallbackHtml = generateFallbackHtml();
-      iframeRef.current.srcdoc = fallbackHtml;
-      return;
-    }
-
-    const [filePath, fileContent] = mainEntry;
-
-    try {
-      const convertedCode = convertJsxToJsxCalls(fileContent);
-      const componentName = extractComponentName(fileContent);
-      const previewHtml = generatePreviewHtml(convertedCode, componentName, filePath);
-      
-      console.log('🎯 Preview Generated:', {
-        file: filePath,
-        component: componentName,
-        codeLength: convertedCode.length,
-        convertedPreview: convertedCode.substring(0, 200) + '...'
-      });
-
-      iframeRef.current.srcdoc = previewHtml;
-    } catch (error) {
-      console.error('❌ Preview Error:', error);
-      const errorHtml = generateErrorHtml(error as Error, filePath);
-      iframeRef.current.srcdoc = errorHtml;
-    }
-  }, [files, key, lastFilesHash]);
+    // TEMP: render a guaranteed-safe demo preview independent of project files
+    const demoHtml = generateFixedDemoHtml();
+    iframeRef.current.srcdoc = demoHtml;
+  }, [key]);
 
   const handleRefresh = () => {
     setKey(prev => prev + 1);
@@ -135,40 +101,26 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
 </head>
 <body>
   <div id="root">Loading...</div>
-  
-  <script>
-    try {
-      ${PREVIEW_RUNTIME}
-      
-      // Safely inject converted component code
-      const componentSource = '${escapedComponentCode}';
-      
-      eval(componentSource);
-      
-      // Render
-      const root = document.getElementById("root");
-      const App = (window as any).__APP__ || (window as any).${componentName};
-      
-      if (App) {
-        (window as any).ReactDOM.render((window as any).jsx(App, {}), root);
-        console.log("✅ Rendered:", "${componentName}");
-      } else {
-        throw new Error("Component not found");
-      }
-    } catch (error) {
-      console.error("Preview Error:", error);
-      const rootEl = document.getElementById("root");
-      if (rootEl) {
-        rootEl.innerHTML = 
-          '<div style="padding: 2rem; color: #dc2626;">' +
-          '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
-          '<p style="color: #6b7280;">' + (error as any).message + '</p>' +
-          '<pre style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; overflow: auto;">' +
-          ((error as any).stack || '') + '</pre>' +
-          '</div>';
-      }
-    }
-  </script>
+</body>
+</html>`;
+}
+
+// TEMP: fixed demo HTML so preview is never blank while we debug runtime
+function generateFixedDemoHtml(): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UR-DEV Preview Demo</title>
+  <style>${PREVIEW_STYLES}</style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="max-w-2xl w-full text-center space-y-4 p-8 bg-white border border-gray-200 rounded-lg shadow-lg">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">UR-DEV Preview Demo</h1>
+    <p class="text-lg text-gray-600">Preview engine is online and rendering a safe demo layout.</p>
+    <p class="text-sm text-gray-600 mt-2">Your code will be wired into this preview once the runtime pipeline is fully stable.</p>
+  </div>
 </body>
 </html>`;
 }
