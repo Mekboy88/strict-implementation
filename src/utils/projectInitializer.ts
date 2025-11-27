@@ -391,6 +391,68 @@ createRoot(document.getElementById("root")!).render(
     required: true,
     content: `User-agent: *
 Allow: /`
+  },
+
+  // ========== ROOT CONFIG FILES ==========
+  {
+    id: 'index-html',
+    name: 'index.html',
+    path: 'index.html',
+    language: 'html',
+    required: true,
+    content: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UR-DEV App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`
+  },
+
+  {
+    id: 'package-json',
+    name: 'package.json',
+    path: 'package.json',
+    language: 'json',
+    required: true,
+    content: `{
+  "name": "ur-dev-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}`
+  },
+
+  {
+    id: 'tailwind-config',
+    name: 'tailwind.config.ts',
+    path: 'tailwind.config.ts',
+    language: 'typescript',
+    required: true,
+    content: `import type { Config } from "tailwindcss";
+
+export default {
+  darkMode: ["class"],
+  content: [
+    "./index.html",
+    "./src/**/*.{ts,tsx,js,jsx}"
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config;`
   }
 ];
 

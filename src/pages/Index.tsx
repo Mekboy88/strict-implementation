@@ -184,38 +184,164 @@ function UrDevEditorPage() {
     }
   }, [currentProject, convertProjectFilesToEditor]);
 
-  // Sync with file system store on mount
+  // Initialize project on mount with CORE_PROJECT_FILES
   useEffect(() => {
-    // Initialize the store with all core files
-    fileSystemStore.initializeProject();
-    
-    // Sync projectFiles with the store
-    const allFiles = fileSystemStore.getAllFiles();
-    const editorFiles: FileItem[] = allFiles
-      .filter(node => node.type === 'file')
-      .map(node => ({
-        id: node.path,
-        name: node.name,
-        path: node.path,
-        language: node.path.endsWith('.tsx') || node.path.endsWith('.ts') ? 'tsx' : 
-                 node.path.endsWith('.css') ? 'css' : 
-                 node.path.endsWith('.json') ? 'json' : 'plaintext',
-        content: (node.content || '').split('\n'),
-      }));
-    
-    if (editorFiles.length > 0) {
-      setProjectFiles(editorFiles);
-      setFileContents(buildInitialContents(editorFiles));
-      if (editorFiles[0]) {
-        setActiveFileId(editorFiles[0].id);
+    const initProject = async () => {
+      try {
+        // Clear stale localStorage
+        localStorage.removeItem('file-system-storage');
+        
+        // Initialize store
+        await fileSystemStore.initializeProject();
+        
+        // Convert store files to editor format
+        const allFiles = fileSystemStore.getAllFiles();
+        const editorFiles: FileItem[] = allFiles
+          .filter(node => node.type === 'file')
+          .map(node => ({
+            id: node.path,
+            name: node.name,
+            path: node.path,
+            language: node.path.endsWith('.tsx') || node.path.endsWith('.ts') ? 'tsx' : 
+                     node.path.endsWith('.css') ? 'css' : 
+                     node.path.endsWith('.json') ? 'json' :
+                     node.path.endsWith('.html') ? 'html' : 'plaintext',
+            content: (node.content || '').split('\n'),
+          }));
+        
+        if (editorFiles.length > 0) {
+          setProjectFiles(editorFiles);
+          setFileContents(buildInitialContents(editorFiles));
+          
+          // Set initial active file
+          const indexFile = editorFiles.find(f => f.path === 'src/pages/Index.tsx');
+          setActiveFileId(indexFile?.id || editorFiles[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to initialize project:', error);
       }
-    }
+    };
+    
+    initProject();
   }, []);
   
   // Sync file changes back to store
   const syncToStore = useCallback((filePath: string, content: string) => {
     fileSystemStore.updateFile(filePath, content);
   }, [fileSystemStore]);
+
+  // Render dynamic file tree
+  const renderFileTree = () => {
+    const folders: Record<string, FileItem[]> = {
+      root: [],
+      public: [],
+      src: [],
+      'src/components': [],
+      'src/components/ui': [],
+      'src/hooks': [],
+      'src/lib': [],
+      'src/pages': [],
+    };
+
+    projectFiles.forEach(file => {
+      if (file.path.startsWith('public/')) folders.public.push(file);
+      else if (file.path.startsWith('src/pages/')) folders['src/pages'].push(file);
+      else if (file.path.startsWith('src/components/ui/')) folders['src/components/ui'].push(file);
+      else if (file.path.startsWith('src/components/')) folders['src/components'].push(file);
+      else if (file.path.startsWith('src/hooks/')) folders['src/hooks'].push(file);
+      else if (file.path.startsWith('src/lib/')) folders['src/lib'].push(file);
+      else if (file.path.startsWith('src/')) folders.src.push(file);
+      else folders.root.push(file);
+    });
+
+    const renderFile = (file: FileItem) => (
+      <button
+        key={file.id}
+        type="button"
+        onClick={() => setActiveFileId(file.id)}
+        className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+          activeFileId === file.id ? 'bg-sky-500/25 text-sky-100' : 'hover:bg-white/5 hover:text-sky-100'
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0 flex-1">
+          <FileCode2 className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">{file.name}</span>
+        </span>
+      </button>
+    );
+
+    return (
+      <>
+        {folders.root.map(renderFile)}
+        
+        {folders.public.length > 0 && (
+          <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
+            <Folder className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">public</span>
+          </button>
+        )}
+        
+        <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
+          <Folder className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">src</span>
+        </button>
+        
+        <div className="ml-5 space-y-1 min-w-0">
+          {folders['src/components'].length > 0 && (
+            <>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">components</span>
+              </button>
+              {folders['src/components'].map(renderFile)}
+              
+              {folders['src/components/ui'].length > 0 && (
+                <div className="ml-4 space-y-1">
+                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                    <Folder className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">ui</span>
+                  </button>
+                  {folders['src/components/ui'].map(renderFile)}
+                </div>
+              )}
+            </>
+          )}
+          
+          {folders['src/hooks'].length > 0 && (
+            <>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">hooks</span>
+              </button>
+              {folders['src/hooks'].map(renderFile)}
+            </>
+          )}
+          
+          {folders['src/lib'].length > 0 && (
+            <>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">lib</span>
+              </button>
+              {folders['src/lib'].map(renderFile)}
+            </>
+          )}
+          
+          {folders['src/pages'].length > 0 && (
+            <>
+              <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
+                <Folder className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">pages</span>
+              </button>
+              {folders['src/pages'].map(renderFile)}
+            </>
+          )}
+          
+          {folders.src.map(renderFile)}
+        </div>
+      </>
+    );
+  };
 
   const handleSaveProject = async () => {
     if (!currentProject) {
@@ -1259,77 +1385,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             
             {activeVariant === 'web' ? (
               <div className="space-y-1">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">node_modules</span>
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">public</span>
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">src</span>
-                </button>
-
-                <div className="ml-5 space-y-1 min-w-0">
-                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                    <Folder className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">components</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("banner")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "banner"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">banner.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                </div>
-
-                <div className="ml-5 space-y-1 min-w-0">
-                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                    <Folder className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">app</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("layout")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "layout"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">layout.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("page")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "page"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">page.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                </div>
+                {renderFileTree()}
               </div>
             ) : (
               <div className="space-y-1">

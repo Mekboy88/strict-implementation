@@ -39,6 +39,7 @@ interface FileSystemState {
   // Utility
   fileExists: (path: string) => boolean;
   initializeProject: () => Promise<void>;
+  resetProject: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -395,6 +396,14 @@ export const useFileSystemStore = create<FileSystemState>()(
             }
           }
         }
+      },
+
+      resetProject: () => {
+        set({
+          files: new Map(),
+          expandedFolders: new Set(['src', 'public', 'src/components', 'src/pages']),
+          currentProjectId: null,
+        });
       },
     }),
     {
