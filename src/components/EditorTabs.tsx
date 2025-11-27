@@ -11,10 +11,7 @@ interface EditorTabsProps {
 const EditorTabs = ({ viewMode = 'code' }: EditorTabsProps) => {
   const { activeFile, setActiveFile } = useEditorStore();
   const [tabs, setTabs] = useState([
-    { name: 'banner.tsx', path: 'src/components/banner.tsx', dirty: false },
-    { name: 'product.js', path: 'src/components/product.js', dirty: false },
-    { name: 'package.js', path: 'package.json', dirty: false },
-    { name: 'index.html', path: 'index.html', dirty: false },
+    { name: 'page.tsx', path: 'src/app/page.tsx', dirty: false },
   ]);
   
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; tabIndex: number } | null>(null);

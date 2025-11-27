@@ -1,5 +1,5 @@
 import LivePreview from "@/components/LivePreview";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AccountSettings from "@/pages/AccountSettings";
@@ -15,6 +15,7 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   ArrowLeft,
   Database,
   X,
@@ -47,6 +48,9 @@ import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
+import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
+import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles, getDefaultPageContent } from "@/utils/projectInitializer";
+import { useFileSystemStore } from "@/stores/useFileSystemStore";
 
 
 interface FileItem {
@@ -57,68 +61,18 @@ interface FileItem {
   content: string[];
 }
 
-const defaultFiles: FileItem[] = [
-  {
-    id: "banner",
-    name: "banner.tsx",
-    path: "src/components/banner.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "",
-      "export function Banner() {",
-      "  return (",
-      '    <section className="px-8 py-10 bg-card/60 border-b border-border">',
-      '      <h1 className="text-2xl font-semibold text-foreground">UR-DEV Banner</h1>',
-      '      <p className="mt-2 text-sm text-muted-foreground max-w-xl">',
-      "        This is a demo banner component rendered inside the editor preview.",
-      "      </p>",
-      "    </section>",
-      "  )",
-      "}",
-    ],
-  },
-  {
-    id: "layout",
-    name: "layout.tsx",
-    path: "src/app/layout.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "",
-      "export default function RootLayout({ children }) {",
-      "  return (",
-      '    <html lang="en">',
-      '      <body className="bg-background text-foreground">{children}</body>',
-      "    </html>",
-      "  )",
-      "}",
-    ],
-  },
-  {
-    id: "page",
-    name: "page.tsx",
-    path: "src/app/page.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "import { Banner } from '../components/banner'",
-      "",
-      "export default function Page() {",
-      "  return (",
-      '    <main className="min-h-screen bg-background">',
-      "      <Banner />",
-      "    </main>",
-      "  )",
-      "}",
-    ],
-  },
-];
+const defaultFiles: FileItem[] = CORE_PROJECT_FILES.map(coreFile => ({
+  id: coreFile.id,
+  name: coreFile.name,
+  path: coreFile.path,
+  language: coreFile.language,
+  content: coreFile.content.split('\n'),
+})).filter(f => f.path.endsWith('.tsx') || f.path.endsWith('.ts'));
 
 function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
   for (const file of files) {
-    map[file.id] = file.content.join("\n");
+    map[file.path] = file.content.join("\n");
   }
   return map;
 }
@@ -168,8 +122,9 @@ function UrDevPreviewFrame() {
 
 function UrDevEditorPage() {
   const navigate = useNavigate();
+  const fileSystemStore = useFileSystemStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeFileId, setActiveFileId] = useState("banner");
+  const [activeFileId, setActiveFileId] = useState(defaultFiles[0]?.id ?? "");
   const [projectFiles, setProjectFiles] = useState<FileItem[]>(defaultFiles);
   const [fileContents, setFileContents] = useState<Record<string, string>>(() =>
     buildInitialContents(defaultFiles)
@@ -197,6 +152,9 @@ function UrDevEditorPage() {
   const [showUsePlanButton, setShowUsePlanButton] = useState(false);
   const [planContent, setPlanContent] = useState("");
   const [showPlanWizard, setShowPlanWizard] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(['src', 'src/components', 'src/pages', 'public'])
+  );
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
   // Project persistence
@@ -229,6 +187,273 @@ function UrDevEditorPage() {
       }
     }
   }, [currentProject, convertProjectFilesToEditor]);
+
+  // Initialize project on mount with CORE_PROJECT_FILES
+  useEffect(() => {
+    const initProject = async () => {
+      try {
+        // Reset in-memory store state and clear stale localStorage
+        fileSystemStore.resetProject();
+        localStorage.removeItem('file-system-storage');
+        
+        // Initialize store
+        await fileSystemStore.initializeProject();
+        
+        // Convert store files to editor format
+        const allFiles = fileSystemStore.getAllFiles();
+        let editorFiles: FileItem[] = allFiles
+          .filter(node => node.type === 'file')
+          .map(node => ({
+            id: node.path,
+            name: node.name,
+            path: node.path,
+            language: node.path.endsWith('.tsx') || node.path.endsWith('.ts') ? 'tsx' : 
+                     node.path.endsWith('.css') ? 'css' : 
+                     node.path.endsWith('.json') ? 'json' :
+                     node.path.endsWith('.html') ? 'html' : 'plaintext',
+            content: (node.content || '').split('\n'),
+          }));
+        
+        // Ensure src/app/page.tsx exists for preview
+        const hasAppPage = editorFiles.some(f => f.path === 'src/app/page.tsx');
+        if (!hasAppPage) {
+          const defaultPageContent = getDefaultPageContent();
+          editorFiles.push({
+            id: 'src/app/page.tsx',
+            name: 'page.tsx',
+            path: 'src/app/page.tsx',
+            language: 'tsx',
+            content: defaultPageContent.split('\n'),
+          });
+        }
+        
+        if (editorFiles.length > 0) {
+          setProjectFiles(editorFiles);
+          setFileContents(buildInitialContents(editorFiles));
+          
+          // Set initial active file
+          const indexFile = editorFiles.find(f => f.path === 'src/pages/Index.tsx');
+          setActiveFileId(indexFile?.id || editorFiles[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to initialize project:', error);
+      }
+    };
+    
+    initProject();
+  }, []);
+  
+  // Sync file changes back to store
+  const syncToStore = useCallback((filePath: string, content: string) => {
+    fileSystemStore.updateFile(filePath, content);
+  }, [fileSystemStore]);
+
+  // Toggle folder expansion
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderPath)) {
+        newSet.delete(folderPath);
+      } else {
+        newSet.add(folderPath);
+      }
+      return newSet;
+    });
+  };
+
+  // Render dynamic file tree
+  const renderFileTree = () => {
+    const folders: Record<string, FileItem[]> = {
+      root: [],
+      public: [],
+      src: [],
+      'src/app': [],
+      'src/components': [],
+      'src/components/ui': [],
+      'src/hooks': [],
+      'src/lib': [],
+      'src/pages': [],
+    };
+
+    projectFiles.forEach(file => {
+      if (file.path.startsWith('public/')) folders.public.push(file);
+      else if (file.path.startsWith('src/pages/')) folders['src/pages'].push(file);
+      else if (file.path.startsWith('src/components/ui/')) folders['src/components/ui'].push(file);
+      else if (file.path.startsWith('src/components/')) folders['src/components'].push(file);
+      else if (file.path.startsWith('src/hooks/')) folders['src/hooks'].push(file);
+      else if (file.path.startsWith('src/lib/')) folders['src/lib'].push(file);
+      else if (file.path.startsWith('src/')) folders.src.push(file);
+      else folders.root.push(file);
+    });
+
+    const renderFile = (file: FileItem) => (
+      <button
+        key={file.id}
+        type="button"
+        onClick={() => setActiveFileId(file.id)}
+        className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+          activeFileId === file.id ? 'bg-sky-500/25 text-sky-100' : 'hover:bg-white/5 hover:text-sky-100'
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0 flex-1">
+          <FileCode2 className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">{file.name}</span>
+        </span>
+      </button>
+    );
+
+    const isFolderExpanded = (path: string) => expandedFolders.has(path);
+
+    return (
+      <>
+        {folders.root.map(renderFile)}
+        
+        {/* public folder */}
+        {folders.public.length > 0 && (
+          <>
+            <button 
+              onClick={() => toggleFolder('public')}
+              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
+            >
+              {isFolderExpanded('public') ? (
+                <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              ) : (
+                <ChevronRight className="h-3 w-3 flex-shrink-0" />
+              )}
+              <Folder className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">public</span>
+            </button>
+            {isFolderExpanded('public') && (
+              <div className="ml-4 space-y-1">
+                {folders.public.map(renderFile)}
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* src folder */}
+        <button 
+          onClick={() => toggleFolder('src')}
+          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0"
+        >
+          {isFolderExpanded('src') ? (
+            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+          ) : (
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+          )}
+          <Folder className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">src</span>
+        </button>
+        
+        {isFolderExpanded('src') && (
+          <div className="ml-5 space-y-1 min-w-0">
+            {/* components folder */}
+            {folders['src/components'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/components')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/components') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">components</span>
+                </button>
+                
+                {isFolderExpanded('src/components') && (
+                  <>
+                    {folders['src/components'].map(renderFile)}
+                    
+                    {/* ui subfolder */}
+                    {folders['src/components/ui'].length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        <button 
+                          onClick={() => toggleFolder('src/components/ui')}
+                          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                        >
+                          {isFolderExpanded('src/components/ui') ? (
+                            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                          )}
+                          <Folder className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">ui</span>
+                        </button>
+                        {isFolderExpanded('src/components/ui') && folders['src/components/ui'].map(renderFile)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            
+            {/* hooks folder */}
+            {folders['src/hooks'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/hooks')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/hooks') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">hooks</span>
+                </button>
+                {isFolderExpanded('src/hooks') && folders['src/hooks'].map(renderFile)}
+              </>
+            )}
+            
+            {/* lib folder */}
+            {folders['src/lib'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/lib')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/lib') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">lib</span>
+                </button>
+                {isFolderExpanded('src/lib') && folders['src/lib'].map(renderFile)}
+              </>
+            )}
+            
+            {/* pages folder */}
+            {folders['src/pages'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/pages')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/pages') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">pages</span>
+                </button>
+                {isFolderExpanded('src/pages') && folders['src/pages'].map(renderFile)}
+              </>
+            )}
+            
+            {/* root src files */}
+            {folders.src.map(renderFile)}
+          </div>
+        )}
+      </>
+    );
+  };
 
   const handleSaveProject = async () => {
     if (!currentProject) {
@@ -300,20 +525,7 @@ function UrDevEditorPage() {
 
       let assistantContent = '';
 
-      const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
-
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
-\`\`\`
-
-Rules:
-- Always use TypeScript/TSX
-- Use Tailwind CSS for styling
-- Include proper imports
-- Generate complete, working code
-- Use the file path comment format shown above so the code can be added to the editor
-- When fixing errors, explain what was wrong and how you fixed it`;
+      const systemPrompt = ERROR_FIX_PROMPT;
 
       try {
         await streamChat({
@@ -387,6 +599,62 @@ Rules:
 
       if (isStreaming) return;
 
+      // CRITICAL FIX: Auto-generate default page.tsx if missing
+      const hasPageFile = projectFiles.some(f => f.path.includes('app/page.tsx'));
+      
+      if (!hasPageFile) {
+        console.log('🚨 NO page.tsx DETECTED - Auto-generating default page...');
+        
+        const defaultPageContent = `import React from 'react'
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
+      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">
+        <div className="mb-6">
+          <div className="text-6xl mb-4">🚀</div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">UR-DEV Live Preview</h1>
+          <p className="text-lg text-gray-600">
+            Your preview is now active and ready!
+          </p>
+        </div>
+        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-gray-700 mb-2">
+            <strong>👋 Start building:</strong>
+          </p>
+          <p className="text-sm text-gray-600">
+            Use the AI chat to create pages and components.
+            Everything renders here automatically!
+          </p>
+        </div>
+      </div>
+    </main>
+  )
+}`;
+
+        const pageFileId = generateFileId('src/app/page.tsx');
+        const newPageFile: FileItem = {
+          id: pageFileId,
+          name: 'page.tsx',
+          path: 'src/app/page.tsx',
+          language: 'tsx',
+          content: defaultPageContent.split('\n'),
+        };
+        
+        setProjectFiles(prev => [...prev, newPageFile]);
+        setFileContents(prev => ({
+          ...prev,
+          [pageFileId]: defaultPageContent
+        }));
+        
+        toast({
+          title: "Preview Fixed",
+          description: "Created default page.tsx - preview should now display",
+        });
+        
+        return; // Don't trigger AI response if we just created the file
+      }
+
       const message = `⚪ **Preview Not Rendering - Trying to Diagnose**\n\nReason detected: ${reason || 'unknown'} (files in project: ${fileCount ?? 0}).`;
 
       const statusMsg: ChatMsg = {
@@ -408,18 +676,7 @@ Rules:
 
       let assistantContent = '';
 
-      const systemPrompt = `You are UR-DEV AI, an expert coding assistant focused on making the preview render correctly.
-
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
-\`\`\`
-
-Rules:
-- Prefer fixing entry points and main page components first
-- Always use TypeScript/TSX and Tailwind CSS
-- Ensure there is a main React component rendered in the preview
-- Explain briefly what you changed to make the preview render again`;
+      const systemPrompt = BLANK_PREVIEW_PROMPT;
 
       try {
         await streamChat({
@@ -481,12 +738,12 @@ Rules:
 
     window.addEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
     return () => window.removeEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
-  }, [chatMessages, isStreaming]);
+  }, [chatMessages, isStreaming, projectFiles]);
 
-  const handleSendChat = async () => {
-    if (!assistantInput.trim() || isStreaming) return;
-    
-    const userMsg: ChatMsg = { id: `user-${Date.now()}`, role: 'user', content: assistantInput.trim() };
+  const sendChat = async (content: string) => {
+    if (!content.trim() || isStreaming) return;
+
+    const userMsg: ChatMsg = { id: `user-${Date.now()}`, role: 'user', content: content.trim() };
     setChatMessages(prev => [...prev, userMsg]);
     setAssistantInput("");
     setIsStreaming(true);
@@ -504,19 +761,7 @@ Rules:
     let assistantContent = '';
 
     // Custom system prompt for code generation
-    const systemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications.
-
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
-\`\`\`
-
-Rules:
-- Always use TypeScript/TSX
-- Use Tailwind CSS for styling
-- Include proper imports
-- Generate complete, working code
-- Use the file path comment format shown above so the code can be added to the editor`;
+    const systemPrompt = SYSTEM_PROMPT_BASE;
 
     try {
       await streamChat({
@@ -585,21 +830,38 @@ Rules:
     }
   };
 
+  const handleSendChat = () => {
+    if (!assistantInput.trim() || isStreaming) return;
+    sendChat(assistantInput.trim());
+  };
+
+  React.useEffect(() => {
+    const storedPrompt = sessionStorage.getItem('build_prompt');
+    if (storedPrompt) {
+      sessionStorage.removeItem('build_prompt');
+      sessionStorage.removeItem('build_platform');
+      // Automatically send the stored prompt as the first chat message
+      sendChat(storedPrompt);
+    }
+  }, []);
+
   // Handle code blocks from AI - create or update files
   const handleCodeFromAI = (codeBlocks: ParsedCodeBlock[]) => {
     let filesUpdated = 0;
     let filesCreated = 0;
 
     codeBlocks.forEach(block => {
-      const fileId = generateFileId(block.path);
-      const existingFile = projectFiles.find(f => f.id === fileId);
+      // Use path directly as ID for consistency with fileContents keys
+      const fileId = block.path;
+      const existingFile = projectFiles.find(f => f.path === block.path);
 
       if (existingFile) {
         // Update existing file
         setFileContents(prev => ({
           ...prev,
-          [fileId]: block.content
+          [block.path]: block.content
         }));
+        console.log('Updated file:', block.path);
         filesUpdated++;
       } else {
         // Create new file
@@ -611,16 +873,57 @@ Rules:
           content: block.content.split('\n'),
         };
         setProjectFiles(prev => [...prev, newFile]);
-        setFileContents(prev => ({
-          ...prev,
-          [fileId]: block.content
-        }));
+        setFileContents(prev => {
+          const updated = {
+            ...prev,
+            [block.path]: block.content
+          };
+          console.log('Created file:', block.path, 'Total files in fileContents:', Object.keys(updated).length);
+          return updated;
+        });
         filesCreated++;
       }
 
       // Switch to the newly created/updated file
       setActiveFileId(fileId);
     });
+
+    // Safety check: Ensure page.tsx exists for preview to work
+    const hasPageFile = codeBlocks.some(block => block.path.includes('app/page.tsx')) ||
+                        projectFiles.some(f => f.path.includes('app/page.tsx'));
+    
+    if (!hasPageFile && codeBlocks.length > 0) {
+      // If components were created but no page.tsx, create a default one
+      const pageContent = `import React from 'react'
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4">Welcome to UR-DEV</h1>
+        <p className="text-muted-foreground">
+          Your components have been created. Update this page to use them!
+        </p>
+      </div>
+    </main>
+  )
+}`;
+
+      const pageFileId = generateFileId('src/app/page.tsx');
+      const newPageFile: FileItem = {
+        id: pageFileId,
+        name: 'page.tsx',
+        path: 'src/app/page.tsx',
+        language: 'tsx',
+        content: pageContent.split('\n'),
+      };
+      setProjectFiles(prev => [...prev, newPageFile]);
+      setFileContents(prev => ({
+        ...prev,
+        [newPageFile.path]: pageContent
+      }));
+      filesCreated++;
+    }
 
     // Show toast notification
     if (filesCreated > 0 || filesUpdated > 0) {
@@ -636,44 +939,8 @@ Rules:
   };
 
   const handleStopStreaming = () => {
+    // Instantly stop the streaming without any messages
     setIsStreaming(false);
-    
-    // Add interruption message to chat
-    const lastMsg = chatMessages[chatMessages.length - 1];
-    if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('streaming-')) {
-      // Update the last streaming message to mark it as interrupted
-      setChatMessages(prev => {
-        return prev.map((m, i) => {
-          if (i === prev.length - 1) {
-            return {
-              ...m,
-              id: `msg-${Date.now()}`,
-              content: m.content + '\n\n---\n_⏸️ Generation stopped by user_'
-            };
-          }
-          return m;
-        });
-      });
-    } else if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('fixing-')) {
-      // If it was fixing an error, also mark as interrupted
-      setChatMessages(prev => {
-        return prev.map((m, i) => {
-          if (i === prev.length - 1) {
-            return {
-              ...m,
-              id: `msg-${Date.now()}`,
-              content: m.content + '\n\n---\n_⏸️ Error fix interrupted by user_'
-            };
-          }
-          return m;
-        });
-      });
-    }
-    
-    toast({
-      title: "Generation Stopped",
-      description: "AI response generation has been interrupted",
-    });
   };
 
   const handleMakePlan = async () => {
@@ -1236,77 +1503,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             
             {activeVariant === 'web' ? (
               <div className="space-y-1">
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">node_modules</span>
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">public</span>
-                </button>
-                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0">
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">src</span>
-                </button>
-
-                <div className="ml-5 space-y-1 min-w-0">
-                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                    <Folder className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">components</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("banner")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "banner"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">banner.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                </div>
-
-                <div className="ml-5 space-y-1 min-w-0">
-                  <button className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0">
-                    <Folder className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">app</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("layout")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "layout"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">layout.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFileId("page")}
-                    className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                      activeFileId === "page"
-                        ? "bg-sky-500/25 text-sky-100"
-                        : "hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">page.tsx</span>
-                    </span>
-                    <span className="text-[9px] text-slate-400 flex-shrink-0 ml-2">TSX</span>
-                  </button>
-                </div>
+                {renderFileTree()}
               </div>
             ) : (
               <div className="space-y-1">
@@ -1650,10 +1847,10 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                     {isStreaming ? (
                       <button
                         onClick={handleStopStreaming}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1.5 text-red-400 hover:bg-red-500/30 transition-all hover:bg-red-500/40 text-xs font-medium"
+                        className="h-6 w-6 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                        title="Stop"
                       >
-                        <Square className="h-3 w-3 fill-current" />
-                        Stop Generating
+                        <Square className="h-3.5 w-3.5 fill-current" />
                       </button>
                     ) : (
                       <button

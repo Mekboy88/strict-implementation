@@ -403,13 +403,79 @@ const UrDevLandingPage: React.FC = () => {
   const handleBuildClick = () => {
     requireAuth(() => {
       if (!prompt.trim()) {
-        handleUseSamplePrompt();
+        toast({
+          title: "No Request",
+          description: "Please describe what you want to build.",
+          variant: "destructive",
+        });
         return;
       }
-      setPromptStatus("Analyzing prompt with AI agents");
-      setTimeout(() => {
-        setPromptStatus("Draft layout generated – open the IDE to refine.");
-      }, 800);
+      
+      // Store the prompt in session storage to use in the editor
+      sessionStorage.setItem('build_prompt', prompt);
+      sessionStorage.setItem('build_platform', promptMode);
+      
+      toast({
+        title: "Opening Editor",
+        description: "Starting your project...",
+      });
+      
+      // Navigate to the main editor route
+      navigate("/editor");
+    });
+  };
+
+  const handleMakePlan = async () => {
+    requireAuth(async () => {
+      if (!prompt.trim()) {
+        toast({
+          title: "No Request",
+          description: "Please enter a description of what you want to build.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        toast({
+          title: "Creating Plan",
+          description: "Analyzing your request...",
+        });
+
+        const { data, error } = await supabase.functions.invoke('make-plan', {
+          body: {
+            userRequest: prompt
+          }
+        });
+
+        if (error) {
+          console.error('Error calling make-plan function:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create plan. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('Plan generated:', data);
+        
+        toast({
+          title: "Plan Created",
+          description: `Generated ${data.tasks?.length || 0} actionable tasks!`,
+        });
+
+        // Open the platform selector with the generated plan
+        setShowPlatformSelector(true);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
     });
   };
 
@@ -699,6 +765,12 @@ const UrDevLandingPage: React.FC = () => {
                           setPromptStatus("Draft");
                         }
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleBuildClick();
+                        }
+                      }}
                       placeholder={user ? "Hey UR-Dev, let's go!" : "Sign in to start building..."}
                       spellCheck={true}
                       className="w-full bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none px-0 py-1 selection:bg-sky-500/40 selection:text-white overflow-y-auto scrollbar-white"
@@ -729,7 +801,7 @@ const UrDevLandingPage: React.FC = () => {
                         <span>Integration</span>
                       </button>
                       <button 
-                        onClick={() => requireAuth(() => setShowPlatformSelector(true))}
+                        onClick={handleMakePlan}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
                       >
                         <ListTodo className="h-3 w-3" />
