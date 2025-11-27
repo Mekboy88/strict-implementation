@@ -253,6 +253,7 @@ function UrDevEditorPage() {
       root: [],
       public: [],
       src: [],
+      'src/app': [],
       'src/components': [],
       'src/components/ui': [],
       'src/hooks': [],
@@ -836,8 +837,9 @@ export default function Page() {
     let filesCreated = 0;
 
     codeBlocks.forEach(block => {
-      const fileId = generateFileId(block.path);
-      const existingFile = projectFiles.find(f => f.id === fileId);
+      // Use path directly as ID for consistency with fileContents keys
+      const fileId = block.path;
+      const existingFile = projectFiles.find(f => f.path === block.path);
 
       if (existingFile) {
         // Update existing file
