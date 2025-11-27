@@ -154,7 +154,7 @@ export function bundleForPreview(
       result = result.replace(/<\/\w+>/g, ')');
     }
 
-    // Post-processing: wrap simple text children in quotes so the JS stays valid.
+    // Post-processing step 1: wrap simple text children in quotes so the JS stays valid.
     // We only touch calls where the third argument is a plain text node.
     result = result.replace(
       /React\.createElement\(([^,]+),\s*([^,]+),\s*([^)]*)\)/g,
@@ -183,7 +183,18 @@ export function bundleForPreview(
       }
     );
 
-    // Post-processing: ensure sibling React.createElement calls inside the
+    // Post-processing step 2: unwrap JSX-style expression children {expr} into expr.
+    // Example: React.createElement('h3', null, {car.name}) -> React.createElement('h3', null, car.name)
+    result = result.replace(
+      /React\.createElement\(([^,]+),\s*([^,]+),\s*\{([^}]*)\}\s*\)/g,
+      (match, type, props, expr) => {
+        const inner = expr.trim();
+        if (!inner) return match;
+        return `React.createElement(${type}, ${props}, ${inner})`;
+      }
+    );
+
+    // Post-processing step 3: ensure sibling React.createElement calls inside the
     // same parent call are separated by commas so the JS is valid.
     result = result.replace(/\)\s+(React\.createElement)/g, ', $1');
 
