@@ -114,13 +114,27 @@ const AdminSecurity = () => {
   }, [navigate]);
 
   const loadSecurityData = async () => {
-    // Load audit logs
-    const { data: audits } = await supabase
-      .from('security_audit')
+    // Load activity logs (using activity_logs table which has the actual data)
+    const { data: activities } = await supabase
+      .from('activity_logs')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
-    if (audits) setAuditLogs(audits);
+    
+    // Map activity_logs to security audit format
+    if (activities) {
+      const mappedAudits = activities.map(activity => ({
+        id: activity.id,
+        created_at: activity.created_at,
+        user_id: activity.user_id || '',
+        action: activity.action,
+        resource_type: activity.entity_type,
+        resource_id: activity.entity_id,
+        ip_address: activity.ip_address,
+        changes: activity.metadata
+      }));
+      setAuditLogs(mappedAudits);
+    }
 
     // Load security events
     const { data: events } = await supabase
@@ -344,7 +358,8 @@ const AdminSecurity = () => {
             {adminAlerts.length === 0 ? (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600 p-8 text-center">
                 <Shield className="w-12 h-12 mx-auto mb-4 text-green-400" />
-                <p className="text-white">No active security alerts</p>
+                <p className="text-white font-semibold mb-2">No active security alerts</p>
+                <p className="text-sm text-neutral-400">All systems secure. Alerts will appear here when critical security issues are detected.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -413,7 +428,8 @@ const AdminSecurity = () => {
             {auditLogs.length === 0 ? (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600 p-8 text-center">
                 <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-white">No audit logs found</p>
+                <p className="text-white font-semibold mb-2">No audit logs found</p>
+                <p className="text-sm text-neutral-400">Administrative actions will be logged here for security tracking.</p>
               </div>
             ) : (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600">
@@ -459,7 +475,8 @@ const AdminSecurity = () => {
             {securityEvents.length === 0 ? (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600 p-8 text-center">
                 <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-white">No security events recorded</p>
+                <p className="text-white font-semibold mb-2">No security events recorded</p>
+                <p className="text-sm text-neutral-400">Login attempts, failed authentications, and suspicious activities will appear here when they occur.</p>
               </div>
             ) : (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600">
@@ -572,7 +589,8 @@ const AdminSecurity = () => {
             {securityBlocks.length === 0 ? (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600 p-8 text-center">
                 <Shield className="w-12 h-12 mx-auto mb-4 text-green-400" />
-                <p className="text-white">No active security blocks</p>
+                <p className="text-white font-semibold mb-2">No active security blocks</p>
+                <p className="text-sm text-neutral-400">IPs and users you block will appear here. Use the form above to add blocks.</p>
               </div>
             ) : (
               <div className="rounded-lg border bg-neutral-700 border-neutral-600">
