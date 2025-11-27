@@ -38,7 +38,24 @@ const Index = () => {
 
 export default Index;`
   },
-  
+  {
+    id: 'app-page',
+    name: 'page.tsx',
+    path: 'src/app/page.tsx',
+    language: 'tsx',
+    required: true,
+    content: `import { Hero } from "@/components/Hero";
+import { Header } from "@/components/ui/Header";
+
+export default function Page() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Hero />
+    </div>
+  );
+}`
+  },
   {
     id: 'not-found',
     name: 'NotFound.tsx',
