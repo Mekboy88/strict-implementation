@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
-
+import { convertJSXToHTML } from '@/utils/preview/jsxToHtmlConverter';
 interface LivePreviewProps {
   files: { [key: string]: string };
   activeFileId: string;
@@ -27,9 +27,14 @@ export default function LivePreview({ files }: LivePreviewProps) {
     const [filePath, fileContent] = mainEntry;
 
     try {
-      const innerHtml = extractStaticHtmlFromReactComponent(fileContent);
-      const previewHtml = generatePreviewHtml(innerHtml, filePath);
+      const { html, success, error } = convertJSXToHTML(fileContent, filePath);
 
+      if (!success) {
+        throw new Error(error || 'Failed to convert JSX to HTML');
+      }
+
+      const innerHtml = html;
+      const previewHtml = generatePreviewHtml(innerHtml, filePath);
       console.log('🎯 Static Preview Generated (no JS eval):', {
         file: filePath,
         htmlLength: innerHtml.length,
