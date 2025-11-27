@@ -48,6 +48,7 @@ import { ProjectDialog } from "@/components/ProjectDialog";
 import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
+import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles } from "@/utils/projectInitializer";
 
 
 interface FileItem {
@@ -58,42 +59,13 @@ interface FileItem {
   content: string[];
 }
 
-const defaultFiles: FileItem[] = [
-  {
-    id: "page",
-    name: "page.tsx",
-    path: "src/app/page.tsx",
-    language: "tsx",
-    content: [
-      "import React from 'react'",
-      "",
-      "export default function Page() {",
-      "  return (",
-      '    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">',
-      '      <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-12 text-center">',
-      '        <div className="mb-6">',
-      '          <div className="text-6xl mb-4">🚀</div>',
-      '          <h1 className="text-4xl font-bold text-gray-800 mb-3">Welcome to UR-DEV</h1>',
-      '          <p className="text-lg text-gray-600">',
-      "            Your AI-powered development environment is ready!",
-      '          </p>',
-      '        </div>',
-      '        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">',
-      '          <p className="text-sm text-gray-700 mb-2">',
-      '            <strong>👋 Start building:</strong>',
-      '          </p>',
-      '          <p className="text-sm text-gray-600">',
-      '            Use the AI chat below to create pages, components, and features.',
-      '            The Live Preview will update automatically!',
-      '          </p>',
-      '        </div>',
-      '      </div>',
-      '    </main>',
-      "  )",
-      "}",
-    ],
-  },
-];
+const defaultFiles: FileItem[] = CORE_PROJECT_FILES.map(coreFile => ({
+  id: coreFile.id,
+  name: coreFile.name,
+  path: coreFile.path,
+  language: coreFile.language,
+  content: coreFile.content.split('\n'),
+})).filter(f => f.path.endsWith('.tsx') || f.path.endsWith('.ts'));
 
 function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
@@ -209,6 +181,47 @@ function UrDevEditorPage() {
       }
     }
   }, [currentProject, convertProjectFilesToEditor]);
+
+  // 🚨 CRITICAL: Auto-initialize missing core files
+  useEffect(() => {
+    const missingFiles = getMissingCoreFiles(projectFiles);
+    
+    if (missingFiles.length > 0) {
+      console.log(`🔧 Auto-creating ${missingFiles.length} missing core files...`);
+      
+      missingFiles.forEach(coreFile => {
+        const fileId = generateFileId(coreFile.path);
+        const newFile: FileItem = {
+          id: fileId,
+          name: coreFile.name,
+          path: coreFile.path,
+          language: coreFile.language,
+          content: coreFile.content.split('\n'),
+        };
+        
+        setProjectFiles(prev => {
+          // Don't add if already exists
+          if (prev.some(f => f.path === coreFile.path)) return prev;
+          return [...prev, newFile];
+        });
+        
+        setFileContents(prev => {
+          if (prev[fileId]) return prev;
+          return {
+            ...prev,
+            [fileId]: coreFile.content
+          };
+        });
+      });
+      
+      if (missingFiles.length > 0) {
+        toast({
+          title: "Core Files Initialized",
+          description: `Auto-created ${missingFiles.length} essential files for preview stability`,
+        });
+      }
+    }
+  }, [projectFiles]);
 
   const handleSaveProject = async () => {
     if (!currentProject) {
