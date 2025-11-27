@@ -1122,25 +1122,23 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                    className={`w-full ${
                       msg.role === 'user'
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-neutral-800 border border-white/10 text-slate-200'
+                        ? 'bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
+                        : ''
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap text-slate-200">{msg.content}</p>
                   </div>
                 </div>
               ))}
               {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
                 <div className="flex gap-3 justify-start">
-                  <div className="w-7 h-7 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
                     <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
                   </div>
-                  <div className="bg-neutral-800 border border-white/10 rounded-2xl px-4 py-3">
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <span>Thinking...</span>
-                    </div>
+                  <div className="w-full">
+                    <div className="text-slate-400 text-sm">Thinking...</div>
                   </div>
                 </div>
               )}
