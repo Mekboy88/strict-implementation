@@ -29,10 +29,11 @@ export default function LivePreview({ files }: LivePreviewProps) {
       return;
     }
 
-    // Find main entry point
-    const mainFile = reactFiles.find(([path]) => 
-      path.includes('App.tsx') || path.includes('page.tsx') || path.includes('Index.tsx')
-    ) || reactFiles[0];
+    // Find main entry point (prefer simple pages, avoid Index.tsx IDE file)
+    const mainFile = reactFiles.find(([path]) => path === 'src/app/page.tsx') ||
+                     reactFiles.find(([path]) => path.includes('App.tsx') && !path.includes('/pages/')) ||
+                     reactFiles.find(([path]) => !path.includes('/pages/Index.tsx')) ||
+                     reactFiles[0];
 
     const [filePath, fileContent] = mainFile;
 
