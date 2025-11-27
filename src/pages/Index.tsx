@@ -847,6 +847,7 @@ export default function Page() {
           ...prev,
           [block.path]: block.content
         }));
+        console.log('Updated file:', block.path);
         filesUpdated++;
       } else {
         // Create new file
@@ -858,10 +859,14 @@ export default function Page() {
           content: block.content.split('\n'),
         };
         setProjectFiles(prev => [...prev, newFile]);
-        setFileContents(prev => ({
-          ...prev,
-          [block.path]: block.content
-        }));
+        setFileContents(prev => {
+          const updated = {
+            ...prev,
+            [block.path]: block.content
+          };
+          console.log('Created file:', block.path, 'Total files in fileContents:', Object.keys(updated).length);
+          return updated;
+        });
         filesCreated++;
       }
 

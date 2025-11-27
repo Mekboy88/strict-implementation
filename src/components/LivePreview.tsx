@@ -41,6 +41,9 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     const doc = iframeRef.current.contentDocument;
     if (!doc) return;
 
+    // DEBUG: Log what files we received
+    console.log('LivePreview received files:', Object.keys(files));
+
     // Filter to only include React component files for preview
     const reactFiles = Object.fromEntries(
       Object.entries(files).filter(([path]) => 
@@ -55,6 +58,8 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       )
     );
 
+    console.log('LivePreview filtered to React files:', Object.keys(reactFiles));
+
     // Sort files by dependency (components before pages)
     const sortedFiles = sortFilesByDependency(reactFiles);
     
@@ -67,6 +72,8 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     // Detect the main component to render
     const mainComponent = detectMainComponent(reactFiles);
     const mainComponentName = mainComponent ?? "";
+    
+    console.log('LivePreview detected main component:', mainComponentName);
 
     // Create HTML document with React app
     const htmlContent = `
