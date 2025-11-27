@@ -308,23 +308,25 @@ IMPORTANT CONTEXT:
 - Users DO NOT need to run localhost or any local development server
 - NEVER suggest opening localhost:3000 or running npm/yarn commands unless the user specifically asks about running the app outside UR-DEV
 
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
+🚨 CRITICAL FILE PATH FORMAT 🚨
+When generating code, you MUST include the file path as a comment on the FIRST LINE after the opening backticks.
+
+REQUIRED FORMAT:
+\`\`\`tsx // src/app/page.tsx
+export default function Page() {
+  return <div>Hello</div>
+}
 \`\`\`
 
-CRITICAL PREVIEW RULES:
-- When the user asks to build or fix UI/pages, you MUST return at least one TSX code block
-- ALWAYS include or update a main entry component at src/app/page.tsx with a default-exported React component
-- Do not reply with only text when the user expects visible changes; include TSX code so the preview can render
+MANDATORY RULES FOR FIXING ERRORS:
+1. ALWAYS include file path in EVERY code block
+2. Generate COMPLETE file content, not partial snippets
+3. Use React + TypeScript + Tailwind CSS
+4. Include all necessary imports
+5. Explain what was wrong and how you fixed it
+6. Ensure src/app/page.tsx has a default export
 
-General Rules:
-- Always use TypeScript/TSX
-- Use Tailwind CSS for styling
-- Include proper imports
-- Generate complete, working code
-- Use the file path comment format shown above so the code can be added to the editor
-- When fixing errors, explain what was wrong and how you fixed it`;
+When fixing errors, provide complete working code with file paths!`;
 
       try {
         await streamChat({
@@ -427,21 +429,25 @@ IMPORTANT CONTEXT:
 - Users DO NOT need to run localhost or any local development server
 - NEVER suggest opening localhost:3000 or running npm/yarn commands unless specifically asked
 
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
+🚨 CRITICAL FILE PATH FORMAT 🚨
+When generating code, you MUST include the file path as a comment on the FIRST LINE after the opening backticks.
+
+REQUIRED FORMAT:
+\`\`\`tsx // src/app/page.tsx
+export default function Page() {
+  return <div>Content</div>
+}
 \`\`\`
 
-CRITICAL PREVIEW RULES:
-- When fixing a blank or broken preview, you MUST return TSX code, not just explanations
-- ALWAYS ensure there is a valid default export at src/app/page.tsx that can be rendered
-- Prefer minimal, working UI that guarantees something visible in the preview
+MANDATORY RULES FOR BLANK PREVIEW:
+1. ALWAYS include file path in EVERY code block
+2. Generate COMPLETE working code, not explanations
+3. ALWAYS ensure src/app/page.tsx exists with a default export
+4. Prefer minimal, working UI that guarantees something visible
+5. Use React + TypeScript + Tailwind CSS
+6. Include all necessary imports
 
-Rules:
-- Prefer fixing entry points and main page components first
-- Always use TypeScript/TSX and Tailwind CSS
-- Ensure there is a main React component rendered in the preview
-- Explain briefly what you changed to make the preview render again`;
+When preview is blank, provide simple working code to get something on screen!`;
 
       try {
         await streamChat({
@@ -534,22 +540,90 @@ IMPORTANT CONTEXT:
 - Users DO NOT need to run localhost:3000, npm start, or any local development server
 - NEVER suggest opening localhost or running build commands unless the user specifically asks about deploying or running the app outside UR-DEV
 
-When generating code, ALWAYS include the file path in this format:
-\`\`\`tsx // src/components/ComponentName.tsx
-// your code here
+🚨 CRITICAL FILE PATH FORMAT 🚨
+When generating code, you MUST include the file path as a comment on the FIRST LINE after the opening backticks.
+
+REQUIRED FORMAT (choose ONE):
+\`\`\`tsx // src/app/page.tsx
+export default function Page() {
+  return <div>Hello</div>
+}
 \`\`\`
 
-CRITICAL PREVIEW RULES:
-- Whenever the user asks to build or change pages/components, you MUST include TSX code blocks
-- ALWAYS include or update a main entry at src/app/page.tsx with a default-exported React component so the preview can render
-- Do not respond with only prose when the user expects the app UI to change; include TSX files so the IDE can create/update them
+OR:
 
-General Rules:
-- Always use TypeScript/TSX
-- Use Tailwind CSS for styling
-- Include proper imports
-- Generate complete, working code
-- Use the file path comment format shown above so the code can be added to the editor`;
+\`\`\`tsx filename="src/app/page.tsx"
+export default function Page() {
+  return <div>Hello</div>
+}
+\`\`\`
+
+OR:
+
+\`\`\`tsx path="src/app/page.tsx"
+export default function Page() {
+  return <div>Hello</div>
+}
+\`\`\`
+
+MANDATORY RULES FOR PREVIEW TO WORK:
+1. ALWAYS include file path in EVERY code block (as shown above)
+2. ALWAYS create or update src/app/page.tsx with a default export
+3. Use React functional components with TypeScript
+4. Use Tailwind CSS for all styling
+5. Include all necessary imports
+6. Generate COMPLETE working code, not partial snippets
+7. When user asks to "build" or "create" something, return multiple code blocks for different files if needed
+
+EXAMPLE COMPLETE RESPONSE:
+User: "Create a marketplace homepage"
+Your response should include:
+
+Here's your marketplace homepage:
+
+\`\`\`tsx // src/app/page.tsx
+import React from 'react'
+import { ProductCard } from '../components/ProductCard'
+
+export default function Page() {
+  const products = [
+    { id: 1, name: 'Product 1', price: 29.99, image: 'https://placehold.co/400x300' },
+    { id: 2, name: 'Product 2', price: 39.99, image: 'https://placehold.co/400x300' }
+  ]
+  
+  return (
+    <main className="min-h-screen bg-gray-50 p-8">
+      <h1 className="text-4xl font-bold mb-8">Marketplace</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {products.map(p => <ProductCard key={p.id} product={p} />)}
+      </div>
+    </main>
+  )
+}
+\`\`\`
+
+\`\`\`tsx // src/components/ProductCard.tsx
+import React from 'react'
+
+interface Product {
+  id: number
+  name: string
+  price: number
+  image: string
+}
+
+export function ProductCard({ product }: { product: Product }) {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded" />
+      <h3 className="text-lg font-semibold mt-2">{product.name}</h3>
+      <p className="text-gray-600">\${product.price}</p>
+    </div>
+  )
+}
+\`\`\`
+
+NEVER respond with just explanations when user asks to build something - ALWAYS include code blocks with file paths!`;
 
     try {
       await streamChat({
@@ -654,6 +728,43 @@ General Rules:
       // Switch to the newly created/updated file
       setActiveFileId(fileId);
     });
+
+    // Safety check: Ensure page.tsx exists for preview to work
+    const hasPageFile = codeBlocks.some(block => block.path.includes('app/page.tsx')) ||
+                        projectFiles.some(f => f.path.includes('app/page.tsx'));
+    
+    if (!hasPageFile && codeBlocks.length > 0) {
+      // If components were created but no page.tsx, create a default one
+      const pageContent = `import React from 'react'
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4">Welcome to UR-DEV</h1>
+        <p className="text-muted-foreground">
+          Your components have been created. Update this page to use them!
+        </p>
+      </div>
+    </main>
+  )
+}`;
+
+      const pageFileId = generateFileId('src/app/page.tsx');
+      const newPageFile: FileItem = {
+        id: pageFileId,
+        name: 'page.tsx',
+        path: 'src/app/page.tsx',
+        language: 'tsx',
+        content: pageContent.split('\n'),
+      };
+      setProjectFiles(prev => [...prev, newPageFile]);
+      setFileContents(prev => ({
+        ...prev,
+        [pageFileId]: pageContent
+      }));
+      filesCreated++;
+    }
 
     // Show toast notification
     if (filesCreated > 0 || filesUpdated > 0) {
