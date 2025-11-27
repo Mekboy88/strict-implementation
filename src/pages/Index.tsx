@@ -533,6 +533,43 @@ Rules:
 
   const handleStopStreaming = () => {
     setIsStreaming(false);
+    
+    // Add interruption message to chat
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('streaming-')) {
+      // Update the last streaming message to mark it as interrupted
+      setChatMessages(prev => {
+        return prev.map((m, i) => {
+          if (i === prev.length - 1) {
+            return {
+              ...m,
+              id: `msg-${Date.now()}`,
+              content: m.content + '\n\n---\n_⏸️ Generation stopped by user_'
+            };
+          }
+          return m;
+        });
+      });
+    } else if (lastMsg?.role === 'assistant' && lastMsg.id.startsWith('fixing-')) {
+      // If it was fixing an error, also mark as interrupted
+      setChatMessages(prev => {
+        return prev.map((m, i) => {
+          if (i === prev.length - 1) {
+            return {
+              ...m,
+              id: `msg-${Date.now()}`,
+              content: m.content + '\n\n---\n_⏸️ Error fix interrupted by user_'
+            };
+          }
+          return m;
+        });
+      });
+    }
+    
+    toast({
+      title: "Generation Stopped",
+      description: "AI response generation has been interrupted",
+    });
   };
 
   const handleMakePlan = async () => {
@@ -1509,10 +1546,10 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                     {isStreaming ? (
                       <button
                         onClick={handleStopStreaming}
-                        className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-3 py-1 text-red-400 hover:bg-red-500/30 text-xs"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1.5 text-red-400 hover:bg-red-500/30 transition-all hover:bg-red-500/40 text-xs font-medium"
                       >
                         <Square className="h-3 w-3 fill-current" />
-                        Stop
+                        Stop Generating
                       </button>
                     ) : (
                       <button
