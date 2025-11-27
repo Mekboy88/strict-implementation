@@ -38,9 +38,19 @@ const FileTree = ({ activePlatform, onPlatformChange }: FileTreeProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Initialize project on mount
+  // Initialize project on mount and watch for file changes
   useEffect(() => {
     initializeProject();
+  }, [initializeProject]);
+
+  // Force re-render when files change
+  const [, forceUpdate] = useState({});
+  useEffect(() => {
+    // Subscribe to file system changes
+    const interval = setInterval(() => {
+      forceUpdate({});
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
   const fileIcons = {
