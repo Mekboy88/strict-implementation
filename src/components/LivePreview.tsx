@@ -43,9 +43,18 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="typescript,react">
+  <script type="text/babel" data-presets="env,react,typescript">
     const { createElement: h, Fragment } = React;
     const { createRoot } = ReactDOM;
+
+    // Global error handler to surface issues in the preview iframe
+    window.addEventListener('error', (event) => {
+      const root = document.getElementById('root');
+      if (root) {
+        root.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c; font-family: monospace; white-space: pre-wrap;">' +
+          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') + '</div>';
+      }
+    });
 
     try {
       ${Object.values(files).join('\n\n')}
@@ -63,8 +72,8 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
       createRoot(document.getElementById('root')).render(h(App));
     } catch (error) {
       document.getElementById('root').innerHTML = 
-        '<div style="padding: 2rem; color: #ef4444; font-family: monospace;">' +
-        '<strong>Error:</strong><br/>' + error.message + '</div>';
+        '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap;">' +
+        '<strong>Error:</strong> ' + (error && error.message ? error.message : 'Unknown error') + '</div>';
     }
   </script>
 </body>
