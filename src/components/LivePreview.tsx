@@ -43,7 +43,7 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel">
+  <script type="text/babel" data-presets="typescript,react">
     const { createElement: h, Fragment } = React;
     const { createRoot } = ReactDOM;
 
