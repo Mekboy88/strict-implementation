@@ -132,7 +132,14 @@ function generateBundledPreview(bundledCode: string): string {
         <style>${PREVIEW_STYLES}</style>
       </head>
       <body>
-        <div id="root"></div>
+        <div id="root">
+          <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:linear-gradient(135deg,#0f172a,#020617);color:white;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:center;">
+            <div style="max-width:520px;width:100%;">
+              <h1 style="font-size:2rem;font-weight:700;margin-bottom:0.5rem;">UR-DEV Preview Wallpaper</h1>
+              <p style="font-size:0.9rem;opacity:0.8;">This background is always visible. When the preview app builds correctly it will replace this wallpaper inside the frame.</p>
+            </div>
+          </main>
+        </div>
         <script>
           // Catch any early errors
           window.onerror = function(msg, url, line, col, error) {
