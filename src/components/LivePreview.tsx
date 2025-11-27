@@ -9,7 +9,7 @@ interface LivePreviewProps {
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
 
-const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
+const LivePreview = ({ files }: LivePreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [key, setKey] = useState(0);
@@ -34,6 +34,7 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
 
     // Detect the main component to render
     const mainComponent = detectMainComponent(files);
+    const mainComponentName = mainComponent ?? "";
 
     // Create HTML document with React app
     const htmlContent = `
@@ -62,26 +63,28 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
       const root = document.getElementById('root');
       if (root) {
         root.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c; font-family: monospace; white-space: pre-wrap;">' +
-          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') + 
+          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') +
           '<br/><br/>' + (event.filename ? 'File: ' + event.filename + ':' + event.lineno : '') + '</div>';
       }
     });
 
     try {
       // All transformed code
-      ${transformedFiles.join('\n\n')}
+      ${transformedFiles.join("\n\n")}
 
       // Render the detected main component
-      const RootComponent = ${mainComponent ? `typeof ${mainComponent} !== 'undefined' ? ${mainComponent}` : 'null'} || 
-                  (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
-                    h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
-                    h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } }, 
-                      'No Component Found'),
-                    h('p', { style: { color: '#6b7280', marginBottom: '1rem' } }, 
-                      'Could not detect a React component to render.'),
-                    h('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } }, 
-                      'Make sure your code exports a React component.')
-                  ));
+      const MAIN_COMPONENT_NAME = ${JSON.stringify(mainComponentName)};
+      const RootComponent = MAIN_COMPONENT_NAME && typeof window[MAIN_COMPONENT_NAME] === 'function'
+        ? window[MAIN_COMPONENT_NAME]
+        : (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
+            h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
+            h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } },
+              'No Component Found'),
+            h('p', { style: { color: '#6b7280', marginBottom: '1rem' } },
+              'Could not detect a React component to render.'),
+            h('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } },
+              'Make sure your code exports a React component.')
+          ));
 
       const root = document.getElementById('root');
       if (root && typeof RootComponent === 'function') {
@@ -91,12 +94,15 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
       }
     } catch (error) {
       console.error('Preview error:', error);
-      document.getElementById('root').innerHTML = 
-        '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap; max-width: 800px;">' +
-        '<strong style="font-size: 1.25rem;">Compilation Error</strong><br/><br/>' + 
-        (error && error.message ? error.message : 'Unknown error') + 
-        (error && error.stack ? '<br/><br/><details><summary style="cursor: pointer;">Stack trace</summary><pre style="margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px; overflow-x: auto;">' + error.stack + '</pre></details>' : '') +
-        '</div>';
+      const root = document.getElementById('root');
+      if (root) {
+        root.innerHTML =
+          '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap; max-width: 800px;">' +
+          '<strong style="font-size: 1.25rem;">Compilation Error</strong><br/><br/>' +
+          (error && error.message ? error.message : 'Unknown error') +
+          (error && error.stack ? '<br/><br/><details><summary style="cursor: pointer;">Stack trace</summary><pre style="margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px; overflow-x: auto;">' + error.stack + '</pre></details>' : '') +
+          '</div>';
+      }
     }
   </script>
 </body>
@@ -109,7 +115,7 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
   }, [files, key]);
 
   const handleRefresh = () => {
-    setKey(prev => prev + 1);
+    setKey((prev) => prev + 1);
   };
 
   const currentSize = deviceSizes[deviceMode];
@@ -123,15 +129,15 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
           <span className="text-xs text-slate-500">•</span>
           <span className="text-xs text-slate-500">Auto-refresh on save</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Device mode selector */}
           <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
             <button
               onClick={() => setDeviceMode("desktop")}
               className={`p-1.5 rounded transition-colors ${
-                deviceMode === "desktop" 
-                  ? "bg-white/10 text-sky-400" 
+                deviceMode === "desktop"
+                  ? "bg-white/10 text-sky-400"
                   : "text-slate-400 hover:text-slate-300"
               }`}
               title="Desktop view"
@@ -141,8 +147,8 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
             <button
               onClick={() => setDeviceMode("tablet")}
               className={`p-1.5 rounded transition-colors ${
-                deviceMode === "tablet" 
-                  ? "bg-white/10 text-sky-400" 
+                deviceMode === "tablet"
+                  ? "bg-white/10 text-sky-400"
                   : "text-slate-400 hover:text-slate-300"
               }`}
               title="Tablet view"
@@ -152,8 +158,8 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
             <button
               onClick={() => setDeviceMode("mobile")}
               className={`p-1.5 rounded transition-colors ${
-                deviceMode === "mobile" 
-                  ? "bg-white/10 text-sky-400" 
+                deviceMode === "mobile"
+                  ? "bg-white/10 text-sky-400"
                   : "text-slate-400 hover:text-slate-300"
               }`}
               title="Mobile view"
