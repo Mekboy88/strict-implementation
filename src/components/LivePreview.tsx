@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
+import { convertJSXToHTML } from '@/utils/preview/jsxToHtmlConverter';
 import { bundleForPreview } from '@/utils/preview/bundler';
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -42,6 +43,20 @@ export default function LivePreview({ files }: LivePreviewProps) {
     });
 
     try {
+      const source = filesForPreview[entryPath];
+      // First, try static JSX → HTML conversion (most reliable)
+      const conversion = convertJSXToHTML(source, entryPath);
+
+      if (conversion.success && conversion.html.trim()) {
+        console.log('✅ Static JSX→HTML preview used');
+        const htmlDoc = generatePreviewHtml(conversion.html, entryPath);
+        iframeRef.current.srcdoc = htmlDoc;
+        return;
+      } else {
+        console.warn('⚠️ JSX→HTML conversion failed, falling back to JS bundler', conversion.error);
+      }
+
+      // Fallback: JS bundler + inline React runtime
       const bundledCode = bundleForPreview(filesForPreview, entryPath);
       console.log('🧩 Bundled code snippet:', bundledCode.slice(0, 400));
       const previewHtml = generateBundledPreview(bundledCode);
