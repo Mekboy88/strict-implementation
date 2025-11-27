@@ -310,6 +310,11 @@ const UrDevLandingPage: React.FC = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear admin session
+      sessionStorage.removeItem("admin_authenticated");
+      setIsAdmin(false);
+      
       toast({
         title: "Success",
         description: "Logged out successfully",
