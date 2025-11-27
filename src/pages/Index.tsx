@@ -72,7 +72,7 @@ const defaultFiles: FileItem[] = CORE_PROJECT_FILES.map(coreFile => ({
 function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
   for (const file of files) {
-    map[file.id] = file.content.join("\n");
+    map[file.path] = file.content.join("\n");
   }
   return map;
 }
@@ -843,7 +843,7 @@ export default function Page() {
         // Update existing file
         setFileContents(prev => ({
           ...prev,
-          [fileId]: block.content
+          [block.path]: block.content
         }));
         filesUpdated++;
       } else {
@@ -858,7 +858,7 @@ export default function Page() {
         setProjectFiles(prev => [...prev, newFile]);
         setFileContents(prev => ({
           ...prev,
-          [fileId]: block.content
+          [block.path]: block.content
         }));
         filesCreated++;
       }
@@ -899,7 +899,7 @@ export default function Page() {
       setProjectFiles(prev => [...prev, newPageFile]);
       setFileContents(prev => ({
         ...prev,
-        [pageFileId]: pageContent
+        [newPageFile.path]: pageContent
       }));
       filesCreated++;
     }
