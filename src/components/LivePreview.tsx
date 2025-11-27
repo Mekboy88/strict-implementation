@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
-import { convertJSXToHTML } from '@/utils/preview/jsxToHtmlConverter';
+import { bundleForPreview } from '@/utils/preview/bundler';
 interface LivePreviewProps {
   files: { [key: string]: string };
   activeFileId: string;
@@ -27,15 +27,16 @@ export default function LivePreview({ files }: LivePreviewProps) {
 
     const [filePath, fileContent] = mainEntry;
     
-    console.log('🔍 Building live preview with runtime:', {
+    console.log('🔍 Bundling app for preview:', {
       file: filePath,
-      contentLength: fileContent.length,
+      totalFiles: Object.keys(files).length,
     });
 
     try {
-      // Use runtime preview that can execute JavaScript and render components
-      const previewHtml = generateRuntimePreview(fileContent, files);
-      console.log('✅ Runtime Preview Generated');
+      // Bundle all components together and transform to executable JS
+      const bundledCode = bundleForPreview(files, filePath);
+      const previewHtml = generateBundledPreview(bundledCode);
+      console.log('✅ Bundled Preview Generated');
       iframeRef.current.srcdoc = previewHtml;
     } catch (error) {
       console.error('❌ Preview Error:', error);
@@ -104,56 +105,9 @@ export default function LivePreview({ files }: LivePreviewProps) {
   );
 }
 
-// --- Runtime Preview Generator ---------------------------------------------------------------
+// --- Bundled Preview Generator ---------------------------------------------------------------
 
-function generateRuntimePreview(pageCode: string, allFiles: { [key: string]: string }): string {
-  // Transform JSX to executable JavaScript that uses the mini React runtime
-  let transformedCode = pageCode;
-  
-  // Remove imports (we'll inline everything)
-  transformedCode = transformedCode.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
-  
-  // Replace export default with assignment
-  transformedCode = transformedCode.replace(/export\s+default\s+function\s+(\w+)/, 'function $1');
-  transformedCode = transformedCode.replace(/export\s+default\s+/, 'const App = ');
-  
-  // Simple JSX transform: <tag> -> React.createElement('tag',
-  // This is a basic transform - handles most common cases
-  let previousCode = '';
-  let iterations = 0;
-  
-  while (transformedCode !== previousCode && iterations < 30) {
-    previousCode = transformedCode;
-    iterations++;
-    
-    // Self-closing tags: <div className="x" /> -> React.createElement('div', {className:'x'})
-    transformedCode = transformedCode.replace(
-      /<(\w+)\s+([^>\/]*?)\s*\/>/g,
-      (_, tag, attrs) => {
-        const props = parseAttrsForRuntime(attrs);
-        return `React.createElement('${tag}', ${props})`;
-      }
-    );
-    
-    // Opening tags: <div className="x"> -> React.createElement('div', {className:'x'},
-    transformedCode = transformedCode.replace(
-      /<(\w+)\s+([^>]*?)>/g,
-      (_, tag, attrs) => {
-        const props = parseAttrsForRuntime(attrs);
-        return `React.createElement('${tag}', ${props}, `;
-      }
-    );
-    
-    // Empty opening tags: <div> -> React.createElement('div', null,
-    transformedCode = transformedCode.replace(
-      /<(\w+)>/g,
-      (_, tag) => `React.createElement('${tag}', null, `
-    );
-    
-    // Closing tags: </div> -> )
-    transformedCode = transformedCode.replace(/<\/\w+>/g, ')');
-  }
-  
+function generateBundledPreview(bundledCode: string): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -165,95 +119,116 @@ function generateRuntimePreview(pageCode: string, allFiles: { [key: string]: str
 <body>
   <div id="root"></div>
   <script>
-    ${PREVIEW_STYLES_RUNTIME}
-    
-    // Mini React runtime
+    // Enhanced React runtime with better component support
     window.React = {
       createElement(type, props, ...children) {
-        return { type, props: props || {}, children: children.flat().filter(c => c != null) };
+        const flatChildren = children.flat().filter(c => c != null && c !== false);
+        return { type, props: props || {}, children: flatChildren };
       }
     };
     
     function renderVNode(vnode) {
-      if (vnode == null || typeof vnode === 'boolean') return document.createTextNode('');
-      if (typeof vnode === 'string' || typeof vnode === 'number') return document.createTextNode(String(vnode));
-      if (Array.isArray(vnode)) {
-        const frag = document.createDocumentFragment();
-        vnode.forEach(child => frag.appendChild(renderVNode(child)));
-        return frag;
-      }
-      if (typeof vnode.type === 'function') {
-        const props = { ...vnode.props, children: vnode.children };
-        return renderVNode(vnode.type(props));
+      // Handle null, undefined, false
+      if (vnode == null || vnode === false) {
+        return document.createTextNode('');
       }
       
+      // Handle strings and numbers
+      if (typeof vnode === 'string' || typeof vnode === 'number') {
+        return document.createTextNode(String(vnode));
+      }
+      
+      // Handle arrays (from .map() etc)
+      if (Array.isArray(vnode)) {
+        const frag = document.createDocumentFragment();
+        vnode.forEach(child => {
+          const rendered = renderVNode(child);
+          if (rendered) frag.appendChild(rendered);
+        });
+        return frag;
+      }
+      
+      // Handle function components
+      if (typeof vnode.type === 'function') {
+        try {
+          const props = { ...vnode.props, children: vnode.children };
+          const rendered = vnode.type(props);
+          return renderVNode(rendered);
+        } catch (e) {
+          console.error('Error rendering component:', vnode.type.name, e);
+          const errorEl = document.createElement('div');
+          errorEl.style.color = 'red';
+          errorEl.textContent = 'Error: ' + e.message;
+          return errorEl;
+        }
+      }
+      
+      // Handle regular elements
       const el = document.createElement(vnode.type);
+      
+      // Set properties
       if (vnode.props) {
         for (const key in vnode.props) {
-          if (key === 'className') el.className = vnode.props[key];
-          else if (key === 'style' && typeof vnode.props[key] === 'object') {
+          if (key === 'className') {
+            el.className = vnode.props[key];
+          } else if (key === 'style' && typeof vnode.props[key] === 'object') {
             Object.assign(el.style, vnode.props[key]);
-          } else if (!key.startsWith('on') && key !== 'children') {
-            el.setAttribute(key, vnode.props[key]);
+          } else if (key.startsWith('on')) {
+            // Skip event handlers for now
+            continue;
+          } else if (key !== 'children') {
+            try {
+              el.setAttribute(key, vnode.props[key]);
+            } catch (e) {
+              // Ignore invalid attributes
+            }
           }
         }
       }
-      if (vnode.children) {
-        vnode.children.forEach(child => el.appendChild(renderVNode(child)));
+      
+      // Render children
+      if (vnode.children && vnode.children.length > 0) {
+        vnode.children.forEach(child => {
+          const rendered = renderVNode(child);
+          if (rendered) el.appendChild(rendered);
+        });
       }
+      
       return el;
     }
     
     try {
-      ${transformedCode}
+      // Execute bundled code
+      ${bundledCode}
       
-      // Render
-      const app = typeof App !== 'undefined' ? App() : 
-                  typeof Page !== 'undefined' ? Page() : null;
+      // Find and render the main component
+      let AppComponent = null;
       
-      if (app) {
+      // Try to find the component (look for Page, App, or default export)
+      if (typeof Page !== 'undefined') {
+        AppComponent = Page;
+      } else if (typeof App !== 'undefined') {
+        AppComponent = App;
+      }
+      
+      if (AppComponent) {
+        const vnode = AppComponent();
+        const dom = renderVNode(vnode);
         const root = document.getElementById('root');
-        root.appendChild(renderVNode(app));
+        root.appendChild(dom);
       } else {
-        throw new Error('No App or Page component found');
+        throw new Error('No component found to render (looking for Page or App)');
       }
     } catch (error) {
-      console.error('Preview render error:', error);
+      console.error('Preview Error:', error);
       document.getElementById('root').innerHTML = 
-        '<div style="padding:2rem;text-align:center;color:#dc2626;">Preview Error: ' + 
-        error.message + '</div>';
+        '<div style="padding:2rem;max-width:600px;margin:0 auto;font-family:system-ui;"><h2 style="color:#dc2626;margin-bottom:1rem;">Preview Error</h2><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow:auto;">' + 
+        error.stack + '</pre></div>';
     }
   </script>
 </body>
 </html>`;
 }
-
-function parseAttrsForRuntime(attrString: string): string {
-  if (!attrString.trim()) return 'null';
-  
-  const props: string[] = [];
-  const attrRegex = /(\w+)=(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
-  let match;
-  
-  while ((match = attrRegex.exec(attrString))) {
-    const [, name, dq, sq, expr] = match;
-    const value = dq || sq || expr;
-    
-    if (name === 'className') {
-      props.push(`className: "${value}"`);
-    } else if (expr) {
-      props.push(`${name}: ${value}`);
-    } else {
-      props.push(`${name}: "${value}"`);
-    }
-  }
-  
-  return props.length ? `{ ${props.join(', ')} }` : 'null';
-}
-
-const PREVIEW_STYLES_RUNTIME = `
-// Additional runtime styles if needed
-`;
 
 function generatePreviewHtml(innerHtml: string, filePath: string): string {
   return `<!DOCTYPE html>
