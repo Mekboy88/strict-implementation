@@ -106,9 +106,13 @@ export default function LivePreview({ files }: LivePreviewProps) {
 // --- Helpers ---------------------------------------------------------------
 
 function extractStaticHtmlFromReactComponent(source: string): string {
-  // Very small, safe extractor for components like:
-  // export default function Page() { return (<main>...</main>); }
-  const match = source.match(/return\s*\(([\s\S]*?)\);/);
+  // Handle: return (<main>...</main>); or return <main>...</main>;
+  let match = source.match(/return\s*\(([\s\S]*?)\);/);
+
+  if (!match) {
+    match = source.match(/return\s*(<[^;]+);/);
+  }
+
   if (!match) {
     throw new Error('Could not find JSX return in component');
   }
@@ -118,8 +122,10 @@ function extractStaticHtmlFromReactComponent(source: string): string {
   // Convert React-specific attributes to HTML
   jsxBlock = jsxBlock.replace(/className=/g, 'class=');
 
-  // Remove enclosing fragments <>...</> if present (very simple)
-  jsxBlock = jsxBlock.replace(/^<>[\s\S]*?<\/>$/m, (m) => m.slice(2, -3));
+  // Remove very simple fragments: <>...</>
+  if (jsxBlock.startsWith('<>') && jsxBlock.endsWith('</>')) {
+    jsxBlock = jsxBlock.slice(2, -3).trim();
+  }
 
   return jsxBlock;
 }
