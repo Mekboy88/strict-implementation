@@ -247,8 +247,8 @@ const AssistantPanel = ({
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-full bg-slate-700/70 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3.5 h-3.5 text-slate-300" />
+                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                 )}
                 <div
