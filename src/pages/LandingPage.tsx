@@ -249,21 +249,21 @@ const UrDevLandingPage: React.FC = () => {
     navigate("/");
   };
   useEffect(() => {
-    const fetchUserRole = async (userId: string) => {
-      try {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .in("role", ["owner", "admin"])
-          .maybeSingle();
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", ["owner", "admin", "moderator"])
+        .maybeSingle();
 
-        setIsAdmin(!!roleData);
-      } catch (error) {
-        console.error("Error fetching user role", error);
-        setIsAdmin(false);
-      }
-    };
+      setIsAdmin(!!roleData);
+    } catch (error) {
+      console.error("Error fetching user role", error);
+      setIsAdmin(false);
+    }
+  };
 
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -538,7 +538,7 @@ const UrDevLandingPage: React.FC = () => {
                     <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
                       <Sun className="h-4 w-4" /> Appearance
                     </button>
-                    {user && (
+                    {isAdmin && (
                       <button 
                         onClick={() => navigate("/admin/login")}
                         className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400 focus:outline-none focus:ring-0"
