@@ -40,6 +40,8 @@ export default function LivePreview({ files }: LivePreviewProps) {
       file: entryPath,
       totalFiles: Object.keys(filesForPreview).length,
     });
+    
+    console.log('📝 Page content:', filesForPreview[entryPath].substring(0, 200));
 
     try {
       console.log('[LivePreview] Starting bundle process');
@@ -47,6 +49,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
       // Bundle the code with JSX compilation
       const bundledCode = bundleForPreview(filesForPreview, entryPath);
       console.log('[LivePreview] Bundle complete, size:', bundledCode.length);
+      console.log('[LivePreview] Bundled code preview:', bundledCode.substring(0, 300));
       
       // Generate HTML with runtime and bundled code
       const previewHtml = generateBundledPreview(bundledCode);
@@ -132,14 +135,7 @@ function generateBundledPreview(bundledCode: string): string {
         <style>${PREVIEW_STYLES}</style>
       </head>
       <body>
-        <div id="root">
-          <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:linear-gradient(135deg,#0f172a,#020617);color:white;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:center;">
-            <div style="max-width:520px;width:100%;">
-              <h1 style="font-size:2rem;font-weight:700;margin-bottom:0.5rem;">UR-DEV Preview Wallpaper</h1>
-              <p style="font-size:0.9rem;opacity:0.8;">This background is always visible. When the preview app builds correctly it will replace this wallpaper inside the frame.</p>
-            </div>
-          </main>
-        </div>
+        <div id="root"></div>
         <script>
           // Catch any early errors
           window.onerror = function(msg, url, line, col, error) {
