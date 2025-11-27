@@ -15,9 +15,9 @@ const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col items-center p-10">
+    <div className="min-h-screen w-full bg-neutral-950 text-neutral-100 flex flex-col p-10">
       {/* BACK BUTTON */}
-      <div className="w-full max-w-4xl mb-6">
+      <div className="w-full mb-6">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-neutral-400 hover:text-neutral-100 transition"
@@ -26,6 +26,8 @@ const AdminLoginPage: React.FC = () => {
           <span>Back to Home</span>
         </button>
       </div>
+      
+      <div className="flex flex-col items-center flex-1">
 
       {/* TOP HEADER */}
       <div className="w-full text-center mb-12 mt-4">
@@ -92,6 +94,7 @@ const AdminLoginPage: React.FC = () => {
         <p className="text-neutral-500 text-xs text-center mt-4">
           Forgot your password? Contact your UR‑DEV administrator.
         </p>
+      </div>
       </div>
     </div>
   );
