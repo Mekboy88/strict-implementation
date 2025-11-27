@@ -209,6 +209,7 @@ const UrDevLandingPage: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<"website" | "mobile" | "both" | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showIntegrationsPanel, setShowIntegrationsPanel] = useState(false);
+  const [signInDropdownOpen, setSignInDropdownOpen] = useState(false);
 
   const handlePlatformSelect = (platform: "website" | "mobile" | "both") => {
     setSelectedPlatform(platform);
@@ -401,15 +402,30 @@ const UrDevLandingPage: React.FC = () => {
     setPromptStatus("Ready to build");
   };
 
-  const handleBuildClick = () => {
-    if (!prompt.trim()) {
-      handleUseSamplePrompt();
+  const requireAuth = (callback: () => void) => {
+    if (!user) {
+      setSignInDropdownOpen(true);
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use this feature",
+        variant: "destructive",
+      });
       return;
     }
-    setPromptStatus("Analyzing prompt with AI agents");
-    setTimeout(() => {
-      setPromptStatus("Draft layout generated – open the IDE to refine.");
-    }, 800);
+    callback();
+  };
+
+  const handleBuildClick = () => {
+    requireAuth(() => {
+      if (!prompt.trim()) {
+        handleUseSamplePrompt();
+        return;
+      }
+      setPromptStatus("Analyzing prompt with AI agents");
+      setTimeout(() => {
+        setPromptStatus("Draft layout generated – open the IDE to refine.");
+      }, 800);
+    });
   };
 
   const promptPlaceholder =
@@ -552,7 +568,7 @@ const UrDevLandingPage: React.FC = () => {
               </DropdownMenu>
             ) : (
               <>
-                <DropdownMenu>
+                <DropdownMenu open={signInDropdownOpen} onOpenChange={setSignInDropdownOpen}>
                   <DropdownMenuTrigger asChild>
                     <button className="rounded-full border border-white/20 bg-transparent px-3 py-1.5 text-gray-200 hover:border-cyan-400/80 hover:text-cyan-100 transition focus:outline-none focus:ring-0 focus:border-white/20">
                       Sign In
@@ -687,11 +703,23 @@ const UrDevLandingPage: React.FC = () => {
                       ref={promptTextareaRef}
                       rows={4}
                       value={prompt}
-                      onChange={(e) => {
-                        setPrompt(e.target.value);
-                        setPromptStatus("Draft");
+                      onFocus={() => {
+                        if (!user) {
+                          setSignInDropdownOpen(true);
+                          toast({
+                            title: "Sign in required",
+                            description: "Please sign in to start building",
+                            variant: "destructive",
+                          });
+                        }
                       }}
-                      placeholder="Hey UR-Dev, let's go!"
+                      onChange={(e) => {
+                        if (user) {
+                          setPrompt(e.target.value);
+                          setPromptStatus("Draft");
+                        }
+                      }}
+                      placeholder={user ? "Hey UR-Dev, let's go!" : "Sign in to start building..."}
                       spellCheck={true}
                       className="w-full bg-transparent border-none outline-none text-base text-white/80 placeholder:text-white/50 resize-none px-0 py-1 selection:bg-sky-500/40 selection:text-white overflow-y-auto scrollbar-white"
                     />
@@ -706,19 +734,22 @@ const UrDevLandingPage: React.FC = () => {
                     </span>
                   </button>
                   <div className="absolute bottom-4 left-4 right-20 sm:right-24 sm:bottom-5 sm:left-5 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] text-gray-300">
-                      <button className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100 text-[10px] sm:text-[11px]">
+                      <button 
+                        onClick={() => requireAuth(() => {})}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-cyan-400/80 hover:text-cyan-100 text-[10px] sm:text-[11px]"
+                      >
                         <span className="text-xs">＋</span>
                         <span>Attach</span>
                       </button>
                       <button 
-                        onClick={() => setShowIntegrationsPanel(true)}
+                        onClick={() => requireAuth(() => setShowIntegrationsPanel(true))}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-purple-400/80 hover:text-purple-100 text-[10px] sm:text-[11px]"
                       >
                         <Plug className="h-3 w-3" />
                         <span>Integration</span>
                       </button>
                       <button 
-                        onClick={() => setShowPlatformSelector(true)}
+                        onClick={() => requireAuth(() => setShowPlatformSelector(true))}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
                       >
                         <ListTodo className="h-3 w-3" />
