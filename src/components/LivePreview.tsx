@@ -60,6 +60,63 @@ const LivePreview = ({ files }: LivePreviewProps) => {
 
     console.log('LivePreview filtered to React files:', Object.keys(reactFiles));
 
+    // If there are no React files, show an explicit blank-preview debug screen
+    if (Object.keys(reactFiles).length === 0) {
+      console.warn('LivePreview: no React files detected for preview. All files:', Object.keys(files));
+      const debugHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #020617; color: #e5e7eb; margin: 0; padding: 0; }
+    .wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .card { max-width: 720px; width: 100%; border-radius: 1rem; border: 1px solid rgba(148,163,184,0.4); background: radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%), #020617; padding: 1.75rem 2rem; box-shadow: 0 22px 45px rgba(15,23,42,0.8); }
+    .eyebrow { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em; color: #38bdf8; font-weight: 600; margin-bottom: 0.5rem; }
+    h1 { font-size: 1.3rem; margin: 0 0 0.5rem 0; color: #e5e7eb; }
+    p { font-size: 0.85rem; color: #9ca3af; margin: 0.25rem 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 0.8rem; padding: 0.15rem 0.35rem; border-radius: 0.375rem; background: rgba(15,23,42,0.9); color: #e5e7eb; }
+    .list { margin-top: 0.75rem; padding: 0.75rem 0.75rem 0.5rem; border-radius: 0.75rem; background: rgba(15,23,42,0.85); max-height: 190px; overflow: auto; border: 1px solid rgba(15,23,42,0.9); }
+    .list h2 { font-size: 0.8rem; margin: 0 0 0.35rem 0; color: #cbd5f5; }
+    .list p { font-size: 0.78rem; margin: 0.1rem 0; color: #9ca3af; word-break: break-all; }
+    .hint { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed rgba(51,65,85,0.9); font-size: 0.78rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <article class="card" aria-label="Preview debugging information">
+      <div class="eyebrow">UR-DEV · Preview Debug</div>
+      <h1>Nothing to render yet</h1>
+      <p>The preview engine couldn't find any <code>.tsx</code> or <code>.jsx</code> files to render.</p>
+      <p>Once AI creates a React file like <code>src/app/page.tsx</code> with a default export, it will show up here automatically.</p>
+      <div class="list">
+        <h2>Files currently visible to preview:</h2>
+        ${Object.keys(files).length
+          ? Object.keys(files).map((f) => `<p>• <code>${f}</code></p>`).join('')
+          : '<p>No files yet – ask AI to generate your project files.</p>'}
+      </div>
+      <div class="hint">
+        Tip: ask the assistant to "Create a main page at <code>src/app/page.tsx</code> with a simple heading" to get started.
+      </div>
+    </article>
+  </div>
+</body>
+</html>`;
+
+      doc.open();
+      doc.write(debugHtml);
+      doc.close();
+
+      // Notify parent that preview is in a blank state for higher-level automation
+      try {
+        window.parent.postMessage({ type: 'PREVIEW_BLANK', fileCount: Object.keys(files).length }, '*');
+      } catch (e) {
+        console.warn('LivePreview: unable to post PREVIEW_BLANK message', e);
+      }
+
+      return;
+    }
+
     // Sort files by dependency (components before pages)
     const sortedFiles = sortFilesByDependency(reactFiles);
     
