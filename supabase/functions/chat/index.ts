@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, systemPrompt } = await req.json();
+    const { messages, systemPrompt, context } = await req.json();
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
     if (!OPENAI_API_KEY) {
@@ -24,21 +24,61 @@ serve(async (req) => {
       );
     }
 
-    console.log('Chat request received:', { messageCount: messages?.length });
+    console.log('Chat request received:', { messageCount: messages?.length, hasContext: !!context });
 
-    const defaultSystemPrompt = `You are UR-DEV AI, an expert coding assistant. You help users build web applications by:
-- Writing clean, modern React/TypeScript code
-- Using Tailwind CSS for styling
-- Following best practices and design patterns
-- Explaining concepts clearly when asked
-- Generating complete, working code snippets
+    // Build enhanced system prompt with context
+    let enhancedSystemPrompt = `You are UR-DEV AI, an expert full-stack coding assistant specializing in React, TypeScript, and modern web development.
 
-When generating code:
-- Always use TypeScript
-- Use functional components with hooks
-- Include proper imports
-- Add helpful comments
-- Make code production-ready`;
+CORE CAPABILITIES:
+- Write production-ready React/TypeScript code with proper types
+- Build responsive UIs with Tailwind CSS and modern design patterns
+- Create clean, maintainable component architecture
+- Implement state management, routing, and API integration
+- Debug issues and suggest optimizations
+- Explain complex concepts clearly
+
+CODE GENERATION RULES:
+- Always use TypeScript with proper types and interfaces
+- Use functional components with React hooks
+- Follow React best practices (proper key props, useEffect dependencies, etc.)
+- Include all necessary imports
+- Add JSDoc comments for complex logic
+- Use semantic HTML and accessible markup
+- Implement responsive design with Tailwind
+- Handle errors gracefully with try-catch and error boundaries
+- Write self-documenting code with clear variable names
+
+WHEN GENERATING CODE:
+- Provide complete, runnable code snippets
+- Include file paths in code blocks: \`\`\`typescript:src/components/Example.tsx
+- Explain what the code does and why
+- Suggest where to place the code in the project structure
+- Point out any dependencies that need to be installed
+
+RESPONSE FORMAT:
+- Keep explanations concise but helpful
+- Use code blocks with syntax highlighting
+- Break down complex solutions into steps
+- Provide examples when relevant`;
+
+    // Add project context if provided
+    if (context) {
+      if (context.currentFile) {
+        enhancedSystemPrompt += `\n\nCURRENT FILE: ${context.currentFile.path}\n\`\`\`typescript\n${context.currentFile.content?.substring(0, 2000) || 'Empty file'}\n\`\`\``;
+      }
+      
+      if (context.projectFiles && context.projectFiles.length > 0) {
+        enhancedSystemPrompt += `\n\nPROJECT STRUCTURE:\n${context.projectFiles.map((f: any) => `- ${f.path}`).join('\n')}`;
+      }
+      
+      if (context.activePlatform) {
+        enhancedSystemPrompt += `\n\nACTIVE PLATFORM: ${context.activePlatform === 'web' ? 'Web/Desktop' : 'Mobile (Capacitor)'}`;
+      }
+      
+      if (context.selectedText) {
+        enhancedSystemPrompt += `\n\nSELECTED CODE:\n\`\`\`typescript\n${context.selectedText}\n\`\`\``;
+      }
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -49,7 +89,7 @@ When generating code:
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt || defaultSystemPrompt },
+          { role: 'system', content: systemPrompt || enhancedSystemPrompt },
           ...(messages || []),
         ],
         stream: true,
