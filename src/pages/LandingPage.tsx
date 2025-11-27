@@ -539,13 +539,15 @@ const UrDevLandingPage: React.FC = () => {
 
                   </div>
 
-                  {/* Sign Out */}
-                  <button 
-                    onClick={handleLogout}
-                    className="w-full mt-4 flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-red-400"
-                  >
-                    <LogOut className="h-4 w-4" /> Sign Out
-                  </button>
+                  {/* Sign Out - Separated and clearly marked */}
+                  <div className="mt-4 pt-4 border-t border-neutral-700">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-900/20 transition text-sm text-red-400 font-semibold border border-red-900/30 hover:border-red-800/50"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign Out (Logout)
+                    </button>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
