@@ -379,6 +379,110 @@ Rules:
     return () => window.removeEventListener('request-error-fix', handleErrorFix as EventListener);
   }, [chatMessages, isStreaming]);
 
+  // Listen for cases where preview did not render anything
+  React.useEffect(() => {
+    const handlePreviewBlank = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ reason: string; fileCount: number }>;
+      const { reason, fileCount } = customEvent.detail || {};
+
+      if (isStreaming) return;
+
+      const message = `⚪ **Preview Not Rendering - Trying to Diagnose**\n\nReason detected: ${reason || 'unknown'} (files in project: ${fileCount ?? 0}).`;
+
+      const statusMsg: ChatMsg = {
+        id: `preview-blank-${Date.now()}`,
+        role: 'user',
+        content: message,
+      };
+      setChatMessages(prev => [...prev, statusMsg]);
+
+      setIsStreaming(true);
+
+      const apiMessages: StreamChatMessage[] = chatMessages
+        .filter(m => m.id !== 'welcome')
+        .map(m => ({ role: m.role, content: m.content }));
+      apiMessages.push({
+        role: 'user',
+        content: `${message}\n\nPlease analyze why the Live Preview might be blank and update the code so that the app renders correctly.`,
+      });
+
+      let assistantContent = '';
+
+      const systemPrompt = `You are UR-DEV AI, an expert coding assistant focused on making the preview render correctly.
+
+When generating code, ALWAYS include the file path in this format:
+\`\`\`tsx // src/components/ComponentName.tsx
+// your code here
+\`\`\`
+
+Rules:
+- Prefer fixing entry points and main page components first
+- Always use TypeScript/TSX and Tailwind CSS
+- Ensure there is a main React component rendered in the preview
+- Explain briefly what you changed to make the preview render again`;
+
+      try {
+        await streamChat({
+          messages: apiMessages,
+          systemPrompt,
+          onDelta: (delta) => {
+            assistantContent += delta;
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant' && last.id.startsWith('fixing-preview-')) {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
+                );
+              }
+              return [...prev, { id: `fixing-preview-${Date.now()}`, role: 'assistant', content: assistantContent }];
+            });
+          },
+          onDone: () => {
+            const codeBlocks = parseCodeBlocks(assistantContent);
+            if (codeBlocks.length > 0) {
+              handleCodeFromAI(codeBlocks);
+              setShowPreview(true);
+
+              toast({
+                title: "Preview Fixed",
+                description: "The code was updated to restore the preview.",
+              });
+            }
+
+            setChatMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant') {
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+                );
+              }
+              return prev;
+            });
+            setIsStreaming(false);
+          },
+          onError: (error) => {
+            toast({
+              title: "Auto-Fix Failed",
+              description: error.message || "Could not automatically fix the blank preview",
+              variant: "destructive",
+            });
+            setIsStreaming(false);
+          },
+        });
+      } catch (error) {
+        toast({
+          title: "Auto-Fix Failed",
+          description: "Failed to connect to AI service",
+          variant: "destructive",
+        });
+        setIsStreaming(false);
+      }
+    };
+
+    window.addEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
+    return () => window.removeEventListener('preview-not-rendering', handlePreviewBlank as EventListener);
+  }, [chatMessages, isStreaming]);
+
   const handleSendChat = async () => {
     if (!assistantInput.trim() || isStreaming) return;
     
