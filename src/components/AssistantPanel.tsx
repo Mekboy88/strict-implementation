@@ -14,28 +14,22 @@ import { toast } from "@/hooks/use-toast";
 import { ChatMessage, createUserMessage, createAssistantMessage, getWelcomeMessage } from "@/services/chat/chatService";
 import { streamChat, ChatMessage as StreamChatMessage } from "@/services/chat/chatStreamService";
 
-// Format message content with code highlighting
+// Format message content with simple plain-text styling
 const formatMessageContent = (content: string): string => {
-  // Extract code blocks and format them
   const codeBlockRegex = /```(\w+)?:?([^\n]*)\n([\s\S]*?)```/g;
   
   let formatted = content.replace(codeBlockRegex, (match, lang, path, code) => {
     const fileName = path.trim();
-    return `<div class="my-3 rounded-lg overflow-hidden bg-slate-800/50">
-      ${fileName ? `<div class="bg-slate-800/70 px-3 py-1.5 text-xs text-slate-300 font-mono">${escapeHtml(fileName)}</div>` : ''}
-      <pre class="bg-slate-900/50 p-3 overflow-x-auto"><code class="text-sm text-slate-200 font-mono leading-relaxed">${escapeHtml(code.trim())}</code></pre>
-    </div>`;
+    return `${fileName ? `<div class=\"text-[11px] text-slate-400 font-mono mb-1\">${escapeHtml(fileName)}</div>` : ''}
+      <pre class=\"text-[13px] text-slate-200 font-mono leading-relaxed whitespace-pre-wrap\"><code>${escapeHtml(code.trim())}</code></pre>`;
   });
   
-  // Format inline code
-  formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-800/50 px-1.5 py-0.5 rounded text-sm text-slate-200 font-mono">$1</code>');
-  
-  // Remove bold markdown symbols and just use regular text
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
-  formatted = formatted.replace(/\*([^*]+)\*/g, '$1');
-  
-  // Remove any remaining markdown symbols
-  formatted = formatted.replace(/[_~]/g, '');
+  // Strip markdown emphasis markers and leftover symbols
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '$1');
+  formatted = formatted.replace(/\*(.*?)\*/g, '$1');
+  formatted = formatted.replace(/__(.*?)__/g, '$1');
+  formatted = formatted.replace(/_(.*?)_/g, '$1');
+  formatted = formatted.replace(/[*_]/g, '');
   
   // Format newlines
   formatted = formatted.replace(/\n\n/g, '<br><br>');
