@@ -102,7 +102,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
           ref={iframeRef}
           key={key}
           className={`${deviceModeClass} transition-all duration-300`}
-          sandbox="allow-same-origin"
+          sandbox="allow-scripts allow-same-origin"
           title="Preview"
         />
       </div>
