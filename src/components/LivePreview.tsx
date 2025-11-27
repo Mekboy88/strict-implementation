@@ -169,7 +169,12 @@ const LivePreview = ({ files }: LivePreviewProps) => {
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#0f172a;background:#f9fafb;">
+      <div style="text-align:center;max-width:480px;padding:1.5rem;">
+        <div style="font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;color:#6b7280;margin-bottom:0.25rem;font-weight:600;">UR-DEV · Live preview</div>
+        <div style="font-size:0.95rem;color:#111827;">Preparing preview… if this message stays, the scripts inside the iframe are failing to run.</div>
+      </div>
+    </div></div>
   <div id="error-display" style="display: none; padding: 2rem; background: #1a1a1a; color: #fff; font-family: system-ui; position: relative; min-height: 100vh;">
     <button 
       id="fix-error-top" 
