@@ -313,7 +313,12 @@ When generating code, ALWAYS include the file path in this format:
 // your code here
 \`\`\`
 
-Rules:
+CRITICAL PREVIEW RULES:
+- When the user asks to build or fix UI/pages, you MUST return at least one TSX code block
+- ALWAYS include or update a main entry component at src/app/page.tsx with a default-exported React component
+- Do not reply with only text when the user expects visible changes; include TSX code so the preview can render
+
+General Rules:
 - Always use TypeScript/TSX
 - Use Tailwind CSS for styling
 - Include proper imports
@@ -427,6 +432,11 @@ When generating code, ALWAYS include the file path in this format:
 // your code here
 \`\`\`
 
+CRITICAL PREVIEW RULES:
+- When fixing a blank or broken preview, you MUST return TSX code, not just explanations
+- ALWAYS ensure there is a valid default export at src/app/page.tsx that can be rendered
+- Prefer minimal, working UI that guarantees something visible in the preview
+
 Rules:
 - Prefer fixing entry points and main page components first
 - Always use TypeScript/TSX and Tailwind CSS
@@ -529,7 +539,12 @@ When generating code, ALWAYS include the file path in this format:
 // your code here
 \`\`\`
 
-Rules:
+CRITICAL PREVIEW RULES:
+- Whenever the user asks to build or change pages/components, you MUST include TSX code blocks
+- ALWAYS include or update a main entry at src/app/page.tsx with a default-exported React component so the preview can render
+- Do not respond with only prose when the user expects the app UI to change; include TSX files so the IDE can create/update them
+
+General Rules:
 - Always use TypeScript/TSX
 - Use Tailwind CSS for styling
 - Include proper imports
