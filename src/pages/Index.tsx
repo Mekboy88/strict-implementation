@@ -1122,7 +1122,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`w-full ${
+                    className={`${msg.role === 'user' ? 'max-w-[85%]' : 'w-full'} ${
                       msg.role === 'user'
                         ? 'bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
                         : ''
