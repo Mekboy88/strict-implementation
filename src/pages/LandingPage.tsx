@@ -520,7 +520,7 @@ const UrDevLandingPage: React.FC = () => {
                     <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm">
                       <Sun className="h-4 w-4" /> Appearance
                     </button>
-                    {isAdmin && (
+                    {user && (
                       <button 
                         onClick={() => navigate("/admin/login")}
                         className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800 transition text-sm text-blue-400 focus:outline-none focus:ring-0"
@@ -529,6 +529,7 @@ const UrDevLandingPage: React.FC = () => {
                         <span className="ml-auto text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md">Admin</span>
                       </button>
                     )}
+
                   </div>
 
                   {/* Sign Out */}
