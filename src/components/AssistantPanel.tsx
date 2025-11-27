@@ -252,10 +252,10 @@ const AssistantPanel = ({
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] ${
+                  className={`w-full ${
                     message.role === 'user'
                       ? 'bg-slate-700/40 px-4 py-3 rounded-2xl'
-                      : 'px-1 py-1'
+                      : ''
                   }`}
                 >
                   <div 
