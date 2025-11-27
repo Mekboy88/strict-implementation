@@ -133,8 +133,9 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
     try {
       ${PREVIEW_RUNTIME}
       
-      // Component code
-      ${componentCode}
+      // Component code (evaluated safely inside try/catch)
+      const componentSource = ${JSON.stringify(componentCode)};
+      eval(componentSource);
       
       // Render
       const root = document.getElementById("root");
@@ -153,7 +154,7 @@ function generatePreviewHtml(componentCode: string, componentName: string, fileP
         '<h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">Preview Error</h1>' +
         '<p style="color: #6b7280;">' + error.message + '</p>' +
         '<pre style="margin-top: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem; overflow: auto;">' +
-        error.stack + '</pre>' +
+        (error.stack || '') + '</pre>' +
         '</div>';
     }
   </script>
