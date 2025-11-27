@@ -1,19 +1,26 @@
 /**
- * Mini bundler for preview - resolves imports and bundles components
+ * Tiny preview bundler.
+ *
+ * For reliability, we keep this as simple as possible:
+ * - Take the entry file (default: src/app/page.tsx)
+ * - Run its JSX through our lightweight transformer
+ * - Return plain JavaScript that the inline preview runtime can execute
+ *
+ * This intentionally ignores multi-file/module resolution so that preview
+ * always works for the main page, even if the project structure is complex.
  */
 
-interface TransformedModule {
-  name: string;
-  code: string;
-}
+import { transformJSXToJS } from './jsxTransformer';
 
 export function bundleForPreview(
   files: { [key: string]: string },
   entryPoint: string = 'src/app/page.tsx'
 ): string {
+  let entryCode = files[entryPoint];
+
   // Ensure the bundler ALWAYS has a valid entry file so preview never breaks
-  if (!files[entryPoint] || !files[entryPoint].trim()) {
-    files[entryPoint] = `export default function Page() {
+  if (!entryCode || !entryCode.trim()) {
+    entryCode = `export default function Page() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-white">
       <h1 className="text-2xl font-bold text-gray-900">Preview Works!</h1>
@@ -22,244 +29,9 @@ export function bundleForPreview(
 }`;
   }
 
-  const transformedModules: TransformedModule[] = [];
-  const processedFiles = new Set<string>();
+  // Transform JSX syntax to React.createElement calls and normalize exports
+  const transformed = transformJSXToJS(entryCode);
 
-  function resolveImportPath(fromPath: string, importPath: string): string | null {
-    // Handle relative imports: './Component' or '../components/Component'
-    if (importPath.startsWith('./') || importPath.startsWith('../')) {
-      const fromDir = fromPath.split('/').slice(0, -1).join('/');
-      let resolved = importPath;
-      
-      // Handle ../ navigation
-      const parts = importPath.split('/');
-      let currentDir = fromDir.split('/');
-      
-      for (const part of parts) {
-        if (part === '..') {
-          currentDir.pop();
-        } else if (part === '.') {
-          continue;
-        } else {
-          currentDir.push(part);
-        }
-      }
-      
-      resolved = currentDir.join('/');
-      
-      // Try different extensions
-      const extensions = ['.tsx', '.ts', '.jsx', '.js', ''];
-      for (const ext of extensions) {
-        const fullPath = resolved + ext;
-        if (files[fullPath]) return fullPath;
-      }
-    }
-    
-    // Handle @/ alias (maps to src/)
-    if (importPath.startsWith('@/')) {
-      const withoutAlias = 'src/' + importPath.slice(2);
-      const extensions = ['.tsx', '.ts', '.jsx', '.js', ''];
-      for (const ext of extensions) {
-        const fullPath = withoutAlias + ext;
-        if (files[fullPath]) return fullPath;
-      }
-    }
-    
-    return null;
-  }
-
-  function extractImports(code: string): Array<{ path: string; names: string[] }> {
-    const imports: Array<{ path: string; names: string[] }> = [];
-    
-    // Match: import { A, B } from './path'
-    const namedImportRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g;
-    let match;
-    
-    while ((match = namedImportRegex.exec(code))) {
-      const names = match[1].split(',').map(n => n.trim());
-      imports.push({ path: match[2], names });
-    }
-    
-    // Match: import Component from './path'
-    const defaultImportRegex = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
-    while ((match = defaultImportRegex.exec(code))) {
-      imports.push({ path: match[2], names: [match[1]] });
-    }
-    
-    return imports;
-  }
-
-  function transformJSX(code: string): string {
-    let result = code;
-
-    // Strip basic TypeScript syntax so the browser can execute the code
-    // Remove simple interface declarations
-    result = result.replace(/interface\s+\w+\s*{[\s\S]*?}/g, "");
-    // Remove basic type annotations like ": string", ": number", etc.
-    // Be careful not to break function parameters with destructuring like
-    //   function CarCard({ car }: { car: Car })
-    // Only strip annotations that are followed by ",", ";", ")" or "=" (not "{").
-    result = result.replace(/:\s*[A-Za-z0-9_\[\]<>| ]+(?=\s*[,;)=])/g, "");
-    // Remove TypeScript generics on functions/components like <T>
-    result = result.replace(/<[^>]+>\s*\(/g, "(");
-
-    // Remove imports
-    result = result.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
-
-    // Normalize exports so our runtime can find the component
-    result = result.replace(/export\s+default\s+function\s+(\w+)/, 'function $1');
-    result = result.replace(/export\s+default\s+/, '');
-    result = result.replace(/export\s+function\s+/g, 'function ');
-    result = result.replace(/export\s+const\s+/g, 'const ');
-
-    // --- JSX -> React.createElement transformation -----------------------------------------
-    let iterations = 0;
-    let prev = '';
-
-    while (result !== prev && iterations < 50) {
-      prev = result;
-      iterations++;
-
-      // Self-closing tags with props: <Component prop="value" />
-      result = result.replace(
-        /<(\w+)\s+([^>\/]+?)\s*\/>/g,
-        (_, tag, attrs) => {
-          const props = parseAttributes(attrs);
-          return `React.createElement(${formatTagName(tag)}, ${props})`;
-        }
-      );
-
-      // Self-closing without props: <Component />
-      result = result.replace(
-        /<(\w+)\s*\/>/g,
-        (_, tag) => `React.createElement(${formatTagName(tag)}, null)`
-      );
-
-      // Opening tags with props: <div className="x">
-      result = result.replace(
-        /<(\w+)\s+([^>]+?)>/g,
-        (_, tag, attrs) => {
-          const props = parseAttributes(attrs);
-          return `React.createElement(${formatTagName(tag)}, ${props}, `;
-        }
-      );
-
-      // Opening tags without props: <div>
-      result = result.replace(
-        /<(\w+)>/g,
-        (_, tag) => `React.createElement(${formatTagName(tag)}, null, `
-      );
-
-      // Closing tags
-      result = result.replace(/<\/\w+>/g, ')');
-    }
-
-    // Post-processing step 1: wrap simple text children in quotes so the JS stays valid.
-    // We only touch calls where the third argument is a plain text node.
-    result = result.replace(
-      /React\.createElement\(([^,]+),\s*([^,]+),\s*([^)]*)\)/g,
-      (match, type, props, children) => {
-        const trimmed = String(children).trim();
-        if (!trimmed) return match;
-
-        // Leave complex children (other elements, arrays, expressions, or already-quoted
-        // strings) untouched.
-        if (
-          trimmed.startsWith('React.createElement') ||
-          trimmed.startsWith('[') ||
-          trimmed.startsWith('{') ||
-          trimmed.startsWith('(') ||
-          trimmed.startsWith('`') ||
-          trimmed.startsWith('"') ||
-          trimmed.startsWith("'")
-        ) {
-          return match;
-        }
-
-        // Treat everything else as literal text content.
-        const normalized = trimmed.replace(/\s+/g, ' ');
-        const escaped = normalized.replace(/"/g, '\\"');
-        return `React.createElement(${type}, ${props}, "${escaped}")`;
-      }
-    );
-
-    // Post-processing step 2: unwrap JSX-style expression children {expr} into expr.
-    // Example: React.createElement('h3', null, {car.name}) -> React.createElement('h3', null, car.name)
-    result = result.replace(
-      /React\.createElement\(([^,]+),\s*([^,]+),\s*\{([^}]*)\}\s*\)/g,
-      (match, type, props, expr) => {
-        const inner = expr.trim();
-        if (!inner) return match;
-        return `React.createElement(${type}, ${props}, ${inner})`;
-      }
-    );
-
-    // Post-processing step 3: ensure sibling React.createElement calls inside the
-    // same parent call are separated by commas so the JS is valid.
-    result = result.replace(/\)\s+(React\.createElement)/g, ', $1');
-
-    return result;
-  }
-
-  function formatTagName(tag: string): string {
-    // HTML elements are lowercase - need quotes
-    // React components start with uppercase - no quotes
-    const isHtmlElement = tag[0] === tag[0].toLowerCase();
-    return isHtmlElement ? `"${tag}"` : tag;
-  }
-
-  function parseAttributes(attrStr: string): string {
-    const props: string[] = [];
-    
-    // className="value" or className='value'
-    const stringAttrRegex = /(\w+)=["']([^"']+)["']/g;
-    let match;
-    
-    while ((match = stringAttrRegex.exec(attrStr))) {
-      props.push(`${match[1]}: "${match[2]}"`);
-    }
-    
-    // prop={value}
-    const exprAttrRegex = /(\w+)=\{([^}]+)\}/g;
-    while ((match = exprAttrRegex.exec(attrStr))) {
-      props.push(`${match[1]}: ${match[2]}`);
-    }
-    
-    return props.length ? `{ ${props.join(', ')} }` : 'null';
-  }
-
-  function processFile(filePath: string) {
-    if (processedFiles.has(filePath)) return;
-    processedFiles.add(filePath);
-    
-    const code = files[filePath];
-    if (!code) return;
-    
-    // Extract and process imports first
-    const imports = extractImports(code);
-    for (const imp of imports) {
-      const resolvedPath = resolveImportPath(filePath, imp.path);
-      if (resolvedPath) {
-        processFile(resolvedPath);
-      }
-    }
-    
-    // Transform this file
-    const transformed = transformJSX(code);
-    
-    transformedModules.push({
-      name: filePath,
-      code: transformed,
-    });
-  }
-
-  // Start processing from entry point
-  processFile(entryPoint);
-
-  // Bundle all modules together
-  const bundledCode = transformedModules
-    .map(m => `// === ${m.name} ===\n${m.code}`)
-    .join('\n\n');
-
-  return bundledCode;
+  // The LivePreview runtime just evals this string inside the iframe
+  return `// === ${entryPoint} ===\n${transformed}`;
 }
