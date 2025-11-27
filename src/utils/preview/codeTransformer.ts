@@ -70,16 +70,47 @@ export function transformCodeForPreview(code: string, filename: string): Transfo
 }
 
 /**
+ * Sorts files so dependencies come before components that use them
+ */
+export function sortFilesByDependency(files: { [key: string]: string }): [string, string][] {
+  const entries = Object.entries(files);
+  
+  // Simple heuristic: files in subdirectories or with "component" in name come first
+  // Then pages/app files that likely import from components
+  return entries.sort(([pathA], [pathB]) => {
+    const aIsComponent = pathA.includes('component') || pathA.includes('banner') || pathA.includes('button');
+    const bIsComponent = pathB.includes('component') || pathB.includes('banner') || pathB.includes('button');
+    const aIsPage = pathA.includes('page') || pathA.includes('app') || pathA.includes('index');
+    const bIsPage = pathB.includes('page') || pathB.includes('app') || pathB.includes('index');
+    
+    // Components before pages
+    if (aIsComponent && bIsPage) return -1;
+    if (bIsComponent && aIsPage) return 1;
+    
+    return 0;
+  });
+}
+
+/**
  * Detects the main component from a collection of files
+ * Prioritizes page-like files first
  */
 export function detectMainComponent(files: { [key: string]: string }): string | null {
-  const priorityNames = ['App', 'Page', 'Home', 'Index', 'Main', 'page_tsx', 'app_tsx'];
+  // Priority patterns to look for (most specific first)
+  const priorityPatterns = [
+    /page\.tsx?$/i,
+    /app\.tsx?$/i,
+    /index\.tsx?$/i,
+    /home\.tsx?$/i,
+    /main\.tsx?$/i,
+    /page_tsx/i,
+    /app_tsx/i,
+  ];
   
-  // First pass: look for priority component names in filenames
-  for (const [filename, content] of Object.entries(files)) {
-    const lowerFilename = filename.toLowerCase();
-    for (const priority of priorityNames) {
-      if (lowerFilename.includes(priority.toLowerCase())) {
+  // First pass: look for priority patterns in filenames
+  for (const pattern of priorityPatterns) {
+    for (const [filename, content] of Object.entries(files)) {
+      if (pattern.test(filename)) {
         const result = transformCodeForPreview(content, filename);
         if (result.componentName) {
           return result.componentName;
