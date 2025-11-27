@@ -72,7 +72,7 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
       ${transformedFiles.join('\n\n')}
 
       // Render the detected main component
-      const App = ${mainComponent ? `typeof ${mainComponent} !== 'undefined' ? ${mainComponent}` : 'null'} || 
+      const RootComponent = ${mainComponent ? `typeof ${mainComponent} !== 'undefined' ? ${mainComponent}` : 'null'} || 
                   (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
                     h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
                     h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } }, 
@@ -84,10 +84,10 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
                   ));
 
       const root = document.getElementById('root');
-      if (root && typeof App === 'function') {
-        createRoot(root).render(h(App));
+      if (root && typeof RootComponent === 'function') {
+        createRoot(root).render(h(RootComponent));
       } else {
-        throw new Error('Invalid component: ' + (typeof App));
+        throw new Error('Invalid component: ' + (typeof RootComponent));
       }
     } catch (error) {
       console.error('Preview error:', error);
