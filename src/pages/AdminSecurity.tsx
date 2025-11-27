@@ -640,6 +640,81 @@ const AdminSecurity = () => {
           </div>
         </TabsContent>
 
+        {/* Settings Tab */}
+        <TabsContent value="settings">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Security Settings</h2>
+              <p className="text-sm mt-1 text-white">Configure rate limits and data retention policies</p>
+            </div>
+
+            <div className="rounded-lg border p-6 space-y-6 bg-neutral-700 border-neutral-600">
+              {/* Rate Limiting */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-white">Rate Limiting</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Requests per Minute</Label>
+                    <Input
+                      type="number"
+                      value={rateLimitPerMinute}
+                      onChange={(e) => setRateLimitPerMinute(Number(e.target.value))}
+                      className="bg-neutral-800 border-neutral-600 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white">Requests per Hour</Label>
+                    <Input
+                      type="number"
+                      value={rateLimitPerHour}
+                      onChange={(e) => setRateLimitPerHour(Number(e.target.value))}
+                      className="bg-neutral-800 border-neutral-600 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Retention */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-white">Data Retention</h3>
+                
+                <div className="space-y-2">
+                  <Label className="text-white">Retention Period (days)</Label>
+                  <Input
+                    type="number"
+                    value={dataRetentionDays}
+                    onChange={(e) => setDataRetentionDays(Number(e.target.value))}
+                    className="bg-neutral-800 border-neutral-600 text-white"
+                  />
+                  <p className="text-sm text-neutral-400">
+                    Security logs older than this will be automatically deleted
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-white">Auto-delete Inactive Users</Label>
+                    <p className="text-sm text-neutral-400">
+                      Automatically delete users inactive for retention period
+                    </p>
+                  </div>
+                  <Switch
+                    checked={autoDeleteInactive}
+                    onCheckedChange={setAutoDeleteInactive}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleSaveSettings} className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Save className="w-4 h-4 mr-2" />
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+
       </Tabs>
     </div>
   );
