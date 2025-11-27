@@ -154,6 +154,12 @@ const LivePreview = ({ files }: LivePreviewProps) => {
       const root = document.getElementById('root');
       if (root && typeof RootComponent === 'function') {
         createRoot(root).render(h(RootComponent));
+        // Notify parent window that preview rendered successfully
+        try {
+          window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
+        } catch (e) {
+          console.warn('Unable to notify parent about preview readiness', e);
+        }
       } else {
         throw new Error('Invalid component: ' + (typeof RootComponent));
       }
@@ -189,6 +195,21 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     doc.open();
     doc.write(htmlContent);
     doc.close();
+
+    // Fallback detection: if nothing rendered after a short delay, notify parent
+    setTimeout(() => {
+      const iframeDoc = iframeRef.current?.contentDocument;
+      const root = iframeDoc?.getElementById('root');
+      const errorDisplay = iframeDoc?.getElementById('error-display');
+      if (root && !errorDisplay && root.innerHTML.trim() === '') {
+        window.dispatchEvent(new CustomEvent('preview-not-rendering', {
+          detail: {
+            reason: 'empty-root',
+            fileCount: Object.keys(files).length,
+          },
+        }));
+      }
+    }, 2500);
   }, [files, key]);
 
   const handleRefresh = () => {
