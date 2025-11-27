@@ -27,10 +27,6 @@ const LoginPage: React.FC = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Logged in successfully!",
-      });
       navigate("/");
     } catch (error: any) {
       toast({

@@ -330,19 +330,9 @@ const UrDevLandingPage: React.FC = () => {
       setIsAdmin(false);
       setUser(null);
 
-      toast({
-        title: "Success",
-        description: "Logged out successfully",
-      });
-
       navigate("/");
     } catch (error: any) {
       console.error("Error during logout", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to logout",
-        variant: "destructive",
-      });
     }
   };
 
