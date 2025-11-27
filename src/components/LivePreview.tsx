@@ -14,9 +14,18 @@ export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [key, setKey] = useState(0);
+  const [lastFilesHash, setLastFilesHash] = useState('');
 
   useEffect(() => {
     if (!iframeRef.current) return;
+
+    // Create hash of files to detect changes
+    const filesHash = Object.keys(files).sort().join(',');
+    if (filesHash !== lastFilesHash) {
+      setLastFilesHash(filesHash);
+      // Force iframe refresh when files change
+      setKey(prev => prev + 1);
+    }
 
     // Find React component files
     const reactFiles = Object.entries(files).filter(([path]) => 
@@ -45,7 +54,8 @@ export default function LivePreview({ files }: LivePreviewProps) {
       console.log('🎯 Preview Generated:', {
         file: filePath,
         component: componentName,
-        codeLength: convertedCode.length
+        codeLength: convertedCode.length,
+        convertedPreview: convertedCode.substring(0, 200) + '...'
       });
 
       iframeRef.current.srcdoc = previewHtml;
@@ -54,7 +64,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
       const errorHtml = generateErrorHtml(error as Error, filePath);
       iframeRef.current.srcdoc = errorHtml;
     }
-  }, [files, key]);
+  }, [files, key, lastFilesHash]);
 
   const handleRefresh = () => {
     setKey(prev => prev + 1);
