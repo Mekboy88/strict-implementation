@@ -122,14 +122,14 @@ export function bundleForPreview(
         /<(\w+)\s+([^>\/]+?)\s*\/>/g,
         (_, tag, attrs) => {
           const props = parseAttributes(attrs);
-          return `React.createElement(${tag}, ${props})`;
+          return `React.createElement(${formatTagName(tag)}, ${props})`;
         }
       );
       
       // Self-closing without props: <Component />
       result = result.replace(
         /<(\w+)\s*\/>/g,
-        (_, tag) => `React.createElement(${tag}, null)`
+        (_, tag) => `React.createElement(${formatTagName(tag)}, null)`
       );
       
       // Opening tags with props: <div className="x">
@@ -137,14 +137,14 @@ export function bundleForPreview(
         /<(\w+)\s+([^>]+?)>/g,
         (_, tag, attrs) => {
           const props = parseAttributes(attrs);
-          return `React.createElement(${tag}, ${props}, `;
+          return `React.createElement(${formatTagName(tag)}, ${props}, `;
         }
       );
       
       // Opening tags without props: <div>
       result = result.replace(
         /<(\w+)>/g,
-        (_, tag) => `React.createElement(${tag}, null, `
+        (_, tag) => `React.createElement(${formatTagName(tag)}, null, `
       );
       
       // Closing tags
@@ -152,6 +152,13 @@ export function bundleForPreview(
     }
     
     return result;
+  }
+
+  function formatTagName(tag: string): string {
+    // HTML elements are lowercase - need quotes
+    // React components start with uppercase - no quotes
+    const isHtmlElement = tag[0] === tag[0].toLowerCase();
+    return isHtmlElement ? `"${tag}"` : tag;
   }
 
   function parseAttributes(attrStr: string): string {
