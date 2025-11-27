@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Smartphone, Monitor, Tablet } from "lucide-react";
+import { transformCodeForPreview, detectMainComponent } from "@/utils/preview/codeTransformer";
 
 interface LivePreviewProps {
   files: { [key: string]: string };
@@ -24,6 +25,15 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
 
     const doc = iframeRef.current.contentDocument;
     if (!doc) return;
+
+    // Transform all files to browser-compatible code
+    const transformedFiles = Object.entries(files).map(([id, content]) => {
+      const result = transformCodeForPreview(content, id);
+      return result.transformedCode;
+    });
+
+    // Detect the main component to render
+    const mainComponent = detectMainComponent(files);
 
     // Create HTML document with React app
     const htmlContent = `
@@ -52,28 +62,41 @@ const LivePreview = ({ files, activeFileId }: LivePreviewProps) => {
       const root = document.getElementById('root');
       if (root) {
         root.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c; font-family: monospace; white-space: pre-wrap;">' +
-          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') + '</div>';
+          '<strong>Preview error:</strong> ' + (event.message || 'Unknown error') + 
+          '<br/><br/>' + (event.filename ? 'File: ' + event.filename + ':' + event.lineno : '') + '</div>';
       }
     });
 
     try {
-      ${Object.values(files).join('\n\n')}
+      // All transformed code
+      ${transformedFiles.join('\n\n')}
 
-      // Find and render the main component
-      const App = typeof page_tsx !== 'undefined' ? page_tsx : 
-                  typeof Banner !== 'undefined' ? Banner :
-                  () => h('div', { style: { padding: '2rem', textAlign: 'center' } },
-                    h('h1', { style: { fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' } }, 
-                      'UR-DEV Preview'),
-                    h('p', { style: { color: '#64748b' } }, 
-                      'Edit your code to see changes here')
-                  );
+      // Render the detected main component
+      const App = ${mainComponent ? `typeof ${mainComponent} !== 'undefined' ? ${mainComponent}` : 'null'} || 
+                  (() => h('div', { style: { padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' } },
+                    h('div', { style: { fontSize: '3rem', marginBottom: '1rem' } }, '⚠️'),
+                    h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#374151' } }, 
+                      'No Component Found'),
+                    h('p', { style: { color: '#6b7280', marginBottom: '1rem' } }, 
+                      'Could not detect a React component to render.'),
+                    h('p', { style: { color: '#9ca3af', fontSize: '0.875rem' } }, 
+                      'Make sure your code exports a React component.')
+                  ));
 
-      createRoot(document.getElementById('root')).render(h(App));
+      const root = document.getElementById('root');
+      if (root && typeof App === 'function') {
+        createRoot(root).render(h(App));
+      } else {
+        throw new Error('Invalid component: ' + (typeof App));
+      }
     } catch (error) {
+      console.error('Preview error:', error);
       document.getElementById('root').innerHTML = 
-        '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap;">' +
-        '<strong>Error:</strong> ' + (error && error.message ? error.message : 'Unknown error') + '</div>';
+        '<div style="padding: 2rem; color: #ef4444; font-family: monospace; white-space: pre-wrap; max-width: 800px;">' +
+        '<strong style="font-size: 1.25rem;">Compilation Error</strong><br/><br/>' + 
+        (error && error.message ? error.message : 'Unknown error') + 
+        (error && error.stack ? '<br/><br/><details><summary style="cursor: pointer;">Stack trace</summary><pre style="margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px; overflow-x: auto;">' + error.stack + '</pre></details>' : '') +
+        '</div>';
     }
   </script>
 </body>
