@@ -19,18 +19,9 @@ export function compileJSX(code: string): string {
 }
 
 function stripTypeScript(code: string): string {
-  // Remove interface declarations
-  code = code.replace(/interface\s+\w+\s*\{[^}]*\}/g, '');
-  
-  // Remove type annotations from parameters and variables
-  code = code.replace(/:\s*\w+(\[\])?(\s*\|[^=,;)]+)?(?=[,;)=])/g, '');
-  
-  // Remove type imports
-  code = code.replace(/import\s+type\s+\{[^}]+\}\s+from\s+['"[^'"]+['"]/g, '');
-  
-  // Remove generic type parameters
-  code = code.replace(/<[A-Z]\w*>/g, '');
-  
+  // Simplified: for now we assume preview input is plain TSX without complex
+  // type information and avoid aggressive regex stripping that could corrupt
+  // the source. This keeps the compiler safe for simple components.
   return code;
 }
 
@@ -43,8 +34,14 @@ function transformJSXInCode(code: string): string {
   while (i < code.length && iterations < MAX_ITERATIONS) {
     iterations++;
     
-    // Check if we're at the start of JSX (after return, =>, or parenthesis)
-    if (code[i] === '<' && isJSXStart(code, i)) {
+    // Treat any `<` followed by a letter as the start of JSX. This is
+    // intentionally permissive but very safe for our preview use-case
+    // (static TSX components) and avoids mis-detecting JSX blocks.
+    if (
+      code[i] === '<' &&
+      i + 1 < code.length &&
+      /[a-zA-Z]/.test(code[i + 1])
+    ) {
       const jsxResult = parseJSXElement(code, i);
       result += jsxResult.code;
       i = jsxResult.endIndex;
@@ -53,7 +50,7 @@ function transformJSXInCode(code: string): string {
       i++;
     }
   }
-  
+
   if (iterations >= MAX_ITERATIONS) {
     console.error('JSX compiler exceeded iteration limit');
     return code; // Return original code if we hit the limit
