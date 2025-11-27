@@ -4,24 +4,27 @@
  */
 
 export const PREVIEW_RUNTIME = `
-// Lightweight React-like runtime
+// Enhanced React-like runtime with proper rendering
 window.React = {
   createElement(type, props, ...children) {
     return { type, props: props || {}, children: children.flat() };
-  }
+  },
+  Fragment: Symbol.for('react.fragment')
 };
 
-// JSX helper function
-window.jsx = (type, props, ...children) => {
-  return React.createElement(type, props, ...children);
-};
-
-// DOM renderer
+// DOM renderer with improved handling
 window.ReactDOM = {
   render(vnode, container) {
-    container.innerHTML = "";
-    const dom = renderVNode(vnode);
-    container.appendChild(dom);
+    try {
+      container.innerHTML = "";
+      const dom = renderVNode(vnode);
+      if (dom) {
+        container.appendChild(dom);
+      }
+    } catch (error) {
+      console.error('Render error:', error);
+      container.innerHTML = '<div style="padding:2rem;color:red;">Render Error: ' + error.message + '</div>';
+    }
   }
 };
 
@@ -36,10 +39,13 @@ function renderVNode(vnode) {
     return document.createTextNode(String(vnode));
   }
   
-  // Handle arrays
+  // Handle arrays (including .map() results)
   if (Array.isArray(vnode)) {
     const fragment = document.createDocumentFragment();
-    vnode.forEach(child => fragment.appendChild(renderVNode(child)));
+    vnode.forEach(child => {
+      const childNode = renderVNode(child);
+      if (childNode) fragment.appendChild(childNode);
+    });
     return fragment;
   }
   
@@ -50,7 +56,19 @@ function renderVNode(vnode) {
     return renderVNode(rendered);
   }
   
-  // Handle regular elements
+  // Handle fragments
+  if (vnode.type === React.Fragment) {
+    const fragment = document.createDocumentFragment();
+    if (vnode.children) {
+      vnode.children.forEach(child => {
+        const childNode = renderVNode(child);
+        if (childNode) fragment.appendChild(childNode);
+      });
+    }
+    return fragment;
+  }
+  
+  // Handle regular DOM elements
   const el = document.createElement(vnode.type);
   
   // Set properties
@@ -61,18 +79,23 @@ function renderVNode(vnode) {
       } else if (key === "style" && typeof vnode.props[key] === "object") {
         Object.assign(el.style, vnode.props[key]);
       } else if (key.startsWith("on")) {
-        // Skip event handlers in static preview
+        // Event handlers - skip in static preview
         continue;
       } else if (key !== "children") {
-        el.setAttribute(key, vnode.props[key]);
+        try {
+          el.setAttribute(key, vnode.props[key]);
+        } catch (e) {
+          // Ignore setAttribute errors
+        }
       }
     }
   }
   
   // Render children
-  if (vnode.children) {
+  if (vnode.children && vnode.children.length > 0) {
     vnode.children.forEach(child => {
-      el.appendChild(renderVNode(child));
+      const childNode = renderVNode(child);
+      if (childNode) el.appendChild(childNode);
     });
   }
   
