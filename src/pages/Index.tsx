@@ -133,7 +133,7 @@ function UrDevEditorPage() {
     buildInitialContents(defaultFiles)
   );
   const [showReasoning, setShowReasoning] = useState(true);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isEditingEnabled, setIsEditingEnabled] = useState(false);
