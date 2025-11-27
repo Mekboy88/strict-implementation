@@ -41,8 +41,19 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     const doc = iframeRef.current.contentDocument;
     if (!doc) return;
 
+    // Filter to only include React component files for preview
+    const reactFiles = Object.fromEntries(
+      Object.entries(files).filter(([path]) => 
+        (path.endsWith('.tsx') || path.endsWith('.jsx')) &&
+        !path.includes('config') &&
+        !path.includes('vite.config') &&
+        path !== 'package.json' &&
+        path !== 'index.html'
+      )
+    );
+
     // Sort files by dependency (components before pages)
-    const sortedFiles = sortFilesByDependency(files);
+    const sortedFiles = sortFilesByDependency(reactFiles);
     
     // Transform all files to browser-compatible code
     const transformedFiles = sortedFiles.map(([id, content]) => {
@@ -51,7 +62,7 @@ const LivePreview = ({ files }: LivePreviewProps) => {
     });
 
     // Detect the main component to render
-    const mainComponent = detectMainComponent(files);
+    const mainComponent = detectMainComponent(reactFiles);
     const mainComponentName = mainComponent ?? "";
 
     // Create HTML document with React app
