@@ -247,19 +247,19 @@ const AssistantPanel = ({
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-slate-300" />
+                  <div className="w-7 h-7 rounded-full bg-slate-700/70 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-3.5 h-3.5 text-slate-300" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] px-4 py-3 ${
+                  className={`max-w-[80%] ${
                     message.role === 'user'
-                      ? 'bg-slate-700/50 text-white rounded-2xl'
-                      : ''
+                      ? 'bg-slate-700/40 px-4 py-3 rounded-2xl'
+                      : 'px-1 py-1'
                   }`}
                 >
                   <div 
-                    className="text-sm text-slate-200 leading-relaxed"
+                    className="text-[13px] text-slate-200 leading-relaxed"
                     dangerouslySetInnerHTML={{
                       __html: formatMessageContent(message.content)
                     }}
