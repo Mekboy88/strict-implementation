@@ -460,7 +460,9 @@ const UrDevLandingPage: React.FC = () => {
             </a>
           </nav>
           <div className="flex items-center gap-2 text-xs">
-            {user ? (
+            {!authReady ? (
+              <div className="h-9 w-9" />
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="h-9 w-9 rounded-xl bg-neutral-700 flex items-center justify-center text-sm font-semibold hover:bg-neutral-600 transition focus:outline-none focus:ring-0">
