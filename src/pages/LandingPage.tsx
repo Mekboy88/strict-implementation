@@ -400,16 +400,112 @@ const UrDevLandingPage: React.FC = () => {
     callback();
   };
 
-  const handleBuildClick = () => {
-    requireAuth(() => {
+  const handleBuildClick = async () => {
+    requireAuth(async () => {
       if (!prompt.trim()) {
         handleUseSamplePrompt();
         return;
       }
+      
       setPromptStatus("Analyzing prompt with AI agents");
-      setTimeout(() => {
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('chat', {
+          body: {
+            messages: [
+              { role: 'user', content: prompt }
+            ],
+            context: {
+              activePlatform: promptMode
+            }
+          }
+        });
+
+        if (error) {
+          console.error('Error calling chat function:', error);
+          toast({
+            title: "Error",
+            description: "Failed to process your request. Please try again.",
+            variant: "destructive",
+          });
+          setPromptStatus("Draft");
+          return;
+        }
+
         setPromptStatus("Draft layout generated – open the IDE to refine.");
-      }, 800);
+        toast({
+          title: "Success",
+          description: "Your project request has been processed!",
+        });
+        
+        // Navigate to the main editor
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+        setPromptStatus("Draft");
+      }
+    });
+  };
+
+  const handleMakePlan = async () => {
+    requireAuth(async () => {
+      if (!prompt.trim()) {
+        toast({
+          title: "No Request",
+          description: "Please enter a description of what you want to build.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        toast({
+          title: "Creating Plan",
+          description: "Analyzing your request...",
+        });
+
+        const { data, error } = await supabase.functions.invoke('make-plan', {
+          body: {
+            userRequest: prompt
+          }
+        });
+
+        if (error) {
+          console.error('Error calling make-plan function:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create plan. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('Plan generated:', data);
+        
+        toast({
+          title: "Plan Created",
+          description: `Generated ${data.tasks?.length || 0} actionable tasks!`,
+        });
+
+        // Open the platform selector with the generated plan
+        setShowPlatformSelector(true);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
     });
   };
 
@@ -729,7 +825,7 @@ const UrDevLandingPage: React.FC = () => {
                         <span>Integration</span>
                       </button>
                       <button 
-                        onClick={() => requireAuth(() => setShowPlatformSelector(true))}
+                        onClick={handleMakePlan}
                         className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 sm:px-3 py-1 hover:border-sky-400/80 hover:text-sky-100 text-[10px] sm:text-[11px]"
                       >
                         <ListTodo className="h-3 w-3" />
