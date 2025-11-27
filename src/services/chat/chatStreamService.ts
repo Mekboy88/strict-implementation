@@ -21,6 +21,15 @@ export interface ChatContext {
   selectedText?: string;
 }
 
+const stripMarkdown = (text: string): string => {
+  // Remove bold/italic markers and asterisks/underscores used for formatting
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1');
+};
+
 interface StreamChatOptions {
   messages: ChatMessage[];
   systemPrompt?: string;
@@ -94,9 +103,9 @@ export async function streamChat({
 
         try {
           const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
           if (content) {
-            onDelta(content);
+            onDelta(stripMarkdown(content));
           }
         } catch {
           // Incomplete JSON, put back in buffer
@@ -119,8 +128,8 @@ export async function streamChat({
         
         try {
           const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) onDelta(content);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(stripMarkdown(content));
         } catch {
           // Ignore parse errors in final flush
         }
