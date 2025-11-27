@@ -91,6 +91,14 @@ export function bundleForPreview(
 
   function transformJSX(code: string): string {
     let result = code;
+
+    // Strip basic TypeScript syntax so the browser can execute the code
+    // Remove simple interface declarations
+    result = result.replace(/interface\s+\w+\s*{[\s\S]*?}/g, "");
+    // Remove basic type annotations like ": string", ": number", etc.
+    result = result.replace(/:\s*[A-Za-z0-9_\[\]\<\>\| ]+/g, "");
+    // Remove TypeScript generics on functions/components like <T>
+    result = result.replace(/<[^>]+>\s*\(/g, "(");
     
     // Remove imports
     result = result.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
