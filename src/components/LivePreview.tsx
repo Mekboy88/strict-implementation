@@ -43,6 +43,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
 
     try {
       const bundledCode = bundleForPreview(filesForPreview, entryPath);
+      console.log('🧩 Bundled code snippet:', bundledCode.slice(0, 400));
       const previewHtml = generateBundledPreview(bundledCode);
       console.log('✅ Bundled Preview Generated');
       iframeRef.current.srcdoc = previewHtml;
