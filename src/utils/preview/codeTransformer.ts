@@ -10,6 +10,16 @@ interface TransformResult {
  * - Extracts the main component name
  */
 export function transformCodeForPreview(code: string, filename: string): TransformResult {
+  // Skip non-React files
+  if (!filename.endsWith('.tsx') && !filename.endsWith('.jsx')) {
+    return { transformedCode: '', componentName: null };
+  }
+  
+  // Skip config files even if they have .ts extension
+  if (filename.includes('config') || filename === 'package.json' || filename === 'index.html') {
+    return { transformedCode: '', componentName: null };
+  }
+  
   let transformedCode = code;
   let componentName: string | null = null;
 
@@ -110,6 +120,10 @@ export function detectMainComponent(files: { [key: string]: string }): string | 
   // First pass: look for priority patterns in filenames
   for (const pattern of priorityPatterns) {
     for (const [filename, content] of Object.entries(files)) {
+      // Skip config files and non-React files
+      if (!filename.endsWith('.tsx') && !filename.endsWith('.jsx')) continue;
+      if (filename.includes('config') || filename === 'package.json' || filename === 'index.html') continue;
+      
       if (pattern.test(filename)) {
         const result = transformCodeForPreview(content, filename);
         if (result.componentName) {
@@ -121,6 +135,10 @@ export function detectMainComponent(files: { [key: string]: string }): string | 
 
   // Second pass: look for any component
   for (const [filename, content] of Object.entries(files)) {
+    // Skip config files and non-React files
+    if (!filename.endsWith('.tsx') && !filename.endsWith('.jsx')) continue;
+    if (filename.includes('config') || filename === 'package.json' || filename === 'index.html') continue;
+    
     const result = transformCodeForPreview(content, filename);
     if (result.componentName) {
       return result.componentName;
