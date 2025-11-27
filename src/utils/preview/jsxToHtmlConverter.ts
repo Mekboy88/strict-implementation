@@ -49,73 +49,84 @@ export function convertJSXToHTML(jsxCode: string, filename: string): ConversionR
 }
 
 /**
+ * Find the position of the matching closing tag for a given opening tag.
+ * Expects that the string starts with the opening tag already matched separately.
+ */
+function findClosingTagPosition(jsx: string, tag: string, startPos: number): number {
+  const closingTag = `</${tag}>`;
+  let depth = 1; // we've already seen the first opening tag
+  let pos = startPos;
+
+  while (pos < jsx.length && depth > 0) {
+    // Look for the next opening or closing tag of the same type
+    const openIndex = jsx.indexOf(`<${tag}`, pos);
+    const closeIndex = jsx.indexOf(closingTag, pos);
+
+    if (closeIndex === -1) {
+      // No more closing tags, abort
+      return -1;
+    }
+
+    if (openIndex !== -1 && openIndex < closeIndex) {
+      // Found another nested opening tag before the next close
+      depth++;
+      pos = openIndex + tag.length + 1;
+    } else {
+      // Found a closing tag
+      depth--;
+      if (depth === 0) {
+        return closeIndex;
+      }
+      pos = closeIndex + closingTag.length;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * Parse a JSX element and convert to HTML
  */
 function parseJSXElement(jsx: string): string {
   jsx = jsx.trim();
-  
+
   // Handle empty content
-  if (!jsx) return '';
-  
-  // Handle self-closing tags: <div />
-  const selfClosingMatch = jsx.match(/^<(\w+)([^>]*?)\/>/);
+  if (!jsx) return "";
+
+  // Handle self-closing tags: <div /> or <Component />
+  const selfClosingMatch = jsx.match(/^<([A-Za-z_][\w]*)\b([^>]*?)\/>/);
   if (selfClosingMatch) {
     const [, tag, attrsStr] = selfClosingMatch;
     const attrs = parseAttributes(attrsStr);
     return `<${tag}${attrs}></${tag}>`;
   }
-  
-  // Handle opening tag: <div className="...">
-  const openingTagMatch = jsx.match(/^<(\w+)([^>]*?)>/);
+
+  // Handle opening tag: <div className="..."> or <Component>
+  const openingTagMatch = jsx.match(/^<([A-Za-z_][\w]*)\b([^>]*)>/);
   if (!openingTagMatch) {
     // Not a JSX element, might be text or expression
-    if (jsx.startsWith('{') && jsx.endsWith('}')) {
+    if (jsx.startsWith("{") && jsx.endsWith("}")) {
       return '<span class="text-muted-foreground">[dynamic content]</span>';
     }
     // Plain text
     return escapeHtml(jsx);
   }
-  
+
   const [fullOpeningTag, tag, attrsStr] = openingTagMatch;
   const attrs = parseAttributes(attrsStr);
-  
-  // Find the matching closing tag
-  const closingTag = `</${tag}>`;
-  let depth = 1;
-  let pos = fullOpeningTag.length;
-  let closingPos = -1;
-  
-  while (pos < jsx.length && depth > 0) {
-    if (jsx.slice(pos).startsWith(`<${tag}`)) {
-      // Another opening tag of same type
-      const nextChar = jsx[pos + tag.length + 1];
-      if (nextChar === ' ' || nextChar === '>' || nextChar === '/') {
-        depth++;
-        pos += tag.length + 1;
-      } else {
-        pos++;
-      }
-    } else if (jsx.slice(pos).startsWith(closingTag)) {
-      depth--;
-      if (depth === 0) {
-        closingPos = pos;
-        break;
-      }
-      pos += closingTag.length;
-    } else {
-      pos++;
-    }
-  }
-  
+
+  // Find the matching closing tag within the *entire* jsx string
+  const closingPos = findClosingTagPosition(jsx, tag, fullOpeningTag.length);
+
   if (closingPos === -1) {
-    // No closing tag found
+    // No closing tag found; render as empty element to avoid crashing preview
     return `<${tag}${attrs}></${tag}>`;
   }
-  
-  // Extract children
+
+  // Extract children between the opening and closing tags
   const childrenStr = jsx.slice(fullOpeningTag.length, closingPos);
   const childrenHtml = parseJSXChildren(childrenStr);
-  
+
   return `<${tag}${attrs}>${childrenHtml}</${tag}>`;
 }
 
@@ -124,91 +135,82 @@ function parseJSXElement(jsx: string): string {
  */
 function parseJSXChildren(children: string): string {
   children = children.trim();
-  if (!children) return '';
-  
+  if (!children) return "";
+
   const result: string[] = [];
   let pos = 0;
-  
+
   while (pos < children.length) {
     // Skip whitespace
     while (pos < children.length && /\s/.test(children[pos])) {
       pos++;
     }
-    
+
     if (pos >= children.length) break;
-    
-    // Check if we're at a JSX element
-    if (children[pos] === '<') {
-      // Find the end of this element
-      const elementStart = pos;
-      let elementEnd = pos;
-      let depth = 0;
-      let inTag = false;
-      
-      while (elementEnd < children.length) {
-        const char = children[elementEnd];
-        
-        if (char === '<') {
-          if (children[elementEnd + 1] === '/') {
-            // Closing tag
-            if (depth === 0) {
-              // Find end of closing tag
-              const closeTagEnd = children.indexOf('>', elementEnd);
-              if (closeTagEnd !== -1) {
-                elementEnd = closeTagEnd + 1;
-                break;
-              }
-            } else {
-              depth--;
-            }
-          } else {
-            // Opening tag
-            if (inTag) {
-              depth++;
-            }
-            inTag = true;
-          }
-        } else if (char === '>') {
-          if (children[elementEnd - 1] === '/') {
-            // Self-closing
-            if (depth === 0) {
-              elementEnd++;
-              break;
-            }
-          }
-          inTag = false;
-        }
-        
-        elementEnd++;
+
+    const currentChar = children[pos];
+
+    // JSX element node
+    if (currentChar === "<") {
+      // Try self-closing element first
+      const selfClosing = children.slice(pos).match(/^<([A-Za-z_][\w]*)\b[^>]*\/>/);
+      if (selfClosing) {
+        const elementStr = selfClosing[0];
+        result.push(parseJSXElement(elementStr));
+        pos += elementStr.length;
+        continue;
       }
-      
-      const elementStr = children.slice(elementStart, elementEnd);
-      result.push(parseJSXElement(elementStr));
-      pos = elementEnd;
-    } else if (children[pos] === '{') {
-      // JSX expression - show placeholder
-      const exprEnd = children.indexOf('}', pos);
+
+      // Regular opening tag with children
+      const openingTagMatch = children.slice(pos).match(/^<([A-Za-z_][\w]*)\b([^>]*)>/);
+      if (openingTagMatch) {
+        const [fullOpeningTag, tag] = openingTagMatch;
+        const relativeClosingPos = findClosingTagPosition(children.slice(pos), tag, fullOpeningTag.length);
+
+        if (relativeClosingPos !== -1) {
+          const closingTag = `</${tag}>`;
+          const elementEnd = pos + relativeClosingPos + closingTag.length;
+          const elementStr = children.slice(pos, elementEnd);
+          result.push(parseJSXElement(elementStr));
+          pos = elementEnd;
+          continue;
+        }
+      }
+
+      // Fallback: just consume until next '>' to avoid infinite loop
+      const nextGt = children.indexOf('>', pos);
+      if (nextGt === -1) break;
+      const fallbackElement = children.slice(pos, nextGt + 1);
+      result.push(escapeHtml(fallbackElement));
+      pos = nextGt + 1;
+      continue;
+    }
+
+    // JSX expression node
+    if (currentChar === "{") {
+      const exprEnd = children.indexOf("}", pos);
       if (exprEnd !== -1) {
         result.push('<span class="text-muted-foreground text-sm">[dynamic]</span>');
         pos = exprEnd + 1;
-      } else {
-        pos++;
+        continue;
       }
-    } else {
-      // Plain text
-      let textEnd = pos;
-      while (textEnd < children.length && children[textEnd] !== '<' && children[textEnd] !== '{') {
-        textEnd++;
-      }
-      const text = children.slice(pos, textEnd).trim();
-      if (text) {
-        result.push(escapeHtml(text));
-      }
-      pos = textEnd;
+      // Unclosed expression, just break
+      break;
     }
+
+    // Plain text node
+    let textEnd = pos;
+    while (textEnd < children.length && children[textEnd] !== "<" && children[textEnd] !== "{") {
+      textEnd++;
+    }
+    const text = children.slice(pos, textEnd).trim();
+    if (text) {
+      result.push(escapeHtml(text));
+    }
+    pos = textEnd;
   }
-  
-  return result.join('');
+
+  return result.join("");
 }
 
 /**
