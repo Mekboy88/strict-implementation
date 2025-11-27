@@ -1,3 +1,4 @@
+import LivePreview from "@/components/LivePreview";
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -1415,131 +1416,141 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             <ResizableHandle withHandle className="hidden xl:flex" />
 
             <ResizablePanel defaultSize={75} minSize={50}>
-              <section className="flex-1 flex flex-col bg-neutral-900 h-full">
-            {showPreview ? (
-              <div className="flex-1 overflow-auto">
-                <UrDevPreviewFrame />
-              </div>
-            ) : (
-              <>
-                {/* File tabs + copy */}
-                <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2.5 text-[11px]">
-                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                    {projectFiles.map((file) => {
-                      const isActive = file.id === activeFileId;
-                      return (
+              <ResizablePanelGroup direction="horizontal" className="h-full">
+                {/* Code Editor Panel */}
+                <ResizablePanel defaultSize={showPreview ? 50 : 100} minSize={30}>
+                  <section className="flex-1 flex flex-col bg-neutral-900 h-full">
+                    {/* File tabs + copy */}
+                    <div className="flex items-center justify-between border-b border-white/10 bg-neutral-900 px-4 py-2.5 text-[11px]">
+                      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                        {projectFiles.map((file) => {
+                          const isActive = file.id === activeFileId;
+                          return (
+                            <button
+                              key={file.id}
+                              type="button"
+                              onClick={() => setActiveFileId(file.id)}
+                              className={`inline-flex items-center gap-2 rounded-md px-4 py-1.5 ${
+                                isActive
+                                  ? "bg-white/10 text-white"
+                                  : "text-slate-400 hover:text-slate-100"
+                              }`}
+                            >
+                              <span>{file.name}</span>
+                              <span className="text-slate-500">|</span>
+                              <span className="text-[9px] uppercase text-slate-500">
+                                {file.language}
+                              </span>
+                              {file.id === activeFileId && hasFileChanges && (
+                                <span className="ml-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] text-amber-300">
+                                  Modified
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400">
                         <button
-                          key={file.id}
                           type="button"
-                          onClick={() => setActiveFileId(file.id)}
-                          className={`inline-flex items-center gap-2 rounded-md px-4 py-1.5 ${
-                            isActive
-                              ? "bg-white/10 text-white"
-                              : "text-slate-400 hover:text-slate-100"
+                          onClick={handleCopyFile}
+                          className="inline-flex items-center justify-center hover:text-sky-400 transition-colors"
+                        >
+                          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor">
+                            <g>
+                              <path d="M23.71 10.29l-4-4C19.52 6.1 19.26 6 19 6h-7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V11c0-.26-.1-.52-.29-.71zM19 8.42L21.58 11H19.5c-.28 0-.5-.22-.5-.5V8.42zm3 13.08c0 .28-.22.5-.5.5h-9c-.28 0-.5-.22-.5-.5v-13c0-.28.22-.5.5-.5h4c.28 0 .5.22.5.5V10h-2c-.55 0-1 .45-1 1s.45 1 1 1h2.27c.35.6.99 1 1.73 1h2.5c.28 0 .5.22.5.5v8z"></path>
+                              <path d="M13 2v1c0 .55-.45 1-1 1s-1-.45-1-1v-.5c0-.28-.22-.5-.5-.5h-.51H2.5c-.28 0-.5.22-.5.5v13c0 .28.22.5.5.5h4.52c.54.01.98.46.98 1s-.44.99-.98 1H2.01C.9 18 0 17.1 0 16V2C0 .9.9 0 2.01 0h8.98C12.1 0 13 .9 13 2zM19 20h-4c-.553 0-1-.447-1-1s.447-1 1-1h4c.553 0 1 .447 1 1s-.447 1-1 1zM19 16h-4c-.553 0-1-.447-1-1s.447-1 1-1h4c.553 0 1 .447 1 1s-.447 1-1 1z"></path>
+                              <path d="M7 6H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1zM7 14H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1zM7 10H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1z"></path>
+                            </g>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingEnabled(!isEditingEnabled)}
+                          className={`inline-flex items-center justify-center transition-colors ${
+                            isEditingEnabled
+                              ? "text-sky-400"
+                              : "text-slate-400 hover:text-sky-400"
                           }`}
                         >
-                          <span>{file.name}</span>
-                          <span className="text-slate-500">|</span>
-                          <span className="text-[9px] uppercase text-slate-500">
-                            {file.language}
-                          </span>
-                          {file.id === activeFileId && hasFileChanges && (
-                            <span className="ml-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] text-amber-300">
-                              Modified
-                            </span>
-                          )}
+                          <svg fill="currentColor" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
+                            <g>
+                              <path d="M24.8452,25.3957a6.0129,6.0129,0,0,0-8.4487.7617L1.3974,44.1563a5.9844,5.9844,0,0,0,0,7.687L16.3965,69.8422a5.9983,5.9983,0,1,0,9.21-7.687L13.8068,48l11.8-14.1554A6,6,0,0,0,24.8452,25.3957Z"></path>
+                              <path d="M55.1714,12.1192A6.0558,6.0558,0,0,0,48.1172,16.83L36.1179,76.8262A5.9847,5.9847,0,0,0,40.8286,83.88a5.7059,5.7059,0,0,0,1.1835.1172A5.9949,5.9949,0,0,0,47.8828,79.17L59.8821,19.1735A5.9848,5.9848,0,0,0,55.1714,12.1192Z"></path>
+                              <path d="M94.6026,44.1563,79.6035,26.1574a5.9983,5.9983,0,1,0-9.21,7.687L82.1932,48l-11.8,14.1554a5.9983,5.9983,0,1,0,9.21,7.687L94.6026,51.8433A5.9844,5.9844,0,0,0,94.6026,44.1563Z"></path>
+                            </g>
+                          </svg>
                         </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                    <button
-                      type="button"
-                      onClick={handleCopyFile}
-                      className="inline-flex items-center justify-center hover:text-sky-400 transition-colors"
-                    >
-                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor">
-                        <g>
-                          <path d="M23.71 10.29l-4-4C19.52 6.1 19.26 6 19 6h-7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V11c0-.26-.1-.52-.29-.71zM19 8.42L21.58 11H19.5c-.28 0-.5-.22-.5-.5V8.42zm3 13.08c0 .28-.22.5-.5.5h-9c-.28 0-.5-.22-.5-.5v-13c0-.28.22-.5.5-.5h4c.28 0 .5.22.5.5V10h-2c-.55 0-1 .45-1 1s.45 1 1 1h2.27c.35.6.99 1 1.73 1h2.5c.28 0 .5.22.5.5v8z"></path>
-                          <path d="M13 2v1c0 .55-.45 1-1 1s-1-.45-1-1v-.5c0-.28-.22-.5-.5-.5h-.51H2.5c-.28 0-.5.22-.5.5v13c0 .28.22.5.5.5h4.52c.54.01.98.46.98 1s-.44.99-.98 1H2.01C.9 18 0 17.1 0 16V2C0 .9.9 0 2.01 0h8.98C12.1 0 13 .9 13 2zM19 20h-4c-.553 0-1-.447-1-1s.447-1 1-1h4c.553 0 1 .447 1 1s-.447 1-1 1zM19 16h-4c-.553 0-1-.447-1-1s.447-1 1-1h4c.553 0 1 .447 1 1s-.447 1-1 1z"></path>
-                          <path d="M7 6H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1zM7 14H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1zM7 10H5c-.553 0-1-.447-1-1s.447-1 1-1h2c.553 0 1 .447 1 1s-.447 1-1 1z"></path>
-                        </g>
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingEnabled(!isEditingEnabled)}
-                      className={`inline-flex items-center justify-center transition-colors ${
-                        isEditingEnabled
-                          ? "text-sky-400"
-                          : "text-slate-400 hover:text-sky-400"
-                      }`}
-                    >
-                      <svg fill="currentColor" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
-                        <g>
-                          <path d="M24.8452,25.3957a6.0129,6.0129,0,0,0-8.4487.7617L1.3974,44.1563a5.9844,5.9844,0,0,0,0,7.687L16.3965,69.8422a5.9983,5.9983,0,1,0,9.21-7.687L13.8068,48l11.8-14.1554A6,6,0,0,0,24.8452,25.3957Z"></path>
-                          <path d="M55.1714,12.1192A6.0558,6.0558,0,0,0,48.1172,16.83L36.1179,76.8262A5.9847,5.9847,0,0,0,40.8286,83.88a5.7059,5.7059,0,0,0,1.1835.1172A5.9949,5.9949,0,0,0,47.8828,79.17L59.8821,19.1735A5.9848,5.9848,0,0,0,55.1714,12.1192Z"></path>
-                          <path d="M94.6026,44.1563,79.6035,26.1574a5.9983,5.9983,0,1,0-9.21,7.687L82.1932,48l-11.8,14.1554a5.9983,5.9983,0,1,0,9.21,7.687L94.6026,51.8433A5.9844,5.9844,0,0,0,94.6026,44.1563Z"></path>
-                        </g>
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveFile}
-                      disabled={!hasFileChanges}
-                      className={`hidden sm:inline rounded-full px-4 py-1.5 text-xs transition-all ${
-                        hasFileChanges
-                          ? "bg-sky-500/20 text-sky-200 cursor-pointer hover:bg-sky-500/30"
-                          : "bg-sky-500/10 text-sky-300/60 cursor-default"
-                      }`}
-                    >
-                      {hasFileChanges ? "Save" : "Saved"}
-                    </button>
-                  </div>
-                </div>
+                        <button
+                          type="button"
+                          onClick={handleSaveFile}
+                          disabled={!hasFileChanges}
+                          className={`hidden sm:inline rounded-full px-4 py-1.5 text-xs transition-all ${
+                            hasFileChanges
+                              ? "bg-sky-500/20 text-sky-200 cursor-pointer hover:bg-sky-500/30"
+                              : "bg-sky-500/10 text-sky-300/60 cursor-default"
+                          }`}
+                        >
+                          {hasFileChanges ? "Save" : "Saved"}
+                        </button>
+                      </div>
+                    </div>
 
-                {/* Editor surface */}
-                <div ref={editorContainerRef} className="flex-1 overflow-hidden flex flex-col">
-                  <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
-                    {showEditNotification && (
-                      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 animate-fade-in">
-                        <div className="text-6xl font-bold text-white">
-                          Edit Mode
+                    {/* Editor surface */}
+                    <div ref={editorContainerRef} className="flex-1 overflow-hidden flex flex-col">
+                      <div className="flex-1 relative rounded-none border-0 bg-transparent shadow-none overflow-hidden">
+                        {showEditNotification && (
+                          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 animate-fade-in">
+                            <div className="text-6xl font-bold text-white">
+                              Edit Mode
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
+                          <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-neutral-900 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
+                            {currentLines.map((line, index) => (
+                              <div
+                                key={index}
+                                className={
+                                  isLineChanged(index, line)
+                                    ? "bg-amber-500/10 text-amber-300 -mx-1 px-1 rounded-sm"
+                                    : ""
+                                }
+                              >
+                                {index + 1}
+                              </div>
+                            ))}
+                          </div>
+                          <textarea
+                            ref={textareaRef}
+                            value={currentContent}
+                            onChange={(e) => handleChangeContent(e.target.value)}
+                            onScroll={handleScroll}
+                            spellCheck={false}
+                            readOnly={!isEditingEnabled}
+                            className={`flex-1 resize-none bg-neutral-900 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
+                              !isEditingEnabled ? "cursor-default" : ""
+                            }`}
+                          />
                         </div>
                       </div>
-                    )}
-                    <div className="absolute inset-0 flex text-[13px] font-mono leading-relaxed">
-                      <div ref={lineNumbersRef} className="select-none border-r border-white/5 bg-neutral-900 px-3 py-3 text-right text-slate-500 min-w-[46px] overflow-y-auto text-[13px] leading-relaxed scrollbar-hide">
-                        {currentLines.map((line, index) => (
-                          <div
-                            key={index}
-                            className={
-                              isLineChanged(index, line)
-                                ? "bg-amber-500/10 text-amber-300 -mx-1 px-1 rounded-sm"
-                                : ""
-                            }
-                          >
-                            {index + 1}
-                          </div>
-                        ))}
-                      </div>
-                      <textarea
-                        ref={textareaRef}
-                        value={currentContent}
-                        onChange={(e) => handleChangeContent(e.target.value)}
-                        onScroll={handleScroll}
-                        spellCheck={false}
-                        readOnly={!isEditingEnabled}
-                        className={`flex-1 resize-none bg-neutral-900 px-4 py-3 text-[13px] text-emerald-200 outline-none whitespace-pre overflow-auto leading-relaxed ${
-                          !isEditingEnabled ? "cursor-default" : ""
-                        }`}
-                      />
                     </div>
-                  </div>
-                </div>
-              </>
-            )}
-              </section>
+                  </section>
+                </ResizablePanel>
+
+                {/* Live Preview Panel */}
+                {showPreview && (
+                  <>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={50} minSize={30}>
+                      <LivePreview 
+                        files={fileContents}
+                        activeFileId={activeFileId}
+                      />
+                    </ResizablePanel>
+                  </>
+                )}
+              </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
         </main>
