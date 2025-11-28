@@ -81,12 +81,25 @@ const parseContent = (content: string): ParsedContent => {
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const parsed = parseContent(content);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
+  const [showFileSection, setShowFileSection] = useState(false);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
   const showFiles = parsed.files.length > 0;
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
+
+  // Show file section after transition text finishes (approximately 3 seconds for the typewriter)
+  useEffect(() => {
+    if (showFiles && isFirstProject) {
+      const timer = setTimeout(() => {
+        setShowFileSection(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else if (showFiles && !isFirstProject) {
+      setShowFileSection(true);
+    }
+  }, [showFiles, isFirstProject]);
 
   // Sync current file with streaming progress
   useEffect(() => {
@@ -145,8 +158,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 5: Files - Show building process while streaming */}
-      {showFiles && isStreaming && parsed.files.length > 0 && (
+      {/* Section 5: Files - Show building process while streaming - ONLY AFTER TRANSITION TEXT */}
+      {showFileSection && showFiles && isStreaming && parsed.files.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
             {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
@@ -158,7 +171,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       )}
       
       {/* Section 5b: Files dropdown - Only show when complete */}
-      {showFiles && isComplete && (
+      {showFileSection && showFiles && isComplete && (
         <div className="mt-3">
           <FilesEditedDropdown files={parsed.files} />
         </div>
