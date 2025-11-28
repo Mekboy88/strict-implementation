@@ -107,12 +107,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 2: Design Vision */}
       {showDesignVision && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Design Vision:</p>
+          <p className="text-base font-medium text-white/80">Design Vision:</p>
           <ul className="space-y-2 ml-1">
             {parsed.designVision.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-base animate-fade-in typing-animation" style={{ animationDelay: `${400 + i * 100}ms` }}>
+              <li key={i} className="flex items-start gap-2 text-base animate-fade-in" style={{ animationDelay: `${400 + i * 100}ms` }}>
                 <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+                <TypewriterText text={item} className="inline" speedMs={15} />
               </li>
             ))}
           </ul>
@@ -122,24 +122,27 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 3: Features */}
       {showFeatures && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Features:</p>
+          <p className="text-base font-medium text-white/80">Features:</p>
           <ul className="space-y-2 ml-1">
             {parsed.features.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-base animate-fade-in typing-animation" style={{ animationDelay: `${600 + i * 100}ms` }}>
+              <li key={i} className="flex items-start gap-2 text-base animate-fade-in" style={{ animationDelay: `${600 + i * 100}ms` }}>
                 <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+                <TypewriterText text={item} className="inline" speedMs={15} />
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Section 4: Transition Text - Only show on first project */}
-      {showFiles && isFirstProject && (
-        <TypewriterText
-          text="Let me start by creating this using a refined and beautifully structured design system."
-          className="text-lg text-white/90 italic break-words"
-        />
+      {/* Section 4: Transition Text - Only show on first project - SHOW BEFORE FILE BUILDING */}
+      {isFirstProject && (
+        <div className="mt-4">
+          <TypewriterText
+            text="Let me start by creating this using a refined and beautifully structured design system."
+            className="text-lg text-white/90 italic break-words"
+            speedMs={20}
+          />
+        </div>
       )}
 
       {/* Section 5: Files - Show building process while streaming */}
