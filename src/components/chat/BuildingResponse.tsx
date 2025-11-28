@@ -155,20 +155,8 @@ export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps
       {/* Section 5: Files */}
       {showFiles && (
         <div className="space-y-3 animate-fade-in">
-          <div className="space-y-2">
-            {parsed.files.slice(0, visibleFiles).map((file, i) => (
-              <div key={i} className="flex items-center justify-between gap-3 animate-fade-in">
-                <div className="flex items-center gap-2 text-sm text-white/60">
-                  <span className="text-white/40">{getFileIcon(file.path)}</span>
-                  <span className="font-mono">{file.path}</span>
-                </div>
-                {i === parsed.files.length - 1 && isComplete && (
-                  <FilesEditedDropdown files={parsed.files} />
-                )}
-              </div>
-            ))}
-            {visibleFiles < parsed.files.length && <WhiteShimmer />}
-          </div>
+          {!isComplete && <WhiteShimmer />}
+          {isComplete && <FilesEditedDropdown files={parsed.files} />}
         </div>
       )}
 
