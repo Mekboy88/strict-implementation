@@ -50,9 +50,6 @@ import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { Shimmer } from "@/components/chat/Shimmer";
 import { ChatMessageRenderer } from "@/components/chat/ChatMessageRenderer";
-import { WelcomeExperience } from "@/components/chat/WelcomeExperience";
-import { ErrorFixingIndicator } from "@/components/chat/ErrorFixingIndicator";
-import { useBuildingState } from "@/hooks/useBuildingState";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { ConsolePanel } from "@/components/ConsolePanel";
 import { DebugPanel } from "@/components/DebugPanel";
@@ -410,9 +407,6 @@ function UrDevEditorPage() {
   const [isFixingError, setIsFixingError] = useState(false);
   const [errorBeingFixed, setErrorBeingFixed] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Building state management
-  const buildingState = useBuildingState();
 
   // Scroll to bottom when messages change
   React.useEffect(() => {
@@ -453,7 +447,6 @@ function UrDevEditorPage() {
       setIsStreaming(true);
       setIsFixingError(true);
       setErrorBeingFixed(errorDetails);
-      buildingState.startBuild();
       
       const apiMessages: StreamChatMessage[] = chatMessages
         .filter(m => m.id !== 'welcome')
@@ -511,7 +504,6 @@ function UrDevEditorPage() {
           setStreamingContent('');
           setIsFixingError(false);
           setErrorBeingFixed('');
-          buildingState.completeBuild();
         },
         onError: (error) => {
             toast({
@@ -522,7 +514,6 @@ function UrDevEditorPage() {
             setIsStreaming(false);
             setIsFixingError(false);
             setErrorBeingFixed('');
-            buildingState.setError(error.message);
           },
         });
       } catch (error) {
@@ -534,7 +525,6 @@ function UrDevEditorPage() {
         setIsStreaming(false);
         setIsFixingError(false);
         setErrorBeingFixed('');
-        buildingState.setError(error instanceof Error ? error.message : 'Unknown error');
       }
     };
 
@@ -1530,27 +1520,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             </div>
 
             <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
-              {/* Welcome Experience - Show when only welcome message exists */}
-              {chatMessages.length === 1 && chatMessages[0]?.id === 'welcome' && !isStreaming && (
-                <WelcomeExperience 
-                  onSuggestionClick={(prompt) => {
-                    setAssistantInput(prompt);
-                    // Trigger send
-                    setTimeout(() => {
-                      const sendButton = document.querySelector('[aria-label="Send message"]') as HTMLButtonElement;
-                      sendButton?.click();
-                    }, 100);
-                  }}
-                />
-              )}
-
               {/* Chat Messages */}
               {chatMessages.map((msg) => {
-                // Skip welcome message if showing WelcomeExperience
-                if (msg.id === 'welcome' && chatMessages.length === 1 && !isStreaming) {
-                  return null;
-                }
-                
                 return (
                   <div
                     key={msg.id}
@@ -1572,14 +1543,6 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   </div>
                 );
               })}
-              
-              {/* Error Fixing Indicator */}
-              {isFixingError && errorBeingFixed && (
-                <ErrorFixingIndicator 
-                  error={errorBeingFixed}
-                  elapsedTime={buildingState.elapsedTime}
-                />
-              )}
             </div>
 
             {/* Task Extraction Prompt */}
