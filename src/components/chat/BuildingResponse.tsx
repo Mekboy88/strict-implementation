@@ -98,8 +98,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     <div className="w-full space-y-3 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
-        <div className="space-y-2 animate-fade-in">
-          <p className="text-base leading-relaxed break-words">{parsed.intro}</p>
+        <div className="space-y-2">
+          <p className="text-base leading-relaxed break-words overflow-hidden whitespace-nowrap animate-typewriter inline-block max-w-fit">{parsed.intro}</p>
         </div>
       )}
 
@@ -135,7 +135,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project */}
       {showFiles && isFirstProject && (
-        <p className="text-lg text-white/90 italic animate-fade-in break-words" style={{ animationDelay: '700ms' }}>
+        <p className="text-lg text-white/90 italic break-words overflow-hidden whitespace-nowrap animate-typewriter inline-block max-w-fit" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}

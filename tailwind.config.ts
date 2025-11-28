@@ -91,15 +91,21 @@ export default {
         },
         "typing": {
           "0%": {
-            width: "0",
             opacity: "0",
           },
           "1%": {
             opacity: "1",
           },
           "100%": {
-            width: "100%",
             opacity: "1",
+          },
+        },
+        "typewriter": {
+          "0%": {
+            width: "0",
+          },
+          "100%": {
+            width: "100%",
           },
         },
         "fade-in": {
@@ -125,6 +131,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "typing": "typing 2s steps(40, end) forwards",
+        "typewriter": "typewriter 3s steps(80, end) forwards",
         "fade-in": "fade-in 0.5s ease-out forwards",
         "shimmer": "shimmer 2s linear infinite",
       },
