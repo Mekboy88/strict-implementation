@@ -91,6 +91,11 @@ export const parseMarkdown = (content: string): React.ReactNode[] => {
       continue;
     }
 
+    // Skip raw code lines (JSX/HTML elements)
+    if (line.startsWith('<') || line.includes('className=') || line.includes('/>') || line.startsWith('export ')) {
+      continue; // Don't render raw code as text
+    }
+
     // Heading (### Header)
     const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
     if (headingMatch) {
