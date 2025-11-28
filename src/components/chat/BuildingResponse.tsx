@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
+import { TypewriterText } from "./TypewriterText";
 
 interface BuildingResponseProps {
   content: string;
@@ -111,24 +112,24 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     <div className="w-full space-y-3 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
-        <div className="space-y-2 animate-fade-in">
-          <p className="text-base leading-relaxed break-words">{parsed.intro}</p>
+        <div className="space-y-2 animate-fade-in" key="intro">
+          <TypewriterText text={parsed.intro} className="text-base leading-relaxed break-words" speedMs={20} />
         </div>
       )}
 
       {/* Section 2: Design Vision */}
       {showDesignVision && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
           <p className="text-base font-medium text-white/80">Design Vision:</p>
           <ul className="space-y-2 ml-1">
             {parsed.designVision.map((item, i) => (
               <li
-                key={i}
+                key={`dv-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${400 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+                <TypewriterText text={item} className="inline" speedMs={15} />
               </li>
             ))}
           </ul>
@@ -137,17 +138,17 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 3: Features */}
       {showFeatures && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
           <p className="text-base font-medium text-white/80">Features:</p>
           <ul className="space-y-2 ml-1">
             {parsed.features.map((item, i) => (
               <li
-                key={i}
+                key={`ft-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${600 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+                <TypewriterText text={item} className="inline" speedMs={15} />
               </li>
             ))}
           </ul>
@@ -156,10 +157,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project - SHOW BEFORE FILE BUILDING */}
       {isFirstProject && (
-        <div className="mt-4">
-          <p className="text-lg text-white/90 italic break-words">
-            Let me start by creating this using a refined and beautifully structured design system.
-          </p>
+        <div className="mt-4" key="transition">
+          <TypewriterText
+            text="Let me start by creating this using a refined and beautifully structured design system."
+            className="text-lg text-white/90 italic break-words"
+            speedMs={20}
+          />
         </div>
       )}
 
@@ -184,38 +187,47 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 6: Summary */}
       {showSummary && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }}>
-          <p className="text-base leading-relaxed">{parsed.summary}</p>
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }} key="summary">
+          <TypewriterText text={parsed.summary} className="text-base leading-relaxed" speedMs={20} />
         </div>
       )}
 
       {/* Section 7: Next Steps - Only show on first project */}
       {isComplete && isFirstProject && (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }}>
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }} key="next-steps">
           <p className="text-base font-medium text-white/80">Next Steps</p>
           <div className="space-y-4">
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1100ms' }}>
               <div className="text-base">
                 <span className="text-lg font-semibold text-white">Refine &amp; Customize:</span>
-                <span className="text-white/80">
-                  {' '}Update colors, edit product lists, or include additional images through Visual Edits or prompts.
-                </span>
+                <span className="text-white/80"> </span>
+                <TypewriterText 
+                  text="Update colors, edit product lists, or include additional images through Visual Edits or prompts."
+                  className="inline text-white/80"
+                  speedMs={15}
+                />
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1200ms' }}>
               <div className="text-base">
                 <span className="text-lg font-semibold text-white">Plan With Prompts:</span>
-                <span className="text-white/80">
-                  {' '}Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.
-                </span>
+                <span className="text-white/80"> </span>
+                <TypewriterText 
+                  text="Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
+                  className="inline text-white/80"
+                  speedMs={15}
+                />
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1300ms' }}>
               <div className="text-base">
                 <span className="text-lg font-semibold text-white">Expand With Backend Tools:</span>
-                <span className="text-white/80">
-                  {' '}Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.
-                </span>
+                <span className="text-white/80"> </span>
+                <TypewriterText 
+                  text="Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
+                  className="inline text-white/80"
+                  speedMs={15}
+                />
               </div>
             </div>
           </div>
