@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
-import { WhiteShimmer } from "./WhiteShimmer";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 
@@ -78,24 +77,7 @@ const parseContent = (content: string): ParsedContent => {
 };
 
 export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps) => {
-  const [visibleFiles, setVisibleFiles] = useState(0);
   const parsed = parseContent(content);
-
-  // Animate files appearing one by one
-  useEffect(() => {
-    if (!isStreaming && parsed.files.length > 0) {
-      const interval = setInterval(() => {
-        setVisibleFiles(prev => {
-          if (prev < parsed.files.length) {
-            return prev + 1;
-          }
-          clearInterval(interval);
-          return prev;
-        });
-      }, 200);
-      return () => clearInterval(interval);
-    }
-  }, [isStreaming, parsed.files.length]);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
@@ -107,86 +89,82 @@ export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps
     <div className="w-full space-y-6 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
-        <div className="space-y-2">
+        <div className="space-y-2 animate-fade-in">
           <p className="text-sm leading-relaxed">{parsed.intro}</p>
-          {isStreaming && !showDesignVision && <WhiteShimmer />}
         </div>
       )}
 
       {/* Section 2: Design Vision */}
       {showDesignVision && (
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
           <p className="text-sm font-medium text-white/80">Design Vision:</p>
           <ul className="space-y-1.5 ml-1">
             {parsed.designVision.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
+              <li key={i} className="flex items-start gap-2 text-sm animate-fade-in" style={{ animationDelay: `${400 + i * 100}ms` }}>
                 <span className="text-white/40 mt-1">•</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
-          {isStreaming && !showFeatures && <WhiteShimmer />}
         </div>
       )}
 
       {/* Section 3: Features */}
       {showFeatures && (
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }}>
           <p className="text-sm font-medium text-white/80">Features:</p>
           <ul className="space-y-1.5 ml-1">
             {parsed.features.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
+              <li key={i} className="flex items-start gap-2 text-sm animate-fade-in" style={{ animationDelay: `${600 + i * 100}ms` }}>
                 <span className="text-white/40 mt-1">•</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
-          {isStreaming && !showFiles && <WhiteShimmer />}
         </div>
       )}
 
       {/* Section 4: Transition Text */}
       {showFiles && (
-        <p className="text-sm text-white/60 italic animate-fade-in">
+        <p className="text-sm text-white/60 italic animate-fade-in" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
 
       {/* Section 5: Files */}
       {showFiles && (
-        <div className="space-y-3 animate-fade-in">
-          {!isComplete && <WhiteShimmer />}
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '800ms' }}>
           {isComplete && <FilesEditedDropdown files={parsed.files} />}
         </div>
       )}
 
       {/* Section 6: Summary */}
       {showSummary && (
-        <div className="space-y-2 animate-fade-in">
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }}>
           <p className="text-sm leading-relaxed">{parsed.summary}</p>
         </div>
       )}
 
       {/* Section 7: Next Steps */}
       {isComplete && (
-        <div className="space-y-3 animate-fade-in">
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '1000ms' }}>
           <p className="text-sm font-medium text-white/80">Next Steps</p>
           <div className="space-y-3">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '1100ms' }}>
               <span className="text-lg">🎨</span>
               <div className="text-sm">
                 <span className="font-medium text-white/80">Refine & Customize:</span>
                 <span className="text-white/60"> Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
               </div>
             </div>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '1200ms' }}>
               <span className="text-lg">📋</span>
               <div className="text-sm">
                 <span className="font-medium text-white/80">Plan With Prompts:</span>
                 <span className="text-white/60"> Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
               </div>
             </div>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '1300ms' }}>
               <span className="text-lg">☁️</span>
               <div className="text-sm">
                 <span className="font-medium text-white/80">Expand With Backend Tools:</span>
@@ -199,7 +177,7 @@ export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps
 
       {/* Section 8: Completion Card */}
       {isComplete && (
-        <div className="pt-4 animate-fade-in">
+        <div className="pt-4 animate-fade-in" style={{ animationDelay: '1400ms' }}>
           <CompletionCard projectName={parsed.projectName} />
         </div>
       )}
