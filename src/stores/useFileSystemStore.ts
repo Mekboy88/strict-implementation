@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { projectService } from '@/services/projects/projectService';
 import { CORE_PROJECT_FILES } from '@/utils/projectInitializer';
+import { editorSystem } from '@/core/EditorSystem';
+import { eventBus } from '@/core/EventBus';
 
 export interface FileNode {
   id: string;
@@ -141,6 +143,9 @@ export const useFileSystemStore = create<FileSystemState>()(
       createFile: async (path: string, content: string = '') => {
         const { currentProjectId } = get();
         
+        // Sync with EditorSystem
+        editorSystem.createFile(path, content);
+        
         // Save to database if project is loaded
         if (currentProjectId) {
           try {
@@ -184,6 +189,9 @@ export const useFileSystemStore = create<FileSystemState>()(
       updateFile: async (path: string, content: string) => {
         const { currentProjectId } = get();
         
+        // Sync with EditorSystem
+        editorSystem.updateFile(path, content);
+        
         // Save to database if project is loaded
         if (currentProjectId) {
           try {
@@ -208,6 +216,9 @@ export const useFileSystemStore = create<FileSystemState>()(
 
       deleteFile: async (path: string) => {
         const { currentProjectId } = get();
+        
+        // Sync with EditorSystem
+        editorSystem.deleteFile(path);
         
         // Delete from database if project is loaded
         if (currentProjectId) {
