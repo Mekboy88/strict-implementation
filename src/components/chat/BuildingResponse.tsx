@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { FileCode, Image, FileJson, File } from "lucide-react";
+import { useMemo } from "react";
+import { FileCode, Image, FileJson, File, Loader2 } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 
@@ -78,8 +78,7 @@ const parseContent = (content: string): ParsedContent => {
 };
 
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
-  const parsed = parseContent(content);
-  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
+  const parsed = useMemo(() => parseContent(content), [content]);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
@@ -87,31 +86,27 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
 
-  // Sync current file with streaming progress
-  useEffect(() => {
-    if (isStreaming && showFiles) {
-      setCurrentFileIndex(parsed.files.length - 1);
-    }
-  }, [parsed.files.length, isStreaming, showFiles]);
+  // Track which file is currently being created
+  const currentFile = isStreaming && showFiles ? parsed.files[parsed.files.length - 1] : null;
 
   return (
     <div className="w-full space-y-6 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
-          <p className="text-base leading-relaxed typing-animation">{parsed.intro}</p>
+          <p className="text-lg leading-relaxed">{parsed.intro}</p>
         </div>
       )}
 
       {/* Section 2: Design Vision */}
       {showDesignVision && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Design Vision:</p>
-          <ul className="space-y-2 ml-1">
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <p className="text-lg font-semibold text-white/90">Design Vision:</p>
+          <ul className="space-y-2.5 ml-1">
             {parsed.designVision.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-base animate-fade-in typing-animation" style={{ animationDelay: `${400 + i * 100}ms` }}>
-                <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+              <li key={i} className="flex items-start gap-2.5 text-base animate-fade-in" style={{ animationDelay: `${300 + i * 100}ms` }}>
+                <span className="text-white/50 mt-1 text-lg">•</span>
+                <span className="leading-relaxed">{item}</span>
               </li>
             ))}
           </ul>
@@ -120,13 +115,13 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 3: Features */}
       {showFeatures && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Features:</p>
-          <ul className="space-y-2 ml-1">
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '400ms' }}>
+          <p className="text-lg font-semibold text-white/90">Features:</p>
+          <ul className="space-y-2.5 ml-1">
             {parsed.features.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-base animate-fade-in typing-animation" style={{ animationDelay: `${600 + i * 100}ms` }}>
-                <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+              <li key={i} className="flex items-start gap-2.5 text-base animate-fade-in" style={{ animationDelay: `${500 + i * 100}ms` }}>
+                <span className="text-white/50 mt-1 text-lg">•</span>
+                <span className="leading-relaxed">{item}</span>
               </li>
             ))}
           </ul>
@@ -134,60 +129,59 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       )}
 
       {/* Section 4: Transition Text - Only show on first project */}
-      {showFiles && isFirstProject && (
-        <p className="text-base text-white/60 italic animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
+      {showFiles && isFirstProject && !isComplete && (
+        <p className="text-base text-white/70 italic animate-fade-in" style={{ animationDelay: '600ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
 
-      {/* Section 5: Files - Show building process while streaming */}
-      {showFiles && isStreaming && parsed.files.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-base text-white/70 animate-fade-in typing-animation">
-            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
-            <span>Creating {parsed.files[currentFileIndex]?.path}...</span>
-          </div>
+      {/* Section 5: File Building Animation - Show ONLY while streaming */}
+      {showFiles && isStreaming && currentFile && (
+        <div className="flex items-center gap-2.5 text-base text-white/80 animate-fade-in">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="font-medium">Creating:</span>
+          <span className="font-mono text-sm bg-white/10 px-2 py-0.5 rounded">{currentFile.path}</span>
         </div>
       )}
       
-      {/* Section 5b: Files dropdown - Only show when complete */}
+      {/* Section 5b: Files Dropdown - Show ONLY when complete */}
       {showFiles && isComplete && (
-        <div className="mt-3">
+        <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
           <FilesEditedDropdown files={parsed.files} />
         </div>
       )}
 
       {/* Section 6: Summary */}
       {showSummary && (
-        <div className="space-y-2 animate-fade-in typing-animation" style={{ animationDelay: '900ms' }}>
-          <p className="text-base leading-relaxed">{parsed.summary}</p>
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <p className="text-lg leading-relaxed">{parsed.summary}</p>
         </div>
       )}
 
       {/* Section 7: Next Steps */}
       {isComplete && (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Next Steps</p>
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <p className="text-lg font-semibold text-white/90">Next Steps</p>
           <div className="space-y-4">
-            <div className="flex items-start gap-3 animate-fade-in typing-animation" style={{ animationDelay: '1100ms' }}>
-              <span className="text-xl">🎨</span>
-              <div className="text-base">
-                <span className="font-medium text-white/80">Refine & Customize:</span>
-                <span className="text-white/60"> Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <span className="text-2xl">🎨</span>
+              <div className="text-base leading-relaxed">
+                <span className="font-semibold text-white/90">Refine & Customize:</span>
+                <span className="text-white/70"> Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
               </div>
             </div>
-            <div className="flex items-start gap-3 animate-fade-in typing-animation" style={{ animationDelay: '1200ms' }}>
-              <span className="text-xl">📋</span>
-              <div className="text-base">
-                <span className="font-medium text-white/80">Plan With Prompts:</span>
-                <span className="text-white/60"> Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '500ms' }}>
+              <span className="text-2xl">📋</span>
+              <div className="text-base leading-relaxed">
+                <span className="font-semibold text-white/90">Plan With Prompts:</span>
+                <span className="text-white/70"> Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
               </div>
             </div>
-            <div className="flex items-start gap-3 animate-fade-in typing-animation" style={{ animationDelay: '1300ms' }}>
-              <span className="text-xl">☁️</span>
-              <div className="text-base">
-                <span className="font-medium text-white/80">Expand With Backend Tools:</span>
-                <span className="text-white/60"> Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.</span>
+            <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '600ms' }}>
+              <span className="text-2xl">☁️</span>
+              <div className="text-base leading-relaxed">
+                <span className="font-semibold text-white/90">Expand With Backend Tools:</span>
+                <span className="text-white/70"> Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.</span>
               </div>
             </div>
           </div>
@@ -196,7 +190,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 8: Completion Card */}
       {isComplete && (
-        <div className="pt-4 animate-fade-in" style={{ animationDelay: '1400ms' }}>
+        <div className="pt-4 animate-fade-in" style={{ animationDelay: '700ms' }}>
           <CompletionCard projectName={parsed.projectName} />
         </div>
       )}
