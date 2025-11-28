@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
+import { TypewriterText } from "./TypewriterText";
 
 interface BuildingResponseProps {
   content: string;
@@ -99,7 +100,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
-          <p className="text-base leading-relaxed break-words">{parsed.intro}</p>
+          <TypewriterText text={parsed.intro} className="text-base leading-relaxed break-words" />
         </div>
       )}
 
@@ -135,9 +136,10 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project */}
       {showFiles && isFirstProject && (
-        <p className="text-lg text-white/90 italic break-words animate-fade-in" style={{ animationDelay: '700ms' }}>
-          Let me start by creating this using a refined and beautifully structured design system.
-        </p>
+        <TypewriterText
+          text="Let me start by creating this using a refined and beautifully structured design system."
+          className="text-lg text-white/90 italic break-words"
+        />
       )}
 
       {/* Section 5: Files - Show building process while streaming */}
@@ -162,7 +164,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 6: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }}>
-          <p className="text-base leading-relaxed">{parsed.summary}</p>
+          <TypewriterText text={parsed.summary} className="text-base leading-relaxed" />
         </div>
       )}
 
