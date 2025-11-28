@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
+import { WhiteShimmer } from "./WhiteShimmer";
 
 interface BuildingResponseProps {
   content: string;
@@ -142,10 +143,13 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 5: Files - Show building process while streaming */}
       {showFiles && isStreaming && parsed.files.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-base text-white/70 animate-fade-in typing-animation">
+        <div className="space-y-3 -mt-2">
+          <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
             {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
             <span>Creating {parsed.files[currentFileIndex]?.path}...</span>
+          </div>
+          <div className="relative overflow-hidden rounded">
+            <WhiteShimmer />
           </div>
         </div>
       )}
