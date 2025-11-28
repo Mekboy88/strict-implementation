@@ -95,7 +95,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   }, [parsed.files.length, isStreaming, showFiles]);
 
   return (
-    <div className="w-full space-y-6 text-white/70">
+    <div className="w-full space-y-3 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
