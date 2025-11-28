@@ -5,6 +5,7 @@ import PreviewHistoryPanel from "./PreviewHistoryPanel";
 import EnhancedChatInput from "./chat/EnhancedChatInput";
 import { Shimmer } from "./chat/Shimmer";
 import { FileShimmer } from "./chat/FileShimmer";
+import { ChatMessageRenderer } from "./chat/ChatMessageRenderer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/stores/useEditorStore";
@@ -233,32 +234,19 @@ const AssistantPanel = ({
       <div className="flex-1 overflow-y-auto scrollbar-white">
         {activeView === 'chat' && (
           <div className="p-4 space-y-4">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${
+                className={`flex ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {message.role === 'assistant' && (
-                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                )}
-                <div
-                  className={`w-full ${
-                    message.role === 'user'
-                      ? 'bg-slate-700/40 px-4 py-3 rounded-2xl'
-                      : ''
-                  }`}
-                >
-                  <div 
-                    className="text-[13px] text-slate-200 leading-relaxed"
-                    dangerouslySetInnerHTML={{
-                      __html: formatMessageContent(message.content)
-                    }}
-                  />
-                </div>
+                <ChatMessageRenderer
+                  content={message.content}
+                  role={message.role}
+                  isStreaming={isStreaming && index === messages.length - 1}
+                  isFirstMessage={index === 1 && message.role === 'assistant'}
+                />
               </div>
             ))}
             {isStreaming && <Shimmer />}

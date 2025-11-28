@@ -3,6 +3,7 @@ import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 import { TypewriterText } from "./TypewriterText";
 import { CodeBlock } from "./CodeBlock";
+import { FileBuildingAnimation } from "./FileBuildingAnimation";
 
 interface BuildingResponseProps {
   content: string;
@@ -294,7 +295,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 6: Files dropdown - Only show when complete */}
+      {/* Section 6: Animated files while building */}
+      {isStreaming && showFiles && (
+        <FileBuildingAnimation files={displayContent.files} isStreaming={isStreaming} />
+      )}
+      
+      {/* Section 6b: Files dropdown - Only show when complete */}
       {showFileSection && showFiles && isComplete && (
         <div className="mt-3">
           <FilesEditedDropdown files={displayContent.files} />
