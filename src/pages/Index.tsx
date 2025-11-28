@@ -50,8 +50,9 @@ import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { Shimmer } from "@/components/chat/Shimmer";
 import { ChatMessageRenderer } from "@/components/chat/ChatMessageRenderer";
-import { BuildingExperience } from "@/components/chat/BuildingExperience";
-import { detectBuildPhase, extractFilesBeingCreated } from "@/utils/chat/messageContentParser";
+import { WelcomeExperience } from "@/components/chat/WelcomeExperience";
+import { ErrorFixingIndicator } from "@/components/chat/ErrorFixingIndicator";
+import { useBuildingState } from "@/hooks/useBuildingState";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { ConsolePanel } from "@/components/ConsolePanel";
 import { DebugPanel } from "@/components/DebugPanel";
@@ -406,7 +407,12 @@ function UrDevEditorPage() {
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [isFixingError, setIsFixingError] = useState(false);
+  const [errorBeingFixed, setErrorBeingFixed] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Building state management
+  const buildingState = useBuildingState();
 
   // Scroll to bottom when messages change
   React.useEffect(() => {
@@ -445,6 +451,9 @@ function UrDevEditorPage() {
       
       // Automatically trigger AI to fix the error
       setIsStreaming(true);
+      setIsFixingError(true);
+      setErrorBeingFixed(errorDetails);
+      buildingState.startBuild();
       
       const apiMessages: StreamChatMessage[] = chatMessages
         .filter(m => m.id !== 'welcome')
@@ -484,7 +493,7 @@ function UrDevEditorPage() {
               setShowPreview(true);
               
               toast({
-                title: "Error Fixed",
+                title: "✨ Error Fixed!",
                 description: "The code has been updated. Check the preview!",
               });
             }
@@ -500,6 +509,9 @@ function UrDevEditorPage() {
           });
           setIsStreaming(false);
           setStreamingContent('');
+          setIsFixingError(false);
+          setErrorBeingFixed('');
+          buildingState.completeBuild();
         },
         onError: (error) => {
             toast({
@@ -508,6 +520,9 @@ function UrDevEditorPage() {
               variant: "destructive",
             });
             setIsStreaming(false);
+            setIsFixingError(false);
+            setErrorBeingFixed('');
+            buildingState.setError(error.message);
           },
         });
       } catch (error) {
@@ -517,6 +532,9 @@ function UrDevEditorPage() {
           variant: "destructive",
         });
         setIsStreaming(false);
+        setIsFixingError(false);
+        setErrorBeingFixed('');
+        buildingState.setError(error instanceof Error ? error.message : 'Unknown error');
       }
     };
 
@@ -1512,41 +1530,54 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             </div>
 
             <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
+              {/* Welcome Experience - Show when only welcome message exists */}
+              {chatMessages.length === 1 && chatMessages[0]?.id === 'welcome' && !isStreaming && (
+                <WelcomeExperience 
+                  onSuggestionClick={(prompt) => {
+                    setAssistantInput(prompt);
+                    // Trigger send
+                    setTimeout(() => {
+                      const sendButton = document.querySelector('[aria-label="Send message"]') as HTMLButtonElement;
+                      sendButton?.click();
+                    }, 100);
+                  }}
+                />
+              )}
+
               {/* Chat Messages */}
-              {chatMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.content.includes('🔴 **Error Occurred') ? (
-                    <div className="max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3">
-                      <p className="text-sm whitespace-pre-wrap text-slate-200">
-                        {msg.content}
-                        {isStreaming && (
-                          <span className="inline-flex items-center gap-2 ml-2 text-sky-400">
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            <span className="text-xs">AI is fixing...</span>
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  ) : (
-                    <ChatMessageRenderer 
-                      content={msg.content} 
-                      role={msg.role}
-                      isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
-                    />
-                  )}
-                </div>
-              ))}
+              {chatMessages.map((msg) => {
+                // Skip welcome message if showing WelcomeExperience
+                if (msg.id === 'welcome' && chatMessages.length === 1 && !isStreaming) {
+                  return null;
+                }
+                
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {msg.content.includes('🔴 **Error Occurred') ? (
+                      <div className="max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3">
+                        <p className="text-sm whitespace-pre-wrap text-slate-200">
+                          {msg.content}
+                        </p>
+                      </div>
+                    ) : (
+                      <ChatMessageRenderer 
+                        content={msg.content} 
+                        role={msg.role}
+                        isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
+                      />
+                    )}
+                  </div>
+                );
+              })}
               
-              {/* Building Experience during streaming */}
-              {isStreaming && (
-                <BuildingExperience
-                  isBuilding={true}
-                  currentPhase={detectBuildPhase(streamingContent)}
-                  files={extractFilesBeingCreated(streamingContent)}
-                  explanation={streamingContent.split('```')[0].trim().slice(-200)}
+              {/* Error Fixing Indicator */}
+              {isFixingError && errorBeingFixed && (
+                <ErrorFixingIndicator 
+                  error={errorBeingFixed}
+                  elapsedTime={buildingState.elapsedTime}
                 />
               )}
             </div>
