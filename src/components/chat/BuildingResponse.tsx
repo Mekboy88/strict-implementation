@@ -131,23 +131,9 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     projectName: lockedContentRef.current.projectName || parsed.projectName
   };
 
-  // If no structured content detected, show plain text (Step 2: Graceful fallback)
+  // Derive all boolean values BEFORE useEffect hooks
   const hasStructuredContent = displayContent.intro || displayContent.designVision.length > 0 || 
                                 displayContent.features.length > 0 || displayContent.files.length > 0;
-  
-  if (!hasStructuredContent) {
-    return (
-      <div className="w-full space-y-3 text-white/70">
-        <TypewriterText 
-          key="plain-content"
-          text={content} 
-          className="text-base leading-relaxed break-words" 
-          speedMs={20} 
-        />
-      </div>
-    );
-  }
-
   const showDesignVision = displayContent.designVision.length > 0;
   const showFeatures = displayContent.features.length > 0;
   const showFiles = displayContent.files.length > 0;
@@ -172,6 +158,20 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       setCurrentFileIndex(displayContent.files.length - 1);
     }
   }, [displayContent.files.length, isStreaming, showFiles]);
+  
+  // NOW the early return is safe - all hooks have been called
+  if (!hasStructuredContent) {
+    return (
+      <div className="w-full space-y-3 text-white/70">
+        <TypewriterText 
+          key="plain-content"
+          text={content} 
+          className="text-base leading-relaxed break-words" 
+          speedMs={20} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-3 text-white/70">
