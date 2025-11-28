@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { filterCodeBlocks } from '@/utils/chat/codeBlockFilter';
 
 interface StreamingTextProps {
   content: string;
@@ -9,9 +10,10 @@ export const StreamingText = ({ content, isComplete }: StreamingTextProps) => {
   const [displayedText, setDisplayedText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
 
-  // Display text as it arrives (no artificial delay - it's already streaming!)
+  // Display text as it arrives, filtering out code blocks
   useEffect(() => {
-    setDisplayedText(content);
+    const filtered = filterCodeBlocks(content);
+    setDisplayedText(filtered.text);
   }, [content]);
 
   // Blink cursor while streaming

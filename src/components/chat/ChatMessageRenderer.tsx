@@ -75,8 +75,8 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
   }
 
   // Assistant message rendering
-  // Check if this looks like a build response (has code or file mentions)
-  const isBuildResponse = /```|(?:src\/|\.tsx|\.jsx|\.css|creating|editing|file)/gi.test(content);
+  // Check if this looks like a build response (has code blocks)
+  const isBuildResponse = /```/.test(content);
 
   if (isBuildResponse) {
     return (
@@ -87,7 +87,7 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
     );
   }
 
-  // Plain text chat response
+  // Plain text chat response (no code filtering needed)
   return (
     <div className="text-sm text-slate-200 leading-relaxed">
       <StreamingText content={content} isComplete={!isStreaming} />

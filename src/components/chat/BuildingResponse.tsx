@@ -26,11 +26,11 @@ export const BuildingResponse: React.FC<BuildingResponseProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Streaming text - shows AI's actual response */}
+      {/* Streaming text - shows AI's explanatory text only (code blocks filtered) */}
       <StreamingText content={content} isComplete={!isStreaming} />
 
       {/* Live file status - shows current file being edited */}
-      {isStreaming && isBuildResponse && (
+      {isStreaming && currentFile && (
         <LiveFileStatus currentFile={currentFile} />
       )}
 
