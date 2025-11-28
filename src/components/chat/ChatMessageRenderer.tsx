@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { BuildingResponse } from "./BuildingResponse";
+import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -79,23 +80,83 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   }
   
   // Only use structured BuildingResponse for the first message
-  // All subsequent messages should be plain chat responses
   if (isFirstMessage) {
     return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={true} />;
   }
   
-  // Plain text response - regular chat (strip code blocks for subsequent messages)
-  const cleanContent = content.replace(/```[\s\S]*?```/g, '').trim();
-  
-  return (
-    <div className="space-y-4">
-      <div className="text-base text-blue-50 leading-relaxed">
-        {cleanContent.split('\n\n').map((paragraph, i) => (
-          <p key={i} className={i > 0 ? 'mt-3' : ''}>
-            {paragraph}
-          </p>
-        ))}
+  // For subsequent messages, parse and render code blocks
+  const codeBlockRegex = /```(?:typescript|tsx|ts|jsx|javascript|js)?\s*(?:\/\/\s*(.+?))?\n([\s\S]*?)```/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  let hasCode = false;
+
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    hasCode = true;
+    // Add text before code block
+    if (match.index > lastIndex) {
+      const text = content.substring(lastIndex, match.index).trim();
+      if (text) {
+        parts.push(
+          <div key={`text-${lastIndex}`} className="text-base text-blue-50 leading-relaxed">
+            {text.split('\n\n').map((paragraph, i) => (
+              <p key={i} className={i > 0 ? 'mt-3' : ''}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        );
+      }
+    }
+
+    // Add code block (only React/TypeScript, skip HTML)
+    const code = match[2].trim();
+    if (!code.includes('<!DOCTYPE') && !code.includes('<html>')) {
+      const filePath = match[1]?.trim();
+      const language = match[0].match(/```(\w+)/)?.[1] || 'typescript';
+      parts.push(
+        <CodeBlock 
+          key={`code-${match.index}`}
+          code={code}
+          language={language}
+          filePath={filePath}
+        />
+      );
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    const text = content.substring(lastIndex).trim();
+    if (text) {
+      parts.push(
+        <div key={`text-${lastIndex}`} className="text-base text-blue-50 leading-relaxed">
+          {text.split('\n\n').map((paragraph, i) => (
+            <p key={i} className={i > 0 ? 'mt-3' : ''}>
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      );
+    }
+  }
+
+  // If no code blocks found, show plain text
+  if (!hasCode) {
+    return (
+      <div className="space-y-4">
+        <div className="text-base text-blue-50 leading-relaxed">
+          {content.split('\n\n').map((paragraph, i) => (
+            <p key={i} className={i > 0 ? 'mt-3' : ''}>
+              {paragraph}
+            </p>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <div className="space-y-4">{parts}</div>;
 };

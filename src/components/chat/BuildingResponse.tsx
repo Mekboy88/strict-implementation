@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 import { TypewriterText } from "./TypewriterText";
+import { CodeBlock } from "./CodeBlock";
 
 interface BuildingResponseProps {
   content: string;
@@ -17,61 +18,63 @@ interface ParsedContent {
   files: Array<{ path: string; type: string }>;
   summary: string;
   projectName: string;
+  codeBlocks: Array<{ code: string; language: string; filePath?: string }>;
 }
 
 const parseContent = (content: string): ParsedContent => {
-  // FIRST: Strip ALL code blocks from content before parsing text
-  const cleanContent = content.replace(/```[\s\S]*?```/g, '[CODE_BLOCK]');
-  
-  // Extract intro (first paragraph) - stop at Design Vision, Features, or code markers
-  const introMatch = cleanContent.match(/^(.+?)(?:\n\n|\n(?=Design Vision:)|(?=Features:)|(?=\[CODE_BLOCK\])|$)/is);
-  const intro = introMatch ? introMatch[1].trim() : "";
-
-  // Extract design vision items
-  const designVisionMatch = cleanContent.match(/Design Vision:(.+?)(?=Features:|$)/is);
-  const designVision = designVisionMatch
-    ? designVisionMatch[1]
-        .split(/\n/)
-        .filter(line => line.trim().match(/^[•\-\*]/))
-        .map(line => line.replace(/^[•\-\*]\s*/, "").trim())
-        .filter(Boolean)
-    : [];
-
-  // Extract features
-  const featuresMatch = cleanContent.match(/Features:(.+?)(?=\n\n|CREATE_FILE|\[CODE_BLOCK\]|$)/is);
-  const features = featuresMatch
-    ? featuresMatch[1]
-        .split(/\n/)
-        .filter(line => line.trim().match(/^[•\-\*]/))
-        .map(line => line.replace(/^[•\-\*]\s*/, "").trim())
-        .filter(Boolean)
-    : [];
-
-  // Extract transition text (any text between Features and first code block marker)
-  const transitionMatch = cleanContent.match(/Features:(?:.|\n)+?\n\n(.+?)(?=\[CODE_BLOCK\]|$)/is);
-  const transitionText = transitionMatch ? transitionMatch[1].trim() : "";
-
-  // Extract files from ORIGINAL content (not cleaned) to preserve file paths
-  const codeBlockRegex = /```[\w]*\s*(?:\/\/\s*)?([^\n]+)\n/g;
+  const intro = content.split('\n\n')[0] || '';
+  const designVision: string[] = [];
+  const features: string[] = [];
+  let summary = '';
+  let transitionText = '';
+  let projectName = '';
   const files: Array<{ path: string; type: string }> = [];
+  const codeBlocks: Array<{ code: string; language: string; filePath?: string }> = [];
+
+  const designMatch = content.match(/Design Vision:?\s*\n((?:•[^\n]+\n?)+)/i);
+  if (designMatch) {
+    designMatch[1].split('\n').forEach(line => {
+      const trimmed = line.replace(/^•\s*/, '').trim();
+      if (trimmed) designVision.push(trimmed);
+    });
+  }
+
+  const featuresMatch = content.match(/Features:?\s*\n((?:•[^\n]+\n?)+)/i);
+  if (featuresMatch) {
+    featuresMatch[1].split('\n').forEach(line => {
+      const trimmed = line.replace(/^•\s*/, '').trim();
+      if (trimmed) features.push(trimmed);
+    });
+  }
+
+  const summaryMatch = content.match(/(?:Summary|In summary)[:\s]+([^\n]+)/i);
+  if (summaryMatch) {
+    summary = summaryMatch[1].trim();
+  }
+
+  // Extract code blocks (only React/TypeScript, not HTML)
+  const codeBlockRegex = /```(?:typescript|tsx|ts|jsx|javascript|js)?\s*(?:\/\/\s*(.+?))?\n([\s\S]*?)```/g;
   let match;
   while ((match = codeBlockRegex.exec(content)) !== null) {
-    const path = match[1].trim();
-    if (path && !path.includes("```")) {
-      files.push({ path, type: "code" });
+    const filePath = match[1]?.trim();
+    const code = match[2].trim();
+    const language = match[0].match(/```(\w+)/)?.[1] || 'typescript';
+    
+    // Only include React/TypeScript code, skip HTML
+    if (!code.includes('<!DOCTYPE') && !code.includes('<html>')) {
+      codeBlocks.push({ code, language, filePath });
+      
+      if (filePath) {
+        const fileExtension = filePath.split('.').pop() || 'tsx';
+        files.push({ 
+          path: filePath, 
+          type: fileExtension 
+        });
+      }
     }
   }
 
-  // Extract summary (after all code block markers) - clean any remaining code
-  const summaryMatch = cleanContent.match(/\[CODE_BLOCK\](?:\s*\[CODE_BLOCK\])*\s*\n\n(.+?)$/is);
-  const summary = summaryMatch 
-    ? summaryMatch[1].replace(/```[\s\S]*?```/g, '').replace(/\[CODE_BLOCK\]/g, '').trim()
-    : "";
-
-  // Extract project name from first line or intro
-  const projectName = intro.split(/[.!?]/)[0].replace(/^(I'll create|Building|Creating)\s+/i, "").trim() || "Project";
-
-  return { intro, designVision, features, transitionText, files, summary, projectName };
+  return { intro, designVision, features, summary, transitionText, projectName, files, codeBlocks };
 };
 
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
@@ -85,7 +88,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     transitionText: "",
     files: [],
     summary: "",
-    projectName: ""
+    projectName: "",
+    codeBlocks: []
   });
 
   // Parse content without side effects in useMemo
@@ -128,6 +132,11 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         updated.files = [...parsed.files];
       }
       
+      // Lock code blocks when they exist
+      if (prev.codeBlocks.length === 0 && parsed.codeBlocks.length > 0 && !isStreaming) {
+        updated.codeBlocks = [...parsed.codeBlocks];
+      }
+      
       // Only lock summary when streaming is done
       if (!prev.summary && parsed.summary && !isStreaming) {
         updated.summary = parsed.summary;
@@ -157,6 +166,9 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       : (!isStreaming ? parsed.files : []),
     summary: lockedContent.summary || (!isStreaming ? parsed.summary : ''),
     projectName: lockedContent.projectName || (!isStreaming ? parsed.projectName : ''),
+    codeBlocks: lockedContent.codeBlocks.length > 0
+      ? lockedContent.codeBlocks
+      : (!isStreaming ? parsed.codeBlocks : []),
   };
 
   // Derive all boolean values BEFORE useEffect hooks
@@ -289,7 +301,21 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 7: Summary */}
+      {/* Section 7: Code Blocks */}
+      {displayContent.codeBlocks.length > 0 && (
+        <div className="space-y-4" key="code-blocks">
+          {displayContent.codeBlocks.map((block, index) => (
+            <CodeBlock 
+              key={`code-${index}`}
+              code={block.code}
+              language={block.language}
+              filePath={block.filePath}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Section 8: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }} key="summary">
           <TypewriterText 
@@ -302,7 +328,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       )}
 
 
-      {/* Section 8: Completion Card - Only show on first project */}
+      {/* Section 9: Completion Card - Only show on first project */}
       {isComplete && isFirstProject && (
         <div className="pt-4 animate-fade-in" style={{ animationDelay: '1400ms' }}>
           <CompletionCard projectName={displayContent.projectName} />
