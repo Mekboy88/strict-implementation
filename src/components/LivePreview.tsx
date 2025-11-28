@@ -136,10 +136,22 @@ function generateBundledPreview(bundledCode: string): string {
         <style>${PREVIEW_STYLES}</style>
       </head>
       <body>
+        <div id="debug" style="position:fixed;top:0;right:0;background:#1e293b;color:#10b981;padding:8px 12px;font-family:monospace;font-size:11px;z-index:9999;max-width:300px;border-bottom-left-radius:8px;"></div>
         <div id="root"></div>
         <script>
+          // Debug logger
+          const debugLog = (msg, type = 'info') => {
+            const debug = document.getElementById('debug');
+            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#60a5fa';
+            debug.innerHTML += '<div style="color:' + color + ';margin:2px 0;">' + msg + '</div>';
+            console.log('[Debug]', msg);
+          };
+          
+          debugLog('🔧 Preview initializing...', 'info');
+          
           // Catch any early errors
           window.onerror = function(msg, url, line, col, error) {
+            debugLog('❌ Error: ' + msg, 'error');
             console.error('[Preview Global Error]', msg, error);
             document.getElementById('root').innerHTML = 
               '<div style="padding:2rem;color:red;font-family:monospace;"><h2>JavaScript Error</h2><pre>' + msg + '</pre></div>';
@@ -147,6 +159,7 @@ function generateBundledPreview(bundledCode: string): string {
           };
           
           // Load React from CDN
+          debugLog('📦 Loading React...', 'info');
           const script = document.createElement('script');
           script.crossOrigin = 'anonymous';
           script.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
@@ -155,32 +168,44 @@ function generateBundledPreview(bundledCode: string): string {
           scriptDOM.crossOrigin = 'anonymous';
           scriptDOM.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
           
+          script.onerror = function() {
+            debugLog('❌ Failed to load React', 'error');
+          };
+          
+          scriptDOM.onerror = function() {
+            debugLog('❌ Failed to load ReactDOM', 'error');
+          };
+          
           script.onload = function() {
+            debugLog('✅ React loaded', 'success');
+            debugLog('📦 Loading ReactDOM...', 'info');
             document.head.appendChild(scriptDOM);
           };
           
           scriptDOM.onload = function() {
+            debugLog('✅ ReactDOM loaded', 'success');
             try {
-              console.log('[Preview] React loaded, executing code...');
+              debugLog('🔄 Executing component code...', 'info');
               ${bundledCode}
               
               // Render the component
               if (window.__PREVIEW_RENDER__) {
-                console.log('[Preview] Rendering component...');
+                debugLog('✅ Component found', 'success');
+                debugLog('🎨 Rendering...', 'info');
                 const root = document.getElementById('root');
                 const component = window.__PREVIEW_RENDER__();
                 ReactDOM.render(component, root);
-                console.log('[Preview] ✅ Rendered');
+                debugLog('✅ Rendered successfully!', 'success');
               } else {
-                console.error('[Preview] No component found');
+                debugLog('❌ No component exported', 'error');
                 document.getElementById('root').innerHTML = 
-                  '<div style="padding:2rem;text-align:center;"><h2>No Component</h2><p>Export a default Page or App component</p></div>';
+                  '<div style="padding:2rem;text-align:center;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;margin:1rem;"><h2 style="color:#dc2626;margin-bottom:1rem;">⚠️ No Component Found</h2><p style="color:#991b1b;">Your code must export a default <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">Page</code> or <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">App</code> component.</p><pre style="margin-top:1rem;text-align:left;background:#fff;padding:1rem;border-radius:4px;color:#1f2937;">export default function Page() {\\n  return <div>Hello</div>;\\n}</pre></div>';
               }
             } catch (error) {
-              console.error('[Preview] Error:', error);
+              debugLog('❌ Execution error: ' + error.message, 'error');
               document.getElementById('root').innerHTML = 
-                '<div style="padding:2rem;color:#dc2626;font-family:monospace;"><h2>Error</h2><pre>' + 
-                error.message + '</pre></div>';
+                '<div style="padding:2rem;color:#dc2626;font-family:monospace;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;margin:1rem;"><h2>❌ Execution Error</h2><pre style="background:#fff;padding:1rem;border-radius:4px;margin-top:1rem;overflow:auto;">' + 
+                error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
             }
           };
           
