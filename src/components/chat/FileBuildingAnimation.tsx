@@ -59,13 +59,33 @@ export const FileBuildingAnimation = ({ content, isStreaming = true }: FileBuild
 
   if (detectedFiles.length === 0) return null;
 
+  // Calculate progress
+  const progress = detectedFiles.length > 0 
+    ? (completedFiles.size / detectedFiles.length) * 100 
+    : 0;
+
   return (
-    <div className="space-y-2 py-3">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="space-y-3 py-3 min-h-[80px]">
+      {/* Fixed header */}
+      <div className="flex items-center gap-2 mb-2">
         <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-        <span className="text-sm text-blue-200">Building your project...</span>
+        <span className="text-sm text-blue-200 font-medium">Building your project...</span>
+        <span className="text-xs text-blue-400/60 ml-auto">
+          {completedFiles.size}/{detectedFiles.length}
+        </span>
       </div>
       
+      {/* Progress bar */}
+      {detectedFiles.length > 0 && (
+        <div className="w-full h-1 bg-blue-950/30 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+      
+      {/* File list with staggered animation */}
       <div className="space-y-2">
         {detectedFiles.map((file, index) => {
           const isCompleted = completedFiles.has(file.path);
@@ -73,8 +93,11 @@ export const FileBuildingAnimation = ({ content, isStreaming = true }: FileBuild
           return (
             <div
               key={file.path}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-950/20 border border-blue-900/30 animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="file-entry flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-950/20 border border-blue-900/30 opacity-0"
+              style={{ 
+                animation: 'fadeInFile 0.4s ease-out forwards',
+                animationDelay: `${index * 150}ms`
+              }}
             >
               <FileCode className="w-4 h-4 text-blue-400 flex-shrink-0" />
               

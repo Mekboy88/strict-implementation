@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { FileBuildingAnimation } from "./FileBuildingAnimation";
+import { StreamingText } from "./StreamingText";
 import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -80,11 +81,23 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
   
-  // Show file building animation during streaming if files are being created
-  if (isStreaming && content.includes('src/')) {
+  // During streaming, show text first with typing effect, then files below
+  if (isStreaming) {
+    const hasFiles = content.includes('src/');
+    
+    // Extract text content (everything before code blocks)
+    const textContent = content.split('```')[0].trim();
+    
     return (
-      <div className="space-y-4">
-        <FileBuildingAnimation content={content} isStreaming={isStreaming} />
+      <div className="w-full max-w-full overflow-hidden space-y-4">
+        {textContent && (
+          <StreamingText content={textContent} isStreaming={isStreaming} />
+        )}
+        {hasFiles && (
+          <div className="file-animation-container">
+            <FileBuildingAnimation content={content} isStreaming={isStreaming} />
+          </div>
+        )}
       </div>
     );
   }
