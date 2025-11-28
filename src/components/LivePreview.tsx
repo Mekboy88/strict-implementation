@@ -143,39 +143,35 @@ function generateBundledPreview(bundledCode: string): string {
         <script src="https://cdn.tailwindcss.com"></script>
         <style>${PREVIEW_STYLES}</style>
       </head>
-      <body class="min-h-screen bg-slate-950 text-slate-50">
-        <div id="debug" style="width:100%;max-height:160px;overflow:auto;background:#020617;color:#e5e7eb;padding:8px 12px;font-family:monospace;font-size:11px;border-bottom:1px solid #1f2937;box-sizing:border-box;position:relative;z-index:10;">
-          <div style="color:#38bdf8;font-weight:600;margin-bottom:4px;">🔍 Preview Debug Panel</div>
+      <body class="min-h-screen bg-white text-slate-900">
+        <div id="root" style="min-height:calc(100vh - 32px);"></div>
+        <div id="debug" style="position:fixed;bottom:0;left:0;right:0;max-height:32px;overflow:hidden;background:#0f172a;color:#94a3b8;padding:4px 8px;font-family:monospace;font-size:9px;border-top:1px solid #334155;z-index:9999;display:flex;gap:8px;align-items:center;">
+          <span style="color:#38bdf8;font-weight:600;">🔍</span>
         </div>
-        <div id="root" style="min-height:calc(100vh - 160px);"></div>
         <script>
           // Debug logger
           const debugLog = (msg, type = 'info') => {
             const debug = document.getElementById('debug');
             if (!debug) return;
-            const color = type === 'error' ? '#f97373' : type === 'success' ? '#4ade80' : '#60a5fa';
-            const line = document.createElement('div');
-            line.textContent = msg;
-            line.style.margin = '2px 0';
-            line.style.color = color;
-            debug.appendChild(line);
-            debug.scrollTop = debug.scrollHeight;
-            console.log('[Preview Debug]', msg);
+            const color = type === 'error' ? '#f87171' : type === 'success' ? '#4ade80' : '#60a5fa';
+            const dot = document.createElement('span');
+            dot.textContent = '●';
+            dot.style.color = color;
+            dot.title = msg;
+            debug.appendChild(dot);
+            console.log('[Preview]', msg);
           };
           
-          debugLog('🔧 Preview initializing...', 'info');
+          debugLog('Initializing...', 'info');
           
-          // Catch any early errors
           window.onerror = function(msg, url, line, col, error) {
-            debugLog('❌ Global error: ' + msg, 'error');
-            console.error('[Preview Global Error]', msg, error);
-            document.getElementById('root').innerHTML = 
-              '<div style="padding:2rem;color:red;font-family:monospace;"><h2>JavaScript Error</h2><pre>' + msg + '</pre></div>';
+            debugLog('Error: ' + msg, 'error');
+            console.error('[Preview Error]', msg, error);
             return true;
           };
           
-          // Load React from CDN
-          debugLog('📦 Loading React...', 'info');
+          // Load React
+          debugLog('Loading React...', 'info');
           const script = document.createElement('script');
           script.crossOrigin = 'anonymous';
           script.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
@@ -184,44 +180,36 @@ function generateBundledPreview(bundledCode: string): string {
           scriptDOM.crossOrigin = 'anonymous';
           scriptDOM.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
           
-          script.onerror = function() {
-            debugLog('❌ Failed to load React', 'error');
-          };
-          
-          scriptDOM.onerror = function() {
-            debugLog('❌ Failed to load ReactDOM', 'error');
-          };
+          script.onerror = () => debugLog('React load failed', 'error');
+          scriptDOM.onerror = () => debugLog('ReactDOM load failed', 'error');
           
           script.onload = function() {
-            debugLog('✅ React loaded', 'success');
-            debugLog('📦 Loading ReactDOM...', 'info');
+            debugLog('React loaded', 'success');
             document.head.appendChild(scriptDOM);
           };
           
           scriptDOM.onload = function() {
-            debugLog('✅ ReactDOM loaded', 'success');
+            debugLog('ReactDOM loaded', 'success');
             try {
-              debugLog('🔄 Executing component code...', 'info');
+              debugLog('Executing code...', 'info');
               ${bundledCode}
               
-              // Render the component
               if (window.__PREVIEW_RENDER__) {
-                debugLog('✅ Component found', 'success');
-                debugLog('🎨 Rendering...', 'info');
+                debugLog('Rendering...', 'info');
                 const root = document.getElementById('root');
                 const component = window.__PREVIEW_RENDER__();
                 ReactDOM.render(component, root);
-                debugLog('✅ Rendered successfully!', 'success');
+                debugLog('Rendered!', 'success');
               } else {
-                debugLog('❌ No component exported', 'error');
+                debugLog('No component', 'error');
                 document.getElementById('root').innerHTML = 
-                  '<div style="padding:2rem;text-align:center;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;margin:1rem;"><h2 style="color:#dc2626;margin-bottom:1rem;">⚠️ No Component Found</h2><p style="color:#991b1b;">Your code must export a default <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">Page</code> or <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">App</code> component.</p><pre style="margin-top:1rem;text-align:left;background:#fff;padding:1rem;border-radius:4px;color:#1f2937;">export default function Page() {\\n  return <div>Hello</div>;\\n}</pre></div>';
+                  '<div style="padding:2rem;text-align:center;"><h2>⚠️ No Component</h2><p>Export a default Page or App component</p></div>';
               }
             } catch (error) {
-              debugLog('❌ Execution error: ' + error.message, 'error');
+              debugLog('Error: ' + error.message, 'error');
               document.getElementById('root').innerHTML = 
-                '<div style="padding:2rem;color:#dc2626;font-family:monospace;background:#fef2f2;border:2px solid #ef4444;border-radius:8px;margin:1rem;"><h2>❌ Execution Error</h2><pre style="background:#fff;padding:1rem;border-radius:4px;margin-top:1rem;overflow:auto;">' + 
-                error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
+                '<div style="padding:2rem;color:#dc2626;"><h2>❌ Error</h2><pre style="background:#fee;padding:1rem;border-radius:4px;overflow:auto;">' + 
+                error.message + '</pre></div>';
             }
           };
           
