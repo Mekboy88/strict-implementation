@@ -153,7 +153,7 @@ function UrDevEditorPage() {
   const [planContent, setPlanContent] = useState("");
   const [showPlanWizard, setShowPlanWizard] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(['src', 'src/components', 'src/pages', 'public'])
+    new Set(['src', 'src/app', 'src/components', 'src/pages', 'public'])
   );
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -277,6 +277,7 @@ function UrDevEditorPage() {
 
     projectFiles.forEach(file => {
       if (file.path.startsWith('public/')) folders.public.push(file);
+      else if (file.path.startsWith('src/app/')) folders['src/app'].push(file);
       else if (file.path.startsWith('src/pages/')) folders['src/pages'].push(file);
       else if (file.path.startsWith('src/components/ui/')) folders['src/components/ui'].push(file);
       else if (file.path.startsWith('src/components/')) folders['src/components'].push(file);
@@ -347,6 +348,25 @@ function UrDevEditorPage() {
         
         {isFolderExpanded('src') && (
           <div className="ml-5 space-y-1 min-w-0">
+            {/* app folder */}
+            {folders['src/app'].length > 0 && (
+              <>
+                <button 
+                  onClick={() => toggleFolder('src/app')}
+                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+                >
+                  {isFolderExpanded('src/app') ? (
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Folder className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">app</span>
+                </button>
+                {isFolderExpanded('src/app') && folders['src/app'].map(renderFile)}
+              </>
+            )}
+            
             {/* components folder */}
             {folders['src/components'].length > 0 && (
               <>
