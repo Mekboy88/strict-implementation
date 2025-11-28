@@ -174,22 +174,24 @@ function stripTypeScript(code: string): string {
   code = code.replace(/([a-zA-Z_$][\w$]*|\)|\])\s*!/g, '$1');
   
   // Remove type assertions: expr as Type
-  code = code.replace(/\s+as\s+[\w<>\[\]|&\s]+/g, '');
+  // FIXED: Only match if followed by a valid type name (PascalCase or primitive types)
+  // This prevents matching English phrases like "as you" or "as a"
+  code = code.replace(/\s+as\s+(?:string|number|boolean|any|unknown|never|void|null|undefined|[A-Z][\w<>\[\]|&\s]*)/g, '');
   
   // Remove angle bracket type assertions: <Type>expr
-  code = code.replace(/<[\w<>]+>(?=\s*\()/g, '');
+  code = code.replace(/<(?:string|number|boolean|any|unknown|[A-Z][\w<>]*)>(?=\s*[\w\(])/g, '');
   
-  // Remove type annotations: : Type
-  code = code.replace(/:\s*[A-Za-z_][\w<>[\]{},\s|*&?]*(?=[\s)=,;{])/g, '');
+  // Remove type annotations: : Type (only after identifiers or in function params)
+  code = code.replace(/:\s*(?:string|number|boolean|any|unknown|void|never|null|undefined|[A-Z][\w<>\[\]{},\s|*&?]*)(?=[\s)=,;{])/g, '');
   
   // Remove interface declarations
   code = code.replace(/interface\s+\w+\s*(\<[^>]*\>)?\s*\{[^}]*\}/gs, '');
   
-  // Remove type declarations
+  // Remove type declarations  
   code = code.replace(/type\s+\w+\s*(\<[^>]*\>)?\s*=[^;]+;/g, '');
   
   // Remove generic type parameters from functions: <T, U>
-  code = code.replace(/\<[\w,\s]+\>\s*\(/g, '(');
+  code = code.replace(/\<[A-Z][\w,\s]*\>\s*\(/g, '(');
   
   // Remove import type statements
   code = code.replace(/import\s+type\s+[^;]+;/g, '');

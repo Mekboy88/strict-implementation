@@ -62,7 +62,7 @@ export default Index;`
             <ul className="text-sm text-slate-700 space-y-2 text-left">
               <li>• Beautiful UI components with Tailwind CSS</li>
               <li>• Full TypeScript support</li>
-              <li>• Live preview as you code</li>
+              <li>• Real-time live preview while coding</li>
               <li>• Production-ready starter template</li>
             </ul>
           </div>
