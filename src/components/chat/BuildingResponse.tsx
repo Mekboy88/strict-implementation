@@ -174,24 +174,33 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 7: Next Steps - Only show on first project */}
       {isComplete && isFirstProject && (
         <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }}>
-          <p className="text-base font-medium text-white/80 typing-animation">Next Steps</p>
+          <p className="text-base font-medium text-white/80">Next Steps</p>
           <div className="space-y-4">
-            <div className="flex items-start animate-fade-in typing-animation" style={{ animationDelay: '1100ms' }}>
+            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1100ms' }}>
               <div className="text-base">
-                <span className="font-medium text-white/80">Refine & Customize:</span>
-                <span className="text-white/60"> Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
+                <TypewriterText 
+                  text="Refine & Customize: Update colors, edit product lists, or include additional images through Visual Edits or prompts."
+                  className="inline"
+                  speedMs={15}
+                />
               </div>
             </div>
-            <div className="flex items-start animate-fade-in typing-animation" style={{ animationDelay: '1200ms' }}>
+            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1200ms' }}>
               <div className="text-base">
-                <span className="font-medium text-white/80">Plan With Prompts:</span>
-                <span className="text-white/60"> Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
+                <TypewriterText 
+                  text="Plan With Prompts: Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
+                  className="inline"
+                  speedMs={15}
+                />
               </div>
             </div>
-            <div className="flex items-start animate-fade-in typing-animation" style={{ animationDelay: '1300ms' }}>
+            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1300ms' }}>
               <div className="text-base">
-                <span className="font-medium text-white/80">Expand With Backend Tools:</span>
-                <span className="text-white/60"> Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.</span>
+                <TypewriterText 
+                  text="Expand With Backend Tools: Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
+                  className="inline"
+                  speedMs={15}
+                />
               </div>
             </div>
           </div>
