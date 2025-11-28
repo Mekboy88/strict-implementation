@@ -11,6 +11,17 @@ interface ModuleInfo {
 
 export function bundleForPreview(files: Record<string, string>, entryPoint: string = "src/main.tsx"): string {
   try {
+    // Skip main.tsx - use App.tsx or page.tsx instead since we handle mounting ourselves
+    if (entryPoint === "src/main.tsx" || entryPoint.includes("main.tsx")) {
+      if (files["src/App.tsx"]) {
+        entryPoint = "src/App.tsx";
+      } else if (files["src/app/page.tsx"]) {
+        entryPoint = "src/app/page.tsx";
+      } else if (files["src/pages/Index.tsx"]) {
+        entryPoint = "src/pages/Index.tsx";
+      }
+    }
+    
     console.log("[Bundler] Starting bundle for:", entryPoint);
 
     const entryCode = files[entryPoint];
@@ -180,6 +191,19 @@ function stripTypeScript(code: string): string {
 }
 
 function handleImportsExports(code: string, dependencies: string[]): string {
+  // Add global references for common React imports that we strip
+  let preamble = '';
+  
+  // Check for React hooks/functions usage
+  if (code.includes('useState')) preamble += 'const { useState } = React;\n';
+  if (code.includes('useEffect')) preamble += 'const { useEffect } = React;\n';
+  if (code.includes('useRef')) preamble += 'const { useRef } = React;\n';
+  if (code.includes('useMemo')) preamble += 'const { useMemo } = React;\n';
+  if (code.includes('useCallback')) preamble += 'const { useCallback } = React;\n';
+  if (code.includes('useContext')) preamble += 'const { useContext } = React;\n';
+  if (code.includes('useReducer')) preamble += 'const { useReducer } = React;\n';
+  if (code.includes('Fragment')) preamble += 'const { Fragment } = React;\n';
+  
   // Remove import statements but keep the code structure
   code = code.replace(/import\s+.*?from\s+['"][^'"]+['"];?/g, "");
   code = code.replace(/import\s+['"][^'"]+['"];?/g, "");
@@ -188,7 +212,7 @@ function handleImportsExports(code: string, dependencies: string[]): string {
   code = code.replace(/export\s+(default\s+)?/g, "");
   code = code.replace(/export\s+/g, "");
 
-  return code;
+  return preamble + code;
 }
 
 function transformJSX(code: string): string {
@@ -217,22 +241,36 @@ function transformPageCode(code: string): string {
 }
 
 function createPreviewBundle(code: string, framework: string): string {
+  // Try to detect component names from the code
+  const componentMatch = code.match(/(?:const|function|class)\s+(\w+)\s*[=:(]/);
+  const detectedComponent = componentMatch ? componentMatch[1] : null;
+  
   const baseCode = `
     // Preview Bundle - ${framework}
+    
+    // Destructure commonly used React hooks globally
+    const { useState, useEffect, useRef, useMemo, useCallback, useContext, useReducer, Fragment } = React;
     
     ${code}
     
     // Create render function that returns a React element
     window.__PREVIEW_RENDER__ = function() {
       try {
+        // Try multiple component names in order of preference
         if (typeof Page !== "undefined") {
           console.log('[Preview] Rendering Page component');
           return React.createElement(Page);
         } else if (typeof App !== "undefined") {
           console.log('[Preview] Rendering App component');
           return React.createElement(App);
-        } else {
-          console.error('[Preview] No Page or App component found');
+        } else if (typeof Index !== "undefined") {
+          console.log('[Preview] Rendering Index component');
+          return React.createElement(Index);
+        }${detectedComponent && detectedComponent !== 'Page' && detectedComponent !== 'App' && detectedComponent !== 'Index' ? ` else if (typeof ${detectedComponent} !== "undefined") {
+          console.log('[Preview] Rendering ${detectedComponent} component');
+          return React.createElement(${detectedComponent});
+        }` : ''} else {
+          console.error('[Preview] No component found');
           return React.createElement('div', {
             style: {
               padding: '2rem',
@@ -241,7 +279,7 @@ function createPreviewBundle(code: string, framework: string): string {
             }
           }, 
             React.createElement('h2', null, '⚠️ No Component Found'),
-            React.createElement('p', null, 'Export a default Page or App component')
+            React.createElement('p', null, 'Expected Page, App, Index, or other exported component')
           );
         }
       } catch (error) {
