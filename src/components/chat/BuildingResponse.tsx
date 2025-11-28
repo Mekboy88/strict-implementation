@@ -14,6 +14,7 @@ interface ParsedContent {
   intro: string;
   designVision: string[];
   features: string[];
+  transitionText: string;
   files: Array<{ path: string; type: string }>;
   summary: string;
   projectName: string;
@@ -34,8 +35,8 @@ const getFileIcon = (path: string) => {
 
 const parseContent = (content: string): ParsedContent => {
   // Extract intro (first paragraph)
-  const introMatch = content.match(/^I'll create\s+(.+?)(?:\n\n|\n(?=Design Vision:)|$)/is);
-  const intro = introMatch ? `I'll create ${introMatch[1].trim()}` : "";
+  const introMatch = content.match(/^(.+?)(?:\n\n|\n(?=Design Vision:)|$)/is);
+  const intro = introMatch ? introMatch[1].trim() : "";
 
   // Extract design vision items
   const designVisionMatch = content.match(/Design Vision:(.+?)(?=Features:|$)/is);
@@ -48,7 +49,7 @@ const parseContent = (content: string): ParsedContent => {
     : [];
 
   // Extract features
-  const featuresMatch = content.match(/Features:(.+?)(?=Let me start|$)/is);
+  const featuresMatch = content.match(/Features:(.+?)(?=\n\n|CREATE_FILE|```|$)/is);
   const features = featuresMatch
     ? featuresMatch[1]
         .split(/\n/)
@@ -56,6 +57,10 @@ const parseContent = (content: string): ParsedContent => {
         .map(line => line.replace(/^[•\-\*]\s*/, "").trim())
         .filter(Boolean)
     : [];
+
+  // Extract transition text (any text between Features and first file/code block)
+  const transitionMatch = content.match(/Features:(?:.|\n)+?\n\n(.+?)(?=CREATE_FILE|```|$)/is);
+  const transitionText = transitionMatch ? transitionMatch[1].trim() : "";
 
   // Extract files from code blocks
   const codeBlockRegex = /```[\w]*\s*(?:\/\/\s*)?([^\n]+)\n/g;
@@ -68,14 +73,14 @@ const parseContent = (content: string): ParsedContent => {
     }
   }
 
-  // Extract summary (Created a...)
-  const summaryMatch = content.match(/Created\s+a\s+(.+?)(?:\n\n|$)/is);
-  const summary = summaryMatch ? `Created a ${summaryMatch[1].trim()}` : "";
+  // Extract summary (after all files)
+  const summaryMatch = content.match(/(?:```[\s\S]+?```[\s\S]*?)+\n\n(.+?)$/is);
+  const summary = summaryMatch ? summaryMatch[1].trim() : "";
 
   // Extract project name from first line or intro
-  const projectName = intro.replace("I'll create ", "").split(".")[0] || "Project";
+  const projectName = intro.split(/[.!?]/)[0].replace(/^(I'll create|Building|Creating)\s+/i, "").trim() || "Project";
 
-  return { intro, designVision, features, files, summary, projectName };
+  return { intro, designVision, features, transitionText, files, summary, projectName };
 };
 
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
@@ -87,6 +92,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     intro: "",
     designVision: [],
     features: [],
+    transitionText: "",
     files: [],
     summary: "",
     projectName: ""
@@ -113,6 +119,9 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     if (locked.features.length === 0 && parsed.features.length > 0) {
       locked.features = [...parsed.features];
     }
+    if (!locked.transitionText && parsed.transitionText) {
+      locked.transitionText = parsed.transitionText;
+    }
     if (locked.files.length === 0 && parsed.files.length > 0) {
       locked.files = [...parsed.files];
     }
@@ -126,6 +135,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     intro: lockedContentRef.current.intro || parsed.intro,
     designVision: lockedContentRef.current.designVision.length > 0 ? lockedContentRef.current.designVision : parsed.designVision,
     features: lockedContentRef.current.features.length > 0 ? lockedContentRef.current.features : parsed.features,
+    transitionText: lockedContentRef.current.transitionText || parsed.transitionText,
     files: lockedContentRef.current.files.length > 0 ? lockedContentRef.current.files : parsed.files,
     summary: lockedContentRef.current.summary || parsed.summary,
     projectName: lockedContentRef.current.projectName || parsed.projectName
@@ -187,19 +197,20 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 2: Transition Text - Only show on first project */}
-      {isFirstProject && (
-        <div className="mt-4" key="transition">
+
+      {/* Section 3: Transition Text - AI generated */}
+      {displayContent.transitionText && (
+        <div className="mt-4 animate-fade-in" key="transition">
           <TypewriterText
-            key="transition-text"
-            text="Let me start by creating this using a refined and beautifully structured design system."
+            key={`transition-${displayContent.transitionText.slice(0, 30)}`}
+            text={displayContent.transitionText}
             className="text-lg text-white/90 italic break-words"
             speedMs={20}
           />
         </div>
       )}
 
-      {/* Section 3: Design Vision */}
+      {/* Section 4: Design Vision */}
       {showDesignVision && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
           <p className="text-base font-medium text-white/80">Design Vision:</p>
@@ -223,7 +234,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 4: Features */}
+      {/* Section 5: Features */}
       {showFeatures && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
           <p className="text-base font-medium text-white/80">Features:</p>
@@ -247,7 +258,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 5: Files - Show building process while streaming - ONLY AFTER TRANSITION TEXT */}
+      {/* Section 6: Files - Show building process while streaming */}
       {showFileSection && showFiles && isStreaming && displayContent.files.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
@@ -259,14 +270,14 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
       
-      {/* Section 5b: Files dropdown - Only show when complete */}
+      {/* Section 6b: Files dropdown - Only show when complete */}
       {showFileSection && showFiles && isComplete && (
         <div className="mt-3">
           <FilesEditedDropdown files={displayContent.files} />
         </div>
       )}
 
-      {/* Section 6: Summary */}
+      {/* Section 7: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }} key="summary">
           <TypewriterText 
@@ -278,32 +289,6 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 7: Next Steps - Only show on first project */}
-      {isComplete && isFirstProject && (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }} key="next-steps-section">
-          <p className="text-base font-medium text-white/80">Next Steps</p>
-          <div className="space-y-4">
-            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1100ms' }}>
-              <div className="text-base">
-                <span className="text-lg font-semibold text-white">Refine &amp; Customize: </span>
-                <span className="text-white/80">Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
-              </div>
-            </div>
-            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1200ms' }}>
-              <div className="text-base">
-                <span className="text-lg font-semibold text-white">Plan With Prompts: </span>
-                <span className="text-white/80">Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
-              </div>
-            </div>
-            <div className="flex items-start animate-fade-in" style={{ animationDelay: '1300ms' }}>
-              <div className="text-base">
-                <span className="text-lg font-semibold text-white">Expand With Backend Tools: </span>
-                <span className="text-white/80">Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Section 8: Completion Card - Only show on first project */}
       {isComplete && isFirstProject && (
