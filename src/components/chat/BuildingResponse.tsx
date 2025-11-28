@@ -178,27 +178,33 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <div className="space-y-4">
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1100ms' }}>
               <div className="text-base">
+                <span className="text-lg font-semibold text-white">Refine & Customize:</span>
+                <span className="text-white/80"> </span>
                 <TypewriterText 
-                  text="Refine & Customize: Update colors, edit product lists, or include additional images through Visual Edits or prompts."
-                  className="inline"
+                  text="Update colors, edit product lists, or include additional images through Visual Edits or prompts."
+                  className="inline text-white/80"
                   speedMs={15}
                 />
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1200ms' }}>
               <div className="text-base">
+                <span className="text-lg font-semibold text-white">Plan With Prompts:</span>
+                <span className="text-white/80"> </span>
                 <TypewriterText 
-                  text="Plan With Prompts: Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
-                  className="inline"
+                  text="Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
+                  className="inline text-white/80"
                   speedMs={15}
                 />
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1300ms' }}>
               <div className="text-base">
+                <span className="text-lg font-semibold text-white">Expand With Backend Tools:</span>
+                <span className="text-white/80"> </span>
                 <TypewriterText 
-                  text="Expand With Backend Tools: Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
-                  className="inline"
+                  text="Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
+                  className="inline text-white/80"
                   speedMs={15}
                 />
               </div>
