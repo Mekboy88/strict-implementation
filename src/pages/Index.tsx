@@ -1,5 +1,5 @@
 import LivePreview from "@/components/LivePreview";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AccountSettings from "@/pages/AccountSettings";
@@ -261,8 +261,8 @@ function UrDevEditorPage() {
     });
   };
 
-  // Render STRICT, FIXED web project file tree (ignores extra files)
-  const renderFileTree = () => {
+  // Render STRICT, FIXED web project file tree (ignores extra files) - MEMOIZED
+  const renderFileTree = useMemo(() => {
     const openFile = (path: string) => {
       const file = projectFiles.find(f => f.path === path);
       if (file) setActiveFileId(file.id);
@@ -553,7 +553,7 @@ function UrDevEditorPage() {
         )}
       </>
     );
-  };
+  }, [projectFiles, activeFileId, expandedFolders]);
 
   const handleSaveProject = async () => {
     if (!currentProject) {
@@ -1603,7 +1603,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             
             {activeVariant === 'web' ? (
               <div className="space-y-1">
-                {renderFileTree()}
+                {renderFileTree}
               </div>
             ) : (
               <div className="space-y-1">
