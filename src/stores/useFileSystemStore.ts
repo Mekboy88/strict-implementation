@@ -366,58 +366,30 @@ export const useFileSystemStore = create<FileSystemState>()(
         
         // Always create core structure if files are empty
         if (files.size === 0) {
-          console.log('[FileSystem] Creating all core files and folders');
+          console.log('[FileSystem] Creating all core files and folders from CORE_PROJECT_FILES');
           
-          // Create all necessary folders
-          const folders = [
-            'public',
-            'src',
-            'src/app',
-            'src/assets',
-            'src/components',
-            'src/components/ui',
-            'src/hooks',
-            'src/lib',
-            'src/pages',
-          ];
+          // Extract all unique folder paths from CORE_PROJECT_FILES
+          const folderSet = new Set<string>();
+          CORE_PROJECT_FILES.forEach(coreFile => {
+            const parts = coreFile.path.split('/');
+            for (let i = 1; i < parts.length; i++) {
+              folderSet.add(parts.slice(0, i).join('/'));
+            }
+          });
           
+          // Create folders in order (parent before child)
+          const folders = Array.from(folderSet).sort();
           folders.forEach(folder => {
-            createFolder(folder);
-            console.log('[FileSystem] Created folder:', folder);
+            if (folder && !files.has(folder)) {
+              createFolder(folder);
+              console.log('[FileSystem] Created folder:', folder);
+            }
           });
           
-          // Create all core files
+          // Create ALL core files (including mobile files)
           for (const coreFile of CORE_PROJECT_FILES) {
-            if (!coreFile.path.startsWith('mobile/')) {
-              await createFile(coreFile.path, coreFile.content);
-              console.log('[FileSystem] Created file:', coreFile.path);
-            }
-          }
-          
-          // Create mobile structure
-          const mobileFolders = [
-            'mobile',
-            'mobile/src',
-            'mobile/src/pages',
-            'mobile/src/components',
-            'mobile/src/components/ui',
-            'mobile/src/hooks',
-            'mobile/src/lib',
-            'mobile/src/data',
-            'mobile/public',
-          ];
-          
-          mobileFolders.forEach(folder => {
-            createFolder(folder);
-            console.log('[FileSystem] Created mobile folder:', folder);
-          });
-          
-          // Create mobile core files
-          for (const coreFile of CORE_PROJECT_FILES) {
-            if (coreFile.path.startsWith('mobile/')) {
-              await createFile(coreFile.path, coreFile.content);
-              console.log('[FileSystem] Created mobile file:', coreFile.path);
-            }
+            await createFile(coreFile.path, coreFile.content);
+            console.log('[FileSystem] Created file:', coreFile.path);
           }
           
           console.log('[FileSystem] Project initialization complete');

@@ -64,13 +64,26 @@ interface FileItem {
   content: string[];
 }
 
+// Helper to detect language from path
+function detectLanguageFromPath(path: string): string {
+  if (path.endsWith('.tsx')) return 'tsx';
+  if (path.endsWith('.ts')) return 'typescript';
+  if (path.endsWith('.jsx')) return 'jsx';
+  if (path.endsWith('.js')) return 'javascript';
+  if (path.endsWith('.css')) return 'css';
+  if (path.endsWith('.html')) return 'html';
+  if (path.endsWith('.json')) return 'json';
+  if (path.endsWith('.md')) return 'markdown';
+  return 'plaintext';
+}
+
 const defaultFiles: FileItem[] = CORE_PROJECT_FILES.map(coreFile => ({
   id: coreFile.id,
   name: coreFile.name,
   path: coreFile.path,
-  language: coreFile.language,
+  language: detectLanguageFromPath(coreFile.path),
   content: coreFile.content.split('\n'),
-})).filter(f => f.path.endsWith('.tsx') || f.path.endsWith('.ts'));
+})); // Removed filter - include ALL files
 
 function buildInitialContents(files: FileItem[]) {
   const map: Record<string, string> = {};
@@ -156,7 +169,7 @@ function UrDevEditorPage() {
   const [planContent, setPlanContent] = useState("");
   const [showPlanWizard, setShowPlanWizard] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(['src', 'src/app', 'src/components', 'src/ui', 'src/hooks', 'src/lib', 'public'])
+    new Set(['src', 'src/app', 'src/components', 'src/components/ui', 'src/pages', 'src/hooks', 'src/lib', 'public', 'mobile', 'mobile/src'])
   );
   const githubButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -191,60 +204,46 @@ function UrDevEditorPage() {
     }
   }, [currentProject, convertProjectFilesToEditor]);
 
-  // Initialize project on mount with CORE_PROJECT_FILES
+  // Initialize project on mount with CORE_PROJECT_FILES - ONLY ONCE
   useEffect(() => {
     const initProject = async () => {
       try {
-        // Reset in-memory store state and clear stale localStorage
-        fileSystemStore.resetProject();
-        localStorage.removeItem('file-system-storage');
+        console.log('[Index] Initializing project...');
         
-        // Initialize store
+        // Initialize store (does NOT reset existing data)
         await fileSystemStore.initializeProject();
         
-        // Convert store files to editor format
+        // Sync state: derive projectFiles directly from store
         const allFiles = fileSystemStore.getAllFiles();
-        let editorFiles: FileItem[] = allFiles
+        const editorFiles: FileItem[] = allFiles
           .filter(node => node.type === 'file')
           .map(node => ({
             id: node.path,
             name: node.name,
             path: node.path,
-            language: node.path.endsWith('.tsx') || node.path.endsWith('.ts') ? 'tsx' : 
-                     node.path.endsWith('.css') ? 'css' : 
-                     node.path.endsWith('.json') ? 'json' :
-                     node.path.endsWith('.html') ? 'html' : 'plaintext',
+            language: detectLanguageFromPath(node.path),
             content: (node.content || '').split('\n'),
           }));
         
-        // Ensure src/app/page.tsx exists for preview
-        const hasAppPage = editorFiles.some(f => f.path === 'src/app/page.tsx');
-        if (!hasAppPage) {
-          const defaultPageContent = getDefaultPageContent();
-          editorFiles.push({
-            id: 'src/app/page.tsx',
-            name: 'page.tsx',
-            path: 'src/app/page.tsx',
-            language: 'tsx',
-            content: defaultPageContent.split('\n'),
-          });
-        }
+        console.log('[Index] Loaded files from store:', editorFiles.length);
         
         if (editorFiles.length > 0) {
           setProjectFiles(editorFiles);
           setFileContents(buildInitialContents(editorFiles));
+          setSavedContents(buildInitialContents(editorFiles));
           
           // Set initial active file
           const indexFile = editorFiles.find(f => f.path === 'src/pages/Index.tsx');
-          setActiveFileId(indexFile?.id || editorFiles[0].id);
+          const appPage = editorFiles.find(f => f.path === 'src/app/page.tsx');
+          setActiveFileId(indexFile?.id || appPage?.id || editorFiles[0].id);
         }
       } catch (error) {
-        console.error('Failed to initialize project:', error);
+        console.error('[Index] Failed to initialize project:', error);
       }
     };
     
     initProject();
-  }, []);
+  }, []); // Run only once on mount
   
   // Sync file changes back to store
   const syncToStore = useCallback((filePath: string, content: string) => {
