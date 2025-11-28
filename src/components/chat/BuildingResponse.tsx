@@ -103,18 +103,6 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 5: Files - Show building process while streaming - MOVED UP */}
-      {showFiles && isStreaming && parsed.files.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
-            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
-            <span className="relative inline-block bg-gradient-to-r from-white/40 via-white to-white/40 bg-[length:200%_100%] animate-shimmer bg-clip-text text-transparent">
-              Creating {parsed.files[currentFileIndex]?.path}...
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Section 2: Design Vision */}
       {showDesignVision && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }}>
@@ -150,6 +138,18 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         <p className="text-base text-white/60 italic animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
+      )}
+
+      {/* Section 5: Files - Show building process while streaming */}
+      {showFiles && isStreaming && parsed.files.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
+            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
+            <span className="relative inline-block bg-gradient-to-r from-white/40 via-white to-white/40 bg-[length:200%_100%] animate-shimmer bg-clip-text text-transparent">
+              Creating {parsed.files[currentFileIndex]?.path}...
+            </span>
+          </div>
+        </div>
       )}
       
       {/* Section 5b: Files dropdown - Only show when complete */}
