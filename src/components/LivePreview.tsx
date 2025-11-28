@@ -132,6 +132,7 @@ function generateBundledPreview(bundledCode: string): string {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>${PREVIEW_STYLES}</style>
       </head>
       <body>
@@ -192,6 +193,7 @@ function generatePreviewHtml(innerHtml: string, filePath: string): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preview - ${filePath}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>${PREVIEW_STYLES}</style>
 </head>
 <body>
@@ -207,6 +209,7 @@ function generateFallbackHtml(errorMessage?: string): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>${PREVIEW_STYLES}</style>
 </head>
 <body>
@@ -251,6 +254,7 @@ function generateErrorHtml(error: Error, filePath: string): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preview Error</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>${PREVIEW_STYLES}</style>
 </head>
 <body>
