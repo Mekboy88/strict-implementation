@@ -78,20 +78,19 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
   
-  // Check if this is a building response (has code blocks)
-  const hasCodeBlocks = content.includes("```");
-  
-  // CRITICAL: Always use BuildingResponse during streaming or if content has code blocks
-  // This prevents component tree switching which causes TypewriterText to remount and restart
-  if (isStreaming || hasCodeBlocks) {
-    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
+  // Only use structured BuildingResponse for the first message
+  // All subsequent messages should be plain chat responses
+  if (isFirstMessage) {
+    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={true} />;
   }
   
-  // Plain text response - regular chat
+  // Plain text response - regular chat (strip code blocks for subsequent messages)
+  const cleanContent = content.replace(/```[\s\S]*?```/g, '').trim();
+  
   return (
     <div className="space-y-4">
-      <div className="text-base text-slate-200 leading-relaxed">
-        {content.split('\n\n').map((paragraph, i) => (
+      <div className="text-base text-blue-50 leading-relaxed">
+        {cleanContent.split('\n\n').map((paragraph, i) => (
           <p key={i} className={i > 0 ? 'mt-3' : ''}>
             {paragraph}
           </p>
