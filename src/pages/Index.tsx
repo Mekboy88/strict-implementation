@@ -1517,35 +1517,37 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
               </button>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pt-10 pb-24 flex flex-col justify-center space-y-4 text-[11px] scroll-smooth">
-              {/* Chat Messages */}
-              {chatMessages.map((msg, index) => {
-                const isFirstAssistantWithCode = msg.role === 'assistant' && 
-                  msg.content.includes('```') && 
-                  index === chatMessages.findIndex(m => m.role === 'assistant' && m.content.includes('```'));
-                
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {msg.content.includes('🔴 **Error Occurred') ? (
-                      <div className="max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3">
-                        <p className="text-sm whitespace-pre-wrap text-slate-200">
-                          {msg.content}
-                        </p>
-                      </div>
-                    ) : (
-                      <ChatMessageRenderer 
-                        content={msg.content} 
-                        role={msg.role}
-                        isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
-                        isFirstMessage={isFirstAssistantWithCode}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pt-10 pb-24 text-[11px] scroll-smooth">
+              <div className="min-h-full flex flex-col justify-center space-y-4">
+                {/* Chat Messages */}
+                {chatMessages.map((msg, index) => {
+                  const isFirstAssistantWithCode = msg.role === 'assistant' && 
+                    msg.content.includes('```') && 
+                    index === chatMessages.findIndex(m => m.role === 'assistant' && m.content.includes('```'));
+                  
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {msg.content.includes('🔴 **Error Occurred') ? (
+                        <div className="max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3">
+                          <p className="text-sm whitespace-pre-wrap text-slate-200">
+                            {msg.content}
+                          </p>
+                        </div>
+                      ) : (
+                        <ChatMessageRenderer 
+                          content={msg.content} 
+                          role={msg.role}
+                          isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
+                          isFirstMessage={isFirstAssistantWithCode}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Task Extraction Prompt */}
