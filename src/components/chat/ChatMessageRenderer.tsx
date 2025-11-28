@@ -4,9 +4,10 @@ interface ChatMessageRendererProps {
   content: string;
   role: 'user' | 'assistant';
   isStreaming: boolean;
+  isFirstMessage?: boolean;
 }
 
-export const ChatMessageRenderer = ({ content, role, isStreaming }: ChatMessageRendererProps) => {
+export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage = false }: ChatMessageRendererProps) => {
   // If user message, show as-is
   if (role === 'user') {
     return (
@@ -20,12 +21,12 @@ export const ChatMessageRenderer = ({ content, role, isStreaming }: ChatMessageR
   const hasCodeBlocks = content.includes("```");
   
   if (hasCodeBlocks) {
-    return <BuildingResponse content={content} isStreaming={isStreaming} />;
+    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
   }
   
   // Plain text response
   return (
-    <div className="text-sm text-slate-200 leading-relaxed">
+    <div className="text-sm text-slate-200 leading-relaxed typing-animation">
       {content}
     </div>
   );
