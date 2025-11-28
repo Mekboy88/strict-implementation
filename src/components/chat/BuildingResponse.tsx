@@ -93,42 +93,66 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     return parseContent(content);
   }, [content]);
 
-  // Lock content sections once they appear (Step 4: Move side effects to useEffect)
+  // Lock content sections ONLY when they are complete
   useEffect(() => {
     const locked = lockedContentRef.current;
     
-    if (!locked.intro && parsed.intro) {
+    // Check if sections are complete by looking for next section markers
+    const hasDesignVision = content.includes('Design Vision:');
+    const hasFeatures = content.includes('Features:');
+    const hasCodeBlocks = content.includes('```');
+    
+    // Only lock intro when Design Vision section starts (meaning intro is complete)
+    if (!locked.intro && parsed.intro && hasDesignVision) {
       locked.intro = parsed.intro;
     }
-    if (!locked.projectName && parsed.projectName) {
-      locked.projectName = parsed.projectName;
-    }
-    if (locked.designVision.length === 0 && parsed.designVision.length > 0) {
+    
+    // Only lock Design Vision when Features section starts
+    if (locked.designVision.length === 0 && parsed.designVision.length > 0 && hasFeatures) {
       locked.designVision = [...parsed.designVision];
     }
-    if (locked.features.length === 0 && parsed.features.length > 0) {
+    
+    // Only lock Features when code blocks start
+    if (locked.features.length === 0 && parsed.features.length > 0 && hasCodeBlocks) {
       locked.features = [...parsed.features];
     }
-    if (!locked.transitionText && parsed.transitionText) {
+    
+    // Only lock transition text when code blocks start
+    if (!locked.transitionText && parsed.transitionText && hasCodeBlocks) {
       locked.transitionText = parsed.transitionText;
     }
+    
+    // Lock files when code blocks exist
     if (locked.files.length === 0 && parsed.files.length > 0) {
       locked.files = [...parsed.files];
     }
-    if (!locked.summary && parsed.summary) {
+    
+    // Only lock summary when streaming is done
+    if (!locked.summary && parsed.summary && !isStreaming) {
       locked.summary = parsed.summary;
     }
-  }, [parsed]);
+    
+    // Lock project name when intro is locked
+    if (!locked.projectName && parsed.projectName && locked.intro) {
+      locked.projectName = parsed.projectName;
+    }
+  }, [parsed, content, isStreaming]);
 
-  // Use locked content for rendering (Step 2: Graceful fallback)
+  // Only show sections when they're locked (complete) or when streaming is done
   const displayContent = {
-    intro: lockedContentRef.current.intro || parsed.intro,
-    designVision: lockedContentRef.current.designVision.length > 0 ? lockedContentRef.current.designVision : parsed.designVision,
-    features: lockedContentRef.current.features.length > 0 ? lockedContentRef.current.features : parsed.features,
-    transitionText: lockedContentRef.current.transitionText || parsed.transitionText,
-    files: lockedContentRef.current.files.length > 0 ? lockedContentRef.current.files : parsed.files,
-    summary: lockedContentRef.current.summary || parsed.summary,
-    projectName: lockedContentRef.current.projectName || parsed.projectName
+    intro: lockedContentRef.current.intro || (!isStreaming ? parsed.intro : ''),
+    designVision: lockedContentRef.current.designVision.length > 0 
+      ? lockedContentRef.current.designVision 
+      : (!isStreaming ? parsed.designVision : []),
+    features: lockedContentRef.current.features.length > 0 
+      ? lockedContentRef.current.features 
+      : (!isStreaming ? parsed.features : []),
+    transitionText: lockedContentRef.current.transitionText || (!isStreaming ? parsed.transitionText : ''),
+    files: lockedContentRef.current.files.length > 0 
+      ? lockedContentRef.current.files 
+      : (!isStreaming ? parsed.files : []),
+    summary: lockedContentRef.current.summary || (!isStreaming ? parsed.summary : ''),
+    projectName: lockedContentRef.current.projectName || (!isStreaming ? parsed.projectName : ''),
   };
 
   // Derive all boolean values BEFORE useEffect hooks
@@ -150,6 +174,18 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     }
   }, [showFiles]);
   
+  // Show loading indicator while waiting for content
+  if (isStreaming && !displayContent.intro) {
+    return (
+      <div className="w-full space-y-3 text-white/70">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-white/50 rounded-full animate-pulse" />
+          <span className="text-base text-white/50">Thinking...</span>
+        </div>
+      </div>
+    );
+  }
+
   // NOW the early return is safe - all hooks have been called
   if (!hasStructuredContent) {
     // Strip code blocks before displaying fallback - NEVER show code in chat
@@ -173,7 +209,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {displayContent.intro && (
         <div className="space-y-2 animate-fade-in" key="intro">
           <TypewriterText 
-            key={`intro-${displayContent.intro.slice(0, 30)}`}
+            key="intro"
             text={displayContent.intro} 
             className="text-base leading-relaxed break-words" 
             speedMs={20} 
@@ -186,7 +222,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {displayContent.transitionText && (
         <div className="mt-4 animate-fade-in" key="transition">
           <TypewriterText
-            key={`transition-${displayContent.transitionText.slice(0, 30)}`}
+            key="transition"
             text={displayContent.transitionText}
             className="text-lg text-white/90 italic break-words"
             speedMs={20}
@@ -201,13 +237,13 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <ul className="space-y-2 ml-1">
             {displayContent.designVision.map((item, i) => (
               <li
-                key={`dv-${item.slice(0, 30)}-${i}`}
+                key={`dv-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${400 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
                 <TypewriterText 
-                  key={`dv-text-${item.slice(0, 30)}`}
+                  key={`dv-text-${i}`}
                   text={item} 
                   className="inline" 
                   speedMs={15} 
@@ -225,13 +261,13 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <ul className="space-y-2 ml-1">
             {displayContent.features.map((item, i) => (
               <li
-                key={`ft-${item.slice(0, 30)}-${i}`}
+                key={`ft-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${600 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
                 <TypewriterText 
-                  key={`ft-text-${item.slice(0, 30)}`}
+                  key={`ft-text-${i}`}
                   text={item} 
                   className="inline" 
                   speedMs={15} 
@@ -253,7 +289,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }} key="summary">
           <TypewriterText 
-            key={`summary-${displayContent.summary.slice(0, 30)}`}
+            key="summary"
             text={displayContent.summary} 
             className="text-base leading-relaxed" 
             speedMs={20} 
