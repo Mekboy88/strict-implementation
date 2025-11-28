@@ -20,12 +20,15 @@ interface ParsedContent {
 }
 
 const parseContent = (content: string): ParsedContent => {
-  // Extract intro (first paragraph)
-  const introMatch = content.match(/^(.+?)(?:\n\n|\n(?=Design Vision:)|$)/is);
+  // FIRST: Strip ALL code blocks from content before parsing text
+  const cleanContent = content.replace(/```[\s\S]*?```/g, '[CODE_BLOCK]');
+  
+  // Extract intro (first paragraph) - stop at Design Vision, Features, or code markers
+  const introMatch = cleanContent.match(/^(.+?)(?:\n\n|\n(?=Design Vision:)|(?=Features:)|(?=\[CODE_BLOCK\])|$)/is);
   const intro = introMatch ? introMatch[1].trim() : "";
 
   // Extract design vision items
-  const designVisionMatch = content.match(/Design Vision:(.+?)(?=Features:|$)/is);
+  const designVisionMatch = cleanContent.match(/Design Vision:(.+?)(?=Features:|$)/is);
   const designVision = designVisionMatch
     ? designVisionMatch[1]
         .split(/\n/)
@@ -35,7 +38,7 @@ const parseContent = (content: string): ParsedContent => {
     : [];
 
   // Extract features
-  const featuresMatch = content.match(/Features:(.+?)(?=\n\n|CREATE_FILE|```|$)/is);
+  const featuresMatch = cleanContent.match(/Features:(.+?)(?=\n\n|CREATE_FILE|\[CODE_BLOCK\]|$)/is);
   const features = featuresMatch
     ? featuresMatch[1]
         .split(/\n/)
@@ -44,11 +47,11 @@ const parseContent = (content: string): ParsedContent => {
         .filter(Boolean)
     : [];
 
-  // Extract transition text (any text between Features and first file/code block)
-  const transitionMatch = content.match(/Features:(?:.|\n)+?\n\n(.+?)(?=CREATE_FILE|```|$)/is);
+  // Extract transition text (any text between Features and first code block marker)
+  const transitionMatch = cleanContent.match(/Features:(?:.|\n)+?\n\n(.+?)(?=\[CODE_BLOCK\]|$)/is);
   const transitionText = transitionMatch ? transitionMatch[1].trim() : "";
 
-  // Extract files from code blocks
+  // Extract files from ORIGINAL content (not cleaned) to preserve file paths
   const codeBlockRegex = /```[\w]*\s*(?:\/\/\s*)?([^\n]+)\n/g;
   const files: Array<{ path: string; type: string }> = [];
   let match;
@@ -59,9 +62,11 @@ const parseContent = (content: string): ParsedContent => {
     }
   }
 
-  // Extract summary (after all files)
-  const summaryMatch = content.match(/(?:```[\s\S]+?```[\s\S]*?)+\n\n(.+?)$/is);
-  const summary = summaryMatch ? summaryMatch[1].trim() : "";
+  // Extract summary (after all code block markers) - clean any remaining code
+  const summaryMatch = cleanContent.match(/\[CODE_BLOCK\](?:\s*\[CODE_BLOCK\])*\s*\n\n(.+?)$/is);
+  const summary = summaryMatch 
+    ? summaryMatch[1].replace(/```[\s\S]*?```/g, '').replace(/\[CODE_BLOCK\]/g, '').trim()
+    : "";
 
   // Extract project name from first line or intro
   const projectName = intro.split(/[.!?]/)[0].replace(/^(I'll create|Building|Creating)\s+/i, "").trim() || "Project";
@@ -147,11 +152,14 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   
   // NOW the early return is safe - all hooks have been called
   if (!hasStructuredContent) {
+    // Strip code blocks before displaying fallback - NEVER show code in chat
+    const cleanFallback = content.replace(/```[\s\S]*?```/g, '').trim();
+    
     return (
       <div className="w-full space-y-3 text-white/70">
         <TypewriterText 
           key="plain-content"
-          text={content} 
+          text={cleanFallback} 
           className="text-base leading-relaxed break-words" 
           speedMs={20} 
         />
