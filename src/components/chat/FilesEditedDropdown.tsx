@@ -39,7 +39,7 @@ export const FilesEditedDropdown = ({ files }: FilesEditedDropdownProps) => {
       {isOpen && (
         <div className="mt-3 space-y-2 animate-accordion-down">
           {files.map((file, index) => (
-            <div key={index} className="flex items-center gap-2 text-white/60 text-sm">
+            <div key={index} className="flex items-center gap-2 text-white/60 text-xs">
               <span className="text-white/40">{getFileIcon(file.path)}</span>
               <span className="font-mono">{file.path}</span>
             </div>
