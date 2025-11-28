@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 import { TypewriterText } from "./TypewriterText";
@@ -19,19 +18,6 @@ interface ParsedContent {
   summary: string;
   projectName: string;
 }
-
-const getFileIcon = (path: string) => {
-  if (path.match(/\.(png|jpg|jpeg|gif|svg|webp)$/i)) {
-    return <Image className="w-4 h-4" />;
-  }
-  if (path.match(/\.(tsx?|jsx?|css|scss)$/i)) {
-    return <FileCode className="w-4 h-4" />;
-  }
-  if (path.match(/\.json$/i)) {
-    return <FileJson className="w-4 h-4" />;
-  }
-  return <File className="w-4 h-4" />;
-};
 
 const parseContent = (content: string): ParsedContent => {
   // Extract intro (first paragraph)
@@ -84,7 +70,6 @@ const parseContent = (content: string): ParsedContent => {
 };
 
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
-  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [showFileSection, setShowFileSection] = useState(false);
   
   // Use refs to lock content once it appears to prevent re-parsing
@@ -150,24 +135,15 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   const showSummary = !isStreaming && displayContent.summary;
   const isComplete = !isStreaming;
 
-  // Show file section after transition text finishes (approximately 3 seconds for the typewriter)
+  // Show file section after features finish
   useEffect(() => {
-    if (showFiles && isFirstProject) {
+    if (showFiles) {
       const timer = setTimeout(() => {
         setShowFileSection(true);
-      }, 3000);
+      }, 1000);
       return () => clearTimeout(timer);
-    } else if (showFiles && !isFirstProject) {
-      setShowFileSection(true);
     }
-  }, [showFiles, isFirstProject]);
-
-  // Sync current file with streaming progress
-  useEffect(() => {
-    if (isStreaming && showFiles) {
-      setCurrentFileIndex(displayContent.files.length - 1);
-    }
-  }, [displayContent.files.length, isStreaming, showFiles]);
+  }, [showFiles]);
   
   // NOW the early return is safe - all hooks have been called
   if (!hasStructuredContent) {
@@ -258,19 +234,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 6: Files - Show building process while streaming */}
-      {showFileSection && showFiles && isStreaming && displayContent.files.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
-            {getFileIcon(displayContent.files[currentFileIndex]?.path || '')}
-            <span className="relative inline-block bg-gradient-to-r from-white/40 via-white to-white/40 bg-[length:200%_100%] animate-shimmer bg-clip-text text-transparent">
-              Creating {displayContent.files[currentFileIndex]?.path}...
-            </span>
-          </div>
-        </div>
-      )}
-      
-      {/* Section 6b: Files dropdown - Only show when complete */}
+      {/* Section 6: Files dropdown - Only show when complete */}
       {showFileSection && showFiles && isComplete && (
         <div className="mt-3">
           <FilesEditedDropdown files={displayContent.files} />
