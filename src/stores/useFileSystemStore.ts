@@ -344,23 +344,30 @@ export const useFileSystemStore = create<FileSystemState>()(
       },
 
       initializeProject: async () => {
-        const { currentProjectId, loadProjectFiles, fileExists, createFolder, createFile } = get();
+        const { currentProjectId, loadProjectFiles, createFolder, createFile, files } = get();
+        
+        console.log('[FileSystem] Initializing project, files count:', files.size);
         
         // If we have a project ID, use database
         if (currentProjectId) {
+          console.log('[FileSystem] Using database for project:', currentProjectId);
           try {
             await projectService.initializeProjectFiles(currentProjectId);
             await loadProjectFiles(currentProjectId);
+            console.log('[FileSystem] Project loaded from database');
             return;
           } catch (error) {
-            console.error('Error initializing project from database:', error);
+            console.error('[FileSystem] Error initializing from database:', error);
           }
         }
 
-        // Fallback: Initialize in-memory without database (for non-authenticated users)
-        console.log('Initializing project with ALL core files');
+        // Initialize in-memory (for non-authenticated users or when database fails)
+        console.log('[FileSystem] Initializing in-memory project');
         
-        if (!fileExists('src')) {
+        // Always create core structure if files are empty
+        if (files.size === 0) {
+          console.log('[FileSystem] Creating all core files and folders');
+          
           // Create all necessary folders
           const folders = [
             'public',
@@ -374,19 +381,20 @@ export const useFileSystemStore = create<FileSystemState>()(
             'src/pages',
           ];
           
-          folders.forEach(folder => createFolder(folder));
+          folders.forEach(folder => {
+            createFolder(folder);
+            console.log('[FileSystem] Created folder:', folder);
+          });
           
           // Create all core files
           for (const coreFile of CORE_PROJECT_FILES) {
             if (!coreFile.path.startsWith('mobile/')) {
               await createFile(coreFile.path, coreFile.content);
+              console.log('[FileSystem] Created file:', coreFile.path);
             }
           }
-        }
-
-        // Ensure mobile structure exists
-        if (!fileExists('mobile')) {
-          // Create mobile folders
+          
+          // Create mobile structure
           const mobileFolders = [
             'mobile',
             'mobile/src',
@@ -399,14 +407,22 @@ export const useFileSystemStore = create<FileSystemState>()(
             'mobile/public',
           ];
           
-          mobileFolders.forEach(folder => createFolder(folder));
+          mobileFolders.forEach(folder => {
+            createFolder(folder);
+            console.log('[FileSystem] Created mobile folder:', folder);
+          });
           
           // Create mobile core files
           for (const coreFile of CORE_PROJECT_FILES) {
             if (coreFile.path.startsWith('mobile/')) {
               await createFile(coreFile.path, coreFile.content);
+              console.log('[FileSystem] Created mobile file:', coreFile.path);
             }
           }
+          
+          console.log('[FileSystem] Project initialization complete');
+        } else {
+          console.log('[FileSystem] Files already exist, skipping initialization');
         }
       },
 

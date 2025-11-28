@@ -267,10 +267,18 @@ function UrDevEditorPage() {
   // Build folder structure from actual project files
   const buildFolderTree = useCallback(() => {
     const folders = new Map<string, Set<string>>();
+    folders.set('', new Set()); // Initialize root folder
     
-    // Extract all unique folder paths
+    // Extract all unique folder paths and add to tree
     projectFiles.forEach(file => {
       const parts = file.path.split('/');
+      
+      // Add first-level item to root
+      if (parts.length > 0) {
+        folders.get('')!.add(parts[0]);
+      }
+      
+      // Build nested structure
       for (let i = 1; i < parts.length; i++) {
         const folderPath = parts.slice(0, i).join('/');
         if (!folders.has(folderPath)) {
