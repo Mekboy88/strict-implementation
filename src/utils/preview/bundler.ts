@@ -172,22 +172,8 @@ function handleImportsExports(code: string, dependencies: string[]): string {
 }
 
 function transformJSX(code: string): string {
-  // Basic JSX transformation - in a real system you'd use Babel
-  // This is a simplified version for demo
-
-  // Transform JSX to React.createElement calls
-  code = code.replace(/<(\w+)([^>]*)>/g, (match, tag, attrs) => {
-    return `React.createElement('${tag}', ${attrs ? transformAttributes(attrs) : "null"}`;
-  });
-
-  // Handle closing tags
-  code = code.replace(/<\/(\w+)>/g, "))");
-
-  // Handle self-closing tags
-  code = code.replace(/<(\w+)([^>]*)\/>/g, (match, tag, attrs) => {
-    return `React.createElement('${tag}', ${attrs ? transformAttributes(attrs) : "null"}, null)`;
-  });
-
+  // Don't transform - let the browser handle it as a string template
+  // We'll render it differently
   return code;
 }
 
@@ -212,36 +198,25 @@ function transformPageCode(code: string): string {
 
 function createPreviewBundle(code: string, framework: string): string {
   const baseCode = `
-    // Preview Bundle
-    // Framework: ${framework}
-    
-    // Minimal React support for preview
-    const React = {
-      createElement: function(tag, props, ...children) {
-        return { tag, props: props || {}, children: children.filter(Boolean) };
-      },
-      useState: function(initial) {
-        let state = initial;
-        return [state, () => {}];
-      },
-      useEffect: function() {},
-      Fragment: 'Fragment'
-    };
+    // Preview Bundle - ${framework}
     
     ${code}
     
-    // Expose component for rendering
-    const __PREVIEW_COMPONENT__ = 
-      (typeof Page !== "undefined") ? Page : 
-      (typeof App !== "undefined") ? App : 
-      (typeof defaultExport !== "undefined") ? defaultExport : 
-      null;
+    // Find and expose the component
+    let __PREVIEW_COMPONENT__ = null;
+    
+    // Try to find exported component
+    if (typeof Page !== "undefined") {
+      __PREVIEW_COMPONENT__ = Page;
+    } else if (typeof App !== "undefined") {
+      __PREVIEW_COMPONENT__ = App;
+    }
     
     if (__PREVIEW_COMPONENT__) {
       window.__PREVIEW_RENDER__ = __PREVIEW_COMPONENT__;
-      console.log('[Preview] Component ready:', __PREVIEW_COMPONENT__.name || 'Anonymous');
+      console.log('[Preview] Component found:', __PREVIEW_COMPONENT__.name || 'Anonymous');
     } else {
-      console.error('[Preview] No component found to render');
+      console.error('[Preview] No component exported');
     }
   `;
 
