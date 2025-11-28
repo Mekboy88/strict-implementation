@@ -80,12 +80,20 @@ const parseContent = (content: string): ParsedContent => {
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const parsed = parseContent(content);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
   const showFiles = parsed.files.length > 0;
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
+
+  // Mark as animated once content is present
+  useEffect(() => {
+    if (parsed.intro && !hasAnimated) {
+      setHasAnimated(true);
+    }
+  }, [parsed.intro, hasAnimated]);
 
   // Sync current file with streaming progress
   useEffect(() => {
@@ -95,7 +103,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   }, [parsed.files.length, isStreaming, showFiles]);
 
   return (
-    <div className="w-full space-y-3 text-white/70">
+    <div className="w-full space-y-3 text-white/70" key={hasAnimated ? 'animated' : 'animating'}>
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
