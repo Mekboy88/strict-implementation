@@ -345,7 +345,6 @@ function UrDevEditorPage() {
                     <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
                     <span className="truncate">page.tsx</span>
                   </span>
-                  <span className="ml-auto text-[10px] text-green-400 flex-shrink-0">✅ REQUIRED</span>
                 </button>
 
                 <button
@@ -361,7 +360,6 @@ function UrDevEditorPage() {
                     <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
                     <span className="truncate">layout.tsx</span>
                   </span>
-                  <span className="ml-auto text-[10px] text-green-400 flex-shrink-0">✅ REQUIRED</span>
                 </button>
               </div>
             )}
