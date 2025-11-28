@@ -280,43 +280,25 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 7: Next Steps - Only show on first project */}
       {isComplete && isFirstProject && (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }} key="next-steps">
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }} key="next-steps-section">
           <p className="text-base font-medium text-white/80">Next Steps</p>
           <div className="space-y-4">
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1100ms' }}>
               <div className="text-base">
-                <span className="text-lg font-semibold text-white">Refine &amp; Customize:</span>
-                <span className="text-white/80"> </span>
-                <TypewriterText 
-                  key="next-step-1"
-                  text="Update colors, edit product lists, or include additional images through Visual Edits or prompts."
-                  className="inline text-white/80"
-                  speedMs={15}
-                />
+                <span className="text-lg font-semibold text-white">Refine &amp; Customize: </span>
+                <span className="text-white/80">Update colors, edit product lists, or include additional images through Visual Edits or prompts.</span>
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1200ms' }}>
               <div className="text-base">
-                <span className="text-lg font-semibold text-white">Plan With Prompts:</span>
-                <span className="text-white/80"> </span>
-                <TypewriterText 
-                  key="next-step-2"
-                  text="Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
-                  className="inline text-white/80"
-                  speedMs={15}
-                />
+                <span className="text-lg font-semibold text-white">Plan With Prompts: </span>
+                <span className="text-white/80">Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories.</span>
               </div>
             </div>
             <div className="flex items-start animate-fade-in" style={{ animationDelay: '1300ms' }}>
               <div className="text-base">
-                <span className="text-lg font-semibold text-white">Expand With Backend Tools:</span>
-                <span className="text-white/80"> </span>
-                <TypewriterText 
-                  key="next-step-3"
-                  text="Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
-                  className="inline text-white/80"
-                  speedMs={15}
-                />
+                <span className="text-lg font-semibold text-white">Expand With Backend Tools: </span>
+                <span className="text-white/80">Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease.</span>
               </div>
             </div>
           </div>
