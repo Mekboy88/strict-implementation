@@ -80,20 +80,12 @@ const parseContent = (content: string): ParsedContent => {
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const parsed = parseContent(content);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
   const showFiles = parsed.files.length > 0;
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
-
-  // Mark as animated once content is present
-  useEffect(() => {
-    if (parsed.intro && !hasAnimated) {
-      setHasAnimated(true);
-    }
-  }, [parsed.intro, hasAnimated]);
 
   // Sync current file with streaming progress
   useEffect(() => {
@@ -103,11 +95,11 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   }, [parsed.files.length, isStreaming, showFiles]);
 
   return (
-    <div className="w-full space-y-3 text-white/70" key={hasAnimated ? 'animated' : 'animating'}>
+    <div className="w-full space-y-3 text-white/70">
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
-          <p className="text-base leading-relaxed break-words typing-animation">{parsed.intro}</p>
+          <p className={`text-base leading-relaxed break-words ${isStreaming ? 'typing-animation' : ''}`}>{parsed.intro}</p>
         </div>
       )}
 
@@ -143,7 +135,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project */}
       {showFiles && isFirstProject && (
-        <p className="text-lg text-white/90 italic break-words animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
+        <p className={`text-lg text-white/90 italic break-words animate-fade-in ${isStreaming ? 'typing-animation' : ''}`} style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
@@ -170,7 +162,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 6: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in typing-animation" style={{ animationDelay: '900ms' }}>
-          <p className="text-base leading-relaxed">{parsed.summary}</p>
+          <p className={`text-base leading-relaxed ${!isStreaming ? 'typing-animation' : ''}`}>{parsed.summary}</p>
         </div>
       )}
 
