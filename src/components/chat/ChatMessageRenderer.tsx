@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { useState, useMemo } from "react";
 import { BuildingResponse } from "./BuildingResponse";
-import { StreamingText } from "./StreamingText";
+import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatMessageRendererProps {
@@ -11,14 +10,25 @@ interface ChatMessageRendererProps {
   isFirstMessage?: boolean;
 }
 
-export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
-  content,
-  role,
-  isStreaming,
-}) => {
-  const [isCopied, setIsCopied] = useState(false);
+export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage = false }: ChatMessageRendererProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const MAX_LINES = 15;
+
+  // Calculate if content needs truncation
+  const { needsTruncation, truncatedContent } = useMemo(() => {
+    if (role !== 'user') return { needsTruncation: false, truncatedContent: content };
+    
+    const lines = content.split('\n');
+    if (lines.length <= MAX_LINES) {
+      return { needsTruncation: false, truncatedContent: content };
+    }
+    
+    return {
+      needsTruncation: true,
+      truncatedContent: lines.slice(0, MAX_LINES).join('\n')
+    };
+  }, [content, role]);
 
   const handleCopy = async () => {
     try {
@@ -30,18 +40,12 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
     }
   };
 
-  // User message rendering
-  if (role === "user") {
-    const lines = content.split('\n');
-    const needsTruncation = lines.length > MAX_LINES;
-    const displayContent = needsTruncation && !isExpanded 
-      ? lines.slice(0, MAX_LINES).join('\n') + '...'
-      : content;
-
+  // If user message, show with see more/less functionality
+  if (role === 'user') {
     return (
       <div className="relative max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3 pr-10">
         <p className="text-sm whitespace-pre-wrap">
-          {displayContent}
+          {needsTruncation && !isExpanded ? truncatedContent : content}
         </p>
         {needsTruncation && (
           <button
@@ -73,24 +77,18 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
       </div>
     );
   }
-
-  // Assistant message rendering
-  // Check if this looks like a build response (has code blocks)
-  const isBuildResponse = /```/.test(content);
-
-  if (isBuildResponse) {
-    return (
-      <BuildingResponse
-        content={content}
-        isStreaming={isStreaming}
-      />
-    );
+  
+  // Check if this is a building response (has code blocks)
+  const hasCodeBlocks = content.includes("```");
+  
+  if (hasCodeBlocks) {
+    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
   }
-
-  // Plain text chat response (no code filtering needed)
+  
+  // Plain text response
   return (
-    <div className="text-sm text-slate-200 leading-relaxed">
-      <StreamingText content={content} isComplete={!isStreaming} />
+    <div className="text-sm text-slate-200 leading-relaxed typing-animation">
+      {content}
     </div>
   );
 };

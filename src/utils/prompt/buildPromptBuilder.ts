@@ -8,10 +8,6 @@
  */
 
 import { DetectedRequest } from "../requestTypeDetector";
-import { generateBlueprintContext } from "./blueprintInjector";
-import { qualityTiers, mandatoryFeatures, visualChecklist } from "@/config/qualityStandards";
-import { designPatterns } from "@/config/designPatterns";
-import { componentExamples } from "@/config/componentExamples";
 
 /**
  * Builds a comprehensive AI prompt for code generation
@@ -48,12 +44,7 @@ export const buildAIPrompt = (
 ): string => {
   const isMobileBuild = platform === 'mobile' || filesBeingGenerated.some(f => f.startsWith('mobile/'));
   
-  // Auto-detect and inject blueprint context
-  const blueprintContext = generateBlueprintContext(userMessage);
-  
   return `${userMessage}
-
-${blueprintContext}
 
 CONTEXT:
 - Request Type: ${requestDetection.type}
@@ -62,58 +53,6 @@ CONTEXT:
 - Files to scaffold: ${filesBeingGenerated.join(', ')}
 - Existing project files: ${existingFilePaths.slice(0, 15).join(', ')}
 
-🚨 PROFESSIONAL QUALITY STANDARDS (MANDATORY) 🚨
-
-You MUST build to PROFESSIONAL or PREMIUM quality tier. Basic quality is NOT acceptable.
-
-🎨 VISUAL POLISH REQUIREMENTS:
-${qualityTiers.professional.uiRequirements.map(req => `  • ${req}`).join('\n')}
-
-Additional Premium Elements (when appropriate):
-${qualityTiers.premium.uiRequirements.slice(7).map(req => `  • ${req}`).join('\n')}
-
-✨ ANIMATION REQUIREMENTS:
-${qualityTiers.professional.animationRequirements.map(req => `  • ${req}`).join('\n')}
-
-📊 DATA RICHNESS:
-${qualityTiers.professional.dataRichness.map(req => `  • ${req}`).join('\n')}
-
-🧩 COMPONENT DEPTH:
-${qualityTiers.professional.componentDepth.map(req => `  • ${req}`).join('\n')}
-
-💎 MANDATORY FEATURES:
-
-RESPONSIVE DESIGN:
-${mandatoryFeatures.responsive.requirements.map(r => `  • ${r}`).join('\n')}
-
-DARK MODE:
-${mandatoryFeatures.darkMode.requirements.map(r => `  • ${r}`).join('\n')}
-
-ACCESSIBILITY:
-${mandatoryFeatures.accessibility.requirements.map(r => `  • ${r}`).join('\n')}
-
-LOADING STATES:
-${mandatoryFeatures.states.loading.map(r => `  • ${r}`).join('\n')}
-
-EMPTY STATES:
-${mandatoryFeatures.states.empty.map(r => `  • ${r}`).join('\n')}
-
-ERROR STATES:
-${mandatoryFeatures.states.error.map(r => `  • ${r}`).join('\n')}
-
-🎯 HIGH-QUALITY COMPONENT EXAMPLES:
-
-Glass-morphism Card Example:
-${componentExamples.cards.productCard}
-
-Modern Button Example (use this pattern):
-<button className="${designPatterns.buttons.primary.classes} ${designPatterns.buttons.primary.hover} ${designPatterns.buttons.primary.active} ${designPatterns.buttons.primary.transition}">
-  Click Me
-</button>
-
-Professional Form Example:
-${componentExamples.forms.loginForm}
-
 CRITICAL: USE COMMON SENSE BUILDING
 The user may give MINIMAL details. You MUST:
 • NEVER refuse to build
@@ -121,26 +60,19 @@ The user may give MINIMAL details. You MUST:
 • ALWAYS build a COMPLETE, FUNCTIONAL version using common sense
 • Include ALL standard features that page type would normally have
 • Make it production-ready, not a skeleton or template
-• Follow the PROFESSIONAL QUALITY STANDARDS above
-
-VISUAL QUALITY CHECKLIST (MANDATORY):
-${visualChecklist.map(item => item).join('\n')}
 
 INSTRUCTIONS:
-Generate COMPLETE, PROFESSIONAL-GRADE, production-ready code following all quality standards above. Include:
-✓ Glass-morphism cards with backdrop-blur and borders
-✓ Gradient backgrounds and buttons
-✓ Soft shadows (shadow-xl, shadow-2xl)
+Generate COMPLETE, production-ready code for all files. Include:
 ✓ All necessary imports and exports
 ✓ Proper TypeScript types and interfaces
-✓ Smooth animations (hover:scale-105, animate-fade-in)
-✓ Transitions on all interactive elements (transition-all duration-300)
-✓ Responsive design at all breakpoints
-✓ Dark mode support
-✓ Loading, empty, and error states
-✓ Minimum 5-8 realistic data items
-✓ NO lorem ipsum or placeholder text
-✓ Professional component architecture
+✓ Beautiful Tailwind CSS styling with smooth animations and transitions
+✓ Working functionality (not just templates)
+✓ Responsive design (mobile-first approach)
+✓ Clean, professional code structure
+✓ ALL common features that type of page would normally have
+✓ Real-looking content (never lorem ipsum or placeholders)
+✓ Smooth hover effects, fade-in animations, and transitions
+✓ Professional animations using Tailwind animate utilities
 
 ANIMATION REQUIREMENTS (when not specified):
 • Add smooth transitions to all interactive elements (buttons, links, cards)

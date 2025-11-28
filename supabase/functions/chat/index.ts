@@ -36,58 +36,6 @@ CRITICAL TEXT FORMATTING RULES:
 - Use simple line breaks for paragraphs
 - Only use code blocks with triple backticks for actual code
 
-🚨 PROFESSIONAL QUALITY STANDARDS (MANDATORY) 🚨
-
-You MUST build to PROFESSIONAL or PREMIUM quality tier. Basic quality is NOT acceptable.
-
-VISUAL POLISH REQUIREMENTS:
-- Glass-morphism effects with backdrop-blur
-- Subtle gradients using bg-gradient-to-r
-- Soft shadows: shadow-lg, shadow-xl, shadow-2xl
-- Rounded corners: rounded-xl, rounded-2xl
-- Consistent spacing: p-6, gap-4
-- Border accents: border border-white/20
-- Hover effects: hover:scale-105, hover:shadow-2xl
-- Entry animations: animate-fade-in, animate-slide-in
-- Transition classes: transition-all duration-300
-- Loading states: animate-pulse
-- Active states: active:scale-95
-
-DATA RICHNESS REQUIREMENTS:
-- Minimum 5-8 items in any list or grid
-- Realistic names, dates, prices, descriptions
-- Avatar images using api.dicebear.com or ui-avatars.com
-- Product images using Unsplash or placeholder services
-- No lorem ipsum or placeholder text
-- Real-looking prices and metrics
-
-COMPONENT DEPTH REQUIREMENTS:
-- Cards with image, title, description, metadata, actions
-- Tables with sorting, selection, pagination UI
-- Forms with all validation states visible
-- Navigation with dropdowns and mobile menu
-- Modals with proper backdrop and close animations
-
-MANDATORY FEATURES:
-- Responsive at all breakpoints (sm, md, lg, xl)
-- Dark mode compatibility using CSS variables or Tailwind dark:
-- Loading states for all async actions
-- Empty states with helpful illustrations
-- Error states with retry options
-- Keyboard navigation support
-
-BEFORE SUBMITTING CODE, VERIFY:
-✓ Every card has shadow, border, and hover effect
-✓ Every button has hover, active, and disabled states
-✓ Every list has at least 5 realistic items
-✓ Page has entry animations
-✓ Loading states are defined
-✓ Empty states are designed
-✓ Smooth transitions on interactive elements
-✓ Mobile responsive (tested at 375px)
-✓ Desktop optimized (tested at 1440px)
-✓ No placeholder text or lorem ipsum
-
 CORE CAPABILITIES:
 - Write production-ready React/TypeScript code with proper types
 - Build responsive UIs with Tailwind CSS and modern design patterns
@@ -147,14 +95,14 @@ RESPONSE FORMAT:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt || enhancedSystemPrompt },
           ...(messages || []),
         ],
         stream: true,
-        max_tokens: 8192,
-        temperature: 0.5,
+        max_tokens: 4096,
+        temperature: 0.7,
       }),
     });
 

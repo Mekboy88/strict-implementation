@@ -170,48 +170,33 @@ function extractDependencies(code: string): string[] {
 }
 
 function stripTypeScript(code: string): string {
-  try {
-    // Ensure we're working with a string
-    if (typeof code !== 'string') {
-      console.error('[Bundler] stripTypeScript received non-string:', typeof code);
-      return String(code || '');
-    }
-
-    // Remove non-null assertions: expr!
-    code = String(code.replace(/([a-zA-Z_$][\w$]*|\)|\])\s*!/g, '$1'));
-    
-    // Remove type assertions: expr as Type
-    code = String(code.replace(/\s+as\s+(?:string|number|boolean|any|unknown|never|void|null|undefined|[A-Z][\w<>\[\]|&\s]*)/g, ''));
-    
-    // Remove angle bracket type assertions: <Type>expr
-    code = String(code.replace(/<(?:string|number|boolean|any|unknown|[A-Z][\w<>]*)>(?=\s*[\w\(])/g, ''));
-    
-    // Remove type annotations: : Type
-    code = String(code.replace(/:\s*(?:string|number|boolean|any|unknown|void|never|null|undefined|[A-Z][\w<>\[\]{},\s|*&?]*)(?=[\s)=,;{])/g, ''));
-    
-    // Remove interface declarations
-    code = String(code.replace(/interface\s+\w+\s*(\<[^>]*\>)?\s*\{[^}]*\}/gs, ''));
-    
-    // Remove type declarations  
-    code = String(code.replace(/type\s+\w+\s*(\<[^>]*\>)?\s*=[^;]+;/g, ''));
-    
-    // Remove generic type parameters from functions: <T, U>
-    code = String(code.replace(/\<[A-Z][\w,\s]*\>\s*\(/g, '('));
-    
-    // Remove import type statements
-    code = String(code.replace(/import\s+type\s+[^;]+;/g, ''));
-    
-    // Final safety check
-    if (typeof code !== 'string') {
-      console.error('[Bundler] stripTypeScript produced non-string:', typeof code);
-      return '';
-    }
-    
-    return code;
-  } catch (error) {
-    console.error('[Bundler] Error in stripTypeScript:', error);
-    return String(code || '');
-  }
+  // Remove non-null assertions: expr!
+  code = code.replace(/([a-zA-Z_$][\w$]*|\)|\])\s*!/g, '$1');
+  
+  // Remove type assertions: expr as Type
+  // FIXED: Only match if followed by a valid type name (PascalCase or primitive types)
+  // This prevents matching English phrases like "as you" or "as a"
+  code = code.replace(/\s+as\s+(?:string|number|boolean|any|unknown|never|void|null|undefined|[A-Z][\w<>\[\]|&\s]*)/g, '');
+  
+  // Remove angle bracket type assertions: <Type>expr
+  code = code.replace(/<(?:string|number|boolean|any|unknown|[A-Z][\w<>]*)>(?=\s*[\w\(])/g, '');
+  
+  // Remove type annotations: : Type (only after identifiers or in function params)
+  code = code.replace(/:\s*(?:string|number|boolean|any|unknown|void|never|null|undefined|[A-Z][\w<>\[\]{},\s|*&?]*)(?=[\s)=,;{])/g, '');
+  
+  // Remove interface declarations
+  code = code.replace(/interface\s+\w+\s*(\<[^>]*\>)?\s*\{[^}]*\}/gs, '');
+  
+  // Remove type declarations  
+  code = code.replace(/type\s+\w+\s*(\<[^>]*\>)?\s*=[^;]+;/g, '');
+  
+  // Remove generic type parameters from functions: <T, U>
+  code = code.replace(/\<[A-Z][\w,\s]*\>\s*\(/g, '(');
+  
+  // Remove import type statements
+  code = code.replace(/import\s+type\s+[^;]+;/g, '');
+  
+  return code;
 }
 
 function handleImportsExports(code: string, dependencies: string[]): string {
