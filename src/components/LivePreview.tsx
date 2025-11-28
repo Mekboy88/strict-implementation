@@ -21,11 +21,27 @@ export default function LivePreview({ files }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [key, setKey] = useState(0);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     if (!iframeRef.current) return;
 
     console.log('📁 LivePreview received files:', Object.keys(files));
+    
+    // Check if we have valid content to render
+    const hasValidContent = Object.values(files).some(content => 
+      content && content.trim().length > 100
+    );
+    
+    if (!hasValidContent) {
+      // Show friendly loading state
+      console.log('[LivePreview] No valid content yet, showing welcome screen');
+      iframeRef.current.srcdoc = generateWelcomeHtml();
+      setIsInitializing(true);
+      return;
+    }
+    
+    setIsInitializing(false);
     
     // Entry point preference order (prefer simple pages)
     const entryPriority = [
@@ -226,9 +242,19 @@ function generateBundledPreview(bundledCode: string): string {
             } catch (error) {
               debugLog('Error: ' + error.message, 'error');
               console.error('[Preview] Full error:', error);
-              document.getElementById('root').innerHTML = 
-                '<div style="padding:2rem;color:#dc2626;"><h2>❌ Error</h2><pre style="background:#fee;padding:1rem;border-radius:4px;overflow:auto;">' + 
-                error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
+              document.getElementById('root').innerHTML = \`
+                <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(to bottom right,#eff6ff,#f0f9ff);padding:2rem;">
+                  <div style="max-width:28rem;width:100%;text-align:center;">
+                    <div style="font-size:4rem;margin-bottom:1rem;">🔧</div>
+                    <h2 style="font-size:1.5rem;font-weight:700;color:#1e40af;margin-bottom:0.5rem;">Building Your App...</h2>
+                    <p style="color:#64748b;margin-bottom:1.5rem;">The AI is working on your request. Updates will appear automatically.</p>
+                    <div style="background:white;border-radius:1rem;padding:1rem;border:1px solid #e2e8f0;text-align:left;">
+                      <p style="font-size:0.75rem;color:#94a3b8;margin-bottom:0.5rem;">Details (for debugging):</p>
+                      <pre style="font-size:0.7rem;color:#64748b;overflow:auto;max-height:100px;">\${error.message}</pre>
+                    </div>
+                  </div>
+                </div>
+              \`;
             }
           };
           
@@ -254,6 +280,42 @@ function generatePreviewHtml(innerHtml: string, filePath: string): string {
     <div style="color:#38bdf8;font-weight:600;margin-bottom:4px;">🔍 Preview Debug Panel</div>
   </div>
   <div id="root" style="min-height:calc(100vh - 140px);"></div>
+</body>
+</html>`;
+}
+
+function generateWelcomeHtml(): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+    <div class="max-w-lg w-full text-center space-y-8">
+      <div class="space-y-4">
+        <div class="text-7xl animate-bounce">🚀</div>
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          Your App is On the Way
+        </h1>
+        <p class="text-lg text-gray-600">
+          Tell the AI what you want to build and watch the magic happen!
+        </p>
+      </div>
+      
+      <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 border border-gray-100">
+        <div class="flex items-center gap-3 text-left">
+          <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+          <span class="text-sm text-gray-600">Ready to start building...</span>
+        </div>
+      </div>
+      
+      <p class="text-sm text-gray-500">
+        Use the chat panel on the left to describe your app
+      </p>
+    </div>
+  </div>
 </body>
 </html>`;
 }
