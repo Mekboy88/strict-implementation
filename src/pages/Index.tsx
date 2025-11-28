@@ -1517,7 +1517,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
               </button>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
+            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-6 flex flex-col justify-start space-y-4 text-[11px]">
               {/* Chat Messages */}
               {chatMessages.map((msg, index) => {
                 const isFirstAssistantWithCode = msg.role === 'assistant' && 
