@@ -11,14 +11,21 @@ interface ModuleInfo {
 
 export function bundleForPreview(files: Record<string, string>, entryPoint: string = "src/main.tsx"): string {
   try {
-    // Skip main.tsx - use App.tsx or page.tsx instead since we handle mounting ourselves
-    if (entryPoint === "src/main.tsx" || entryPoint.includes("main.tsx")) {
-      if (files["src/App.tsx"]) {
-        entryPoint = "src/App.tsx";
-      } else if (files["src/app/page.tsx"]) {
-        entryPoint = "src/app/page.tsx";
-      } else if (files["src/pages/Index.tsx"]) {
-        entryPoint = "src/pages/Index.tsx";
+    // Priority order for preview (prefer simple pages over complex app structure)
+    const entryPriority = [
+      'src/app/page.tsx',
+      'src/pages/LandingPage.tsx',
+      'src/pages/Index.tsx',
+      'src/App.tsx',
+    ];
+    
+    // If entry is main.tsx or doesn't exist, find best alternative
+    if (entryPoint === 'src/main.tsx' || !files[entryPoint]) {
+      for (const candidate of entryPriority) {
+        if (files[candidate]) {
+          entryPoint = candidate;
+          break;
+        }
       }
     }
     
@@ -245,11 +252,56 @@ function createPreviewBundle(code: string, framework: string): string {
   const componentMatch = code.match(/(?:const|function|class)\s+(\w+)\s*[=:(]/);
   const detectedComponent = componentMatch ? componentMatch[1] : null;
   
+  // Create stubs for undefined components
+  const componentStubs = createComponentStubs(code);
+  
   const baseCode = `
     // Preview Bundle - ${framework}
     
+    // === Library Mocks for Preview ===
+    
+    // @tanstack/react-query
+    window.QueryClient = function() { this.cache = {}; };
+    window.QueryClientProvider = function({ children }) { return children; };
+    window.useQuery = function() { return { data: null, isLoading: false, error: null }; };
+    window.useMutation = function() { return { mutate: function(){}, isLoading: false }; };
+    const QueryClient = window.QueryClient;
+    const QueryClientProvider = window.QueryClientProvider;
+    const useQuery = window.useQuery;
+    const useMutation = window.useMutation;
+    
+    // react-router-dom
+    window.BrowserRouter = function({ children }) { return children; };
+    window.Routes = function({ children }) { return children; };
+    window.Route = function({ element }) { return element || null; };
+    window.Link = function({ children, to }) { return React.createElement('a', { href: to || '#' }, children); };
+    window.Navigate = function() { return null; };
+    window.Outlet = function() { return null; };
+    window.useNavigate = function() { return function() {}; };
+    window.useParams = function() { return {}; };
+    window.useLocation = function() { return { pathname: '/', search: '', hash: '' }; };
+    const BrowserRouter = window.BrowserRouter;
+    const Routes = window.Routes;
+    const Route = window.Route;
+    const Link = window.Link;
+    const Navigate = window.Navigate;
+    const Outlet = window.Outlet;
+    const useNavigate = window.useNavigate;
+    const useParams = window.useParams;
+    const useLocation = window.useLocation;
+    
+    // UI component stubs
+    window.Toaster = function() { return null; };
+    window.Sonner = function() { return null; };
+    window.TooltipProvider = function({ children }) { return children; };
+    const Toaster = window.Toaster;
+    const Sonner = window.Sonner;
+    const TooltipProvider = window.TooltipProvider;
+    
     // Destructure commonly used React hooks globally
     const { useState, useEffect, useRef, useMemo, useCallback, useContext, useReducer, Fragment } = React;
+    
+    ${componentStubs}
     
     ${code}
     
@@ -307,6 +359,30 @@ function createPreviewBundle(code: string, framework: string): string {
   `;
 
   return baseCode.trim();
+}
+
+function createComponentStubs(code: string): string {
+  // Find all component-like references (PascalCase)
+  const componentRefs = code.match(/\<([A-Z][a-zA-Z0-9]+)/g) || [];
+  const uniqueComponents = [...new Set(componentRefs.map(c => c.slice(1)))];
+  
+  let stubs = '';
+  for (const comp of uniqueComponents) {
+    // Skip React built-ins and common library components
+    if (['Fragment', 'Suspense', 'StrictMode', 'QueryClientProvider', 'BrowserRouter', 'Routes', 'Route', 'Toaster', 'Sonner', 'TooltipProvider'].includes(comp)) continue;
+    
+    stubs += `
+      if (typeof ${comp} === 'undefined') {
+        var ${comp} = function() { 
+          return React.createElement('div', { 
+            style: { padding: '1rem', border: '1px dashed #ccc', borderRadius: '4px', margin: '0.5rem', textAlign: 'center', color: '#666' }
+          }, '📦 ${comp}'); 
+        };
+      }
+    `;
+  }
+  
+  return stubs;
 }
 
 function generateErrorBundle(errorMessage: string): string {

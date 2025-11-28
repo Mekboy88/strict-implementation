@@ -27,11 +27,15 @@ export default function LivePreview({ files }: LivePreviewProps) {
 
     console.log('📁 LivePreview received files:', Object.keys(files));
     
-    // Entry point preference order (skip main.tsx as bundler handles mounting)
-    let entryPath = 'src/App.tsx';
-    if (!files[entryPath]) entryPath = 'src/app/page.tsx';
-    if (!files[entryPath]) entryPath = 'src/pages/Index.tsx';
-    if (!files[entryPath]) entryPath = 'src/main.tsx'; // fallback only
+    // Entry point preference order (prefer simple pages)
+    const entryPriority = [
+      'src/app/page.tsx',
+      'src/pages/LandingPage.tsx',
+      'src/pages/Index.tsx',
+      'src/App.tsx',
+    ];
+    
+    let entryPath = entryPriority.find(path => files[path]) || 'src/main.tsx';
     
     console.log('📄 Using entry point:', entryPath);
     console.log('📄 Entry exists:', !!files[entryPath]);
