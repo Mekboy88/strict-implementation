@@ -226,8 +226,11 @@ function generatePreviewHtml(innerHtml: string, filePath: string): string {
   <script src="https://cdn.tailwindcss.com"></script>
   <style>${PREVIEW_STYLES}</style>
 </head>
-<body>
-  <div id="root">${innerHtml}</div>
+<body class="min-h-screen bg-slate-950 text-slate-50">
+  <div id="debug" style="width:100%;max-height:140px;overflow:auto;background:#020617;color:#e5e7eb;padding:8px 12px;font-family:monospace;font-size:11px;border-bottom:1px solid #1f2937;box-sizing:border-box;">
+    <div style="color:#38bdf8;font-weight:600;margin-bottom:4px;">🔍 Preview Debug Panel</div>
+  </div>
+  <div id="root" style="min-height:calc(100vh - 140px);"></div>
 </body>
 </html>`;
 }
