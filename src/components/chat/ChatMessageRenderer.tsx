@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { BuildingResponse } from "./BuildingResponse";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { detectMessageType } from "@/services/chat/messageClassifier";
+import { useChatStateStore } from "@/stores/useChatStateStore";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -14,6 +16,14 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const MAX_LINES = 15;
+  
+  const isFirstProject = useChatStateStore(state => state.isFirstProject);
+  
+  // Detect message type
+  const messageType = useMemo(() => {
+    const hasCodeBlocks = content.includes('```');
+    return detectMessageType(content, isFirstMessage && isFirstProject, hasCodeBlocks);
+  }, [content, isFirstMessage, isFirstProject]);
 
   // Calculate if content needs truncation
   const { needsTruncation, truncatedContent } = useMemo(() => {
@@ -78,11 +88,18 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
   
-  // Check if this is a building response (has code blocks)
-  const hasCodeBlocks = content.includes("```");
+  // Check if this is a building response
+  const isBuildingResponse = messageType === 'first-build' || messageType === 'build';
   
-  if (hasCodeBlocks) {
-    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
+  if (isBuildingResponse) {
+    return (
+      <BuildingResponse 
+        content={content} 
+        isStreaming={isStreaming} 
+        isFirstProject={isFirstProject} 
+        messageType={messageType}
+      />
+    );
   }
   
   // Plain text response
