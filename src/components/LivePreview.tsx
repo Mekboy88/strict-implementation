@@ -2,9 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { PREVIEW_RUNTIME, PREVIEW_STYLES } from '@/utils/preview/previewRuntime';
 import { bundleForPreview } from '@/utils/preview/bundler';
+import { PreviewErrorOverlay } from '@/components/preview/PreviewErrorOverlay';
+import { AIFixingNotification } from '@/components/preview/AIFixingNotification';
+import { usePreviewErrorStore } from '@/stores/usePreviewErrorStore';
 interface LivePreviewProps {
   files: { [key: string]: string };
   activeFileId: string;
+  isFixingError?: boolean;
+  onRequestFix?: () => void;
 }
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -17,11 +22,31 @@ const DEFAULT_PAGE_TSX = `export default function Page() {
   );
 }`;
 
-export default function LivePreview({ files }: LivePreviewProps) {
+export default function LivePreview({ files, isFixingError = false, onRequestFix }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [key, setKey] = useState(0);
   const [isInitializing, setIsInitializing] = useState(true);
+  const { currentError, setError, clearError } = usePreviewErrorStore();
+
+  // Listen to iframe errors via postMessage
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'preview-error') {
+        const errorData = event.data.error;
+        setError({
+          message: errorData.message || 'Unknown error',
+          stack: errorData.stack,
+          line: errorData.line,
+          column: errorData.column,
+          timestamp: Date.now(),
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [setError]);
 
   useEffect(() => {
     if (!iframeRef.current) return;
@@ -91,7 +116,18 @@ export default function LivePreview({ files }: LivePreviewProps) {
   }, [files, key]);
 
   const handleRefresh = () => {
+    clearError();
     setKey(prev => prev + 1);
+  };
+
+  const handleCloseError = () => {
+    clearError();
+  };
+
+  const handleFixError = () => {
+    if (onRequestFix) {
+      onRequestFix();
+    }
   };
 
   const deviceModeClass = {
@@ -138,7 +174,7 @@ export default function LivePreview({ files }: LivePreviewProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto bg-muted/20">
+      <div className="flex-1 overflow-auto bg-muted/20 relative">
         <iframe
           ref={iframeRef}
           key={key}
@@ -146,6 +182,20 @@ export default function LivePreview({ files }: LivePreviewProps) {
           sandbox="allow-scripts allow-same-origin"
           title="Preview"
         />
+        
+        {/* Error Overlay */}
+        {currentError && (
+          <PreviewErrorOverlay
+            error={currentError}
+            onClose={handleCloseError}
+            onFixIt={handleFixError}
+          />
+        )}
+        
+        {/* AI Fixing Notification */}
+        {isFixingError && (
+          <AIFixingNotification />
+        )}
       </div>
     </div>
   );
@@ -188,9 +238,22 @@ function generateBundledPreview(bundledCode: string): string {
           
           debugLog('Initializing...', 'info');
           
+          // Enhanced error handler that sends errors to parent
           window.onerror = function(msg, url, line, col, error) {
             debugLog('Error: ' + msg, 'error');
             console.error('[Preview Error]', msg, error);
+            
+            // Send error to parent window
+            window.parent.postMessage({
+              type: 'preview-error',
+              error: {
+                message: typeof msg === 'string' ? msg : String(msg),
+                stack: error?.stack || '',
+                line: line || 0,
+                column: col || 0
+              }
+            }, '*');
+            
             return true;
           };
           

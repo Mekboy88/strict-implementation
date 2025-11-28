@@ -56,6 +56,7 @@ import { DebugPanel } from "@/components/DebugPanel";
 import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
 import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles, getDefaultPageContent } from "@/utils/projectInitializer";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
+import { usePreviewErrorStore } from "@/stores/usePreviewErrorStore";
 
 
 interface FileItem {
@@ -174,6 +175,7 @@ function UrDevEditorPage() {
     new Set(['src', 'src/app', 'src/components', 'src/components/ui', 'src/pages', 'src/hooks', 'src/lib', 'public', 'mobile', 'mobile/src'])
   );
   const githubButtonRef = useRef<HTMLButtonElement>(null);
+  const { currentError, setFixing, clearError } = usePreviewErrorStore();
 
   // Project persistence
   const {
@@ -412,6 +414,107 @@ function UrDevEditorPage() {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages, isStreaming]);
+
+  // Handler for "Fix It" button in PreviewErrorOverlay
+  const handleRequestErrorFix = useCallback(async () => {
+    if (!currentError || isStreaming) return;
+    
+    setFixing(true, 'Analyzing error...');
+    
+    const errorDetails = `**Error Message:** ${currentError.message}\n\n`;
+    const stackInfo = currentError.stack ? `**Stack Trace:**\n\`\`\`\n${currentError.stack}\n\`\`\`` : '';
+    const fullError = errorDetails + stackInfo;
+    
+    // Add error message to chat
+    const errorMsg: ChatMsg = { 
+      id: `error-fix-${Date.now()}`, 
+      role: 'user', 
+      content: `🔴 **Error Detected - Please Fix**\n\n${fullError}` 
+    };
+    setChatMessages(prev => [...prev, errorMsg]);
+    
+    // Start AI fix process
+    setIsStreaming(true);
+    setIsFixingError(true);
+    
+    const apiMessages: StreamChatMessage[] = chatMessages
+      .filter(m => m.id !== 'welcome')
+      .map(m => ({ role: m.role, content: m.content }));
+    apiMessages.push({ 
+      role: 'user', 
+      content: `I encountered this error in the preview. Please analyze it and fix the code:\n\n${fullError}` 
+    });
+
+    let assistantContent = '';
+
+    try {
+      await streamChat({
+        messages: apiMessages,
+        systemPrompt: ERROR_FIX_PROMPT,
+        onDelta: (delta) => {
+          assistantContent += delta;
+          setStreamingContent(assistantContent);
+          setFixing(true, 'Generating fix...');
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.id.startsWith('fix-')) {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, content: assistantContent } : m
+              );
+            }
+            return [...prev, { id: `fix-${Date.now()}`, role: 'assistant', content: assistantContent }];
+          });
+        },
+        onDone: () => {
+          // Parse code blocks and update files
+          const codeBlocks = parseCodeBlocks(assistantContent);
+          if (codeBlocks.length > 0) {
+            handleCodeFromAI(codeBlocks);
+            setShowPreview(true);
+            
+            toast({
+              title: "✨ Error Fixed!",
+              description: "The code has been updated. Check the preview!",
+            });
+          }
+
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant') {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
+              );
+            }
+            return prev;
+          });
+          setIsStreaming(false);
+          setStreamingContent('');
+          setIsFixingError(false);
+          setFixing(false);
+          clearError();
+        },
+        onError: (error) => {
+          toast({
+            title: "Auto-Fix Failed",
+            description: error.message || "Could not automatically fix the error",
+            variant: "destructive",
+          });
+          setIsStreaming(false);
+          setIsFixingError(false);
+          setFixing(false);
+        },
+      });
+    } catch (error) {
+      toast({
+        title: "Auto-Fix Failed",
+        description: "Failed to connect to AI service",
+        variant: "destructive",
+      });
+      setIsStreaming(false);
+      setIsFixingError(false);
+      setFixing(false);
+    }
+  }, [currentError, isStreaming, chatMessages, setFixing, clearError]);
 
   // Listen for error fix requests from LivePreview
   React.useEffect(() => {
@@ -1823,6 +1926,8 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                 <LivePreview 
                   files={fileContents}
                   activeFileId={activeFileId}
+                  isFixingError={isFixingError}
+                  onRequestFix={handleRequestErrorFix}
                 />
               ) : (
                 <section className="flex-1 flex flex-col bg-neutral-900 h-full">
