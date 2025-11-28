@@ -187,7 +187,19 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 2: Design Vision */}
+      {/* Section 2: Transition Text - Only show on first project */}
+      {isFirstProject && (
+        <div className="mt-4" key="transition">
+          <TypewriterText
+            key="transition-text"
+            text="Let me start by creating this using a refined and beautifully structured design system."
+            className="text-lg text-white/90 italic break-words"
+            speedMs={20}
+          />
+        </div>
+      )}
+
+      {/* Section 3: Design Vision */}
       {showDesignVision && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
           <p className="text-base font-medium text-white/80">Design Vision:</p>
@@ -211,7 +223,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 3: Features */}
+      {/* Section 4: Features */}
       {showFeatures && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
           <p className="text-base font-medium text-white/80">Features:</p>
@@ -232,18 +244,6 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {/* Section 4: Transition Text - Only show on first project - SHOW BEFORE FILE BUILDING */}
-      {isFirstProject && (
-        <div className="mt-4" key="transition">
-          <TypewriterText
-            key="transition-text"
-            text="Let me start by creating this using a refined and beautifully structured design system."
-            className="text-lg text-white/90 italic break-words"
-            speedMs={20}
-          />
         </div>
       )}
 
