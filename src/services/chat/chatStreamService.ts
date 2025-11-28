@@ -21,16 +21,6 @@ export interface ChatContext {
   selectedText?: string;
 }
 
-const stripMarkdown = (text: string): string => {
-  // Remove markdown markers and any remaining asterisks/underscores
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/__(.*?)__/g, '$1')
-    .replace(/_(.*?)_/g, '$1')
-    .replace(/[*_]/g, '');
-};
-
 interface StreamChatOptions {
   messages: ChatMessage[];
   systemPrompt?: string;
@@ -106,7 +96,7 @@ export async function streamChat({
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content as string | undefined;
           if (content) {
-            onDelta(stripMarkdown(content));
+            onDelta(content); // Send raw content with markdown preserved
           }
         } catch {
           // Incomplete JSON, put back in buffer
@@ -130,7 +120,7 @@ export async function streamChat({
         try {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) onDelta(stripMarkdown(content));
+          if (content) onDelta(content); // Send raw content with markdown preserved
         } catch {
           // Ignore parse errors in final flush
         }

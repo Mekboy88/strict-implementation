@@ -5,6 +5,7 @@ import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { parseMarkdown } from "@/utils/chat/markdownParser";
+import { isErrorFixMessage } from "@/utils/chat/messageTypeDetector";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -124,7 +125,24 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
   
-  // For subsequent messages, parse and render code blocks
+  // CRITICAL: Only show code blocks for first message or error fix messages
+  // For all other conversational messages, hide code blocks and show only text
+  const shouldDisplayCode = isFirstMessage || isErrorFixMessage(content);
+  
+  if (!shouldDisplayCode) {
+    // Conversational mode: hide code blocks, show only text
+    const textWithoutCode = content.replace(/```(?:typescript|tsx|ts|jsx|javascript|js)?[\s\S]*?```/g, '').trim();
+    
+    return (
+      <div className="w-full max-w-full overflow-hidden space-y-4">
+        <div className="chat-prose text-base text-blue-50 leading-relaxed">
+          {parseMarkdown(textWithoutCode)}
+        </div>
+      </div>
+    );
+  }
+  
+  // For first message or error fixes, parse and render code blocks
   const codeBlockRegex = /```(?:typescript|tsx|ts|jsx|javascript|js)?\s*(?:\/\/\s*(.+?))?\n([\s\S]*?)```/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
