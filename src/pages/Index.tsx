@@ -53,7 +53,7 @@ import { ChatMessageRenderer } from "@/components/chat/ChatMessageRenderer";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { ConsolePanel } from "@/components/ConsolePanel";
 import { DebugPanel } from "@/components/DebugPanel";
-import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
+import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, FIRST_PROJECT_BUILD_PROMPT, CONVERSATIONAL_PROMPT } from "@/config/aiSystemPrompt";
 import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles, getDefaultPageContent } from "@/utils/projectInitializer";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
 import { usePreviewErrorStore } from "@/stores/usePreviewErrorStore";
@@ -804,8 +804,16 @@ export default function Page() {
 
     let assistantContent = '';
 
-    // Custom system prompt for code generation
-    const systemPrompt = SYSTEM_PROMPT_BASE;
+    // CRITICAL: Detect if this is the first project build message
+    // If there are NO existing assistant messages with code blocks, use FIRST_PROJECT_BUILD_PROMPT
+    // Otherwise, use CONVERSATIONAL_PROMPT for all subsequent messages
+    const hasExistingBuildMessages = chatMessages.some(m => 
+      m.role === 'assistant' && m.content.includes('```')
+    );
+    
+    const systemPrompt = hasExistingBuildMessages 
+      ? CONVERSATIONAL_PROMPT  // Subsequent messages: conversational, academic, no code unless asked
+      : FIRST_PROJECT_BUILD_PROMPT; // First build: full format with Design Vision, Features, code
 
     try {
       await streamChat({
