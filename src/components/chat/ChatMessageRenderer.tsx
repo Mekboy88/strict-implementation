@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileBuildingAnimation } from "./FileBuildingAnimation";
+import { InlineFileEditingIndicator } from "./InlineFileEditingIndicator";
 import { StreamingText } from "./StreamingText";
 import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
@@ -116,10 +116,8 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
             isStreaming={true}
           />
         )}
-        {hasFiles && !hasCodeBlocks && (
-          <div className="file-animation-container">
-            <FileBuildingAnimation content={content} isStreaming={isStreaming} />
-          </div>
+        {hasFiles && (
+          <InlineFileEditingIndicator content={content} isStreaming={isStreaming} />
         )}
       </div>
     );

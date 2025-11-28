@@ -45,9 +45,35 @@
     }
   }
   
-  .animate-error-pulse {
-    animation: error-pulse 2s ease-in-out infinite;
+  /* Text Shimmer Animation */
+  @keyframes text-shimmer {
+    0% {
+      background-position: -100% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
+  
+.animate-error-pulse {
+  animation: error-pulse 2s ease-in-out infinite;
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #60a5fa 0%,
+    #93c5fd 25%,
+    #ffffff 50%,
+    #93c5fd 75%,
+    #60a5fa 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 1.5s ease-in-out infinite;
+}
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
