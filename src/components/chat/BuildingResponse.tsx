@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
-import { TypewriterText } from "./TypewriterText";
 
 interface BuildingResponseProps {
   content: string;
@@ -113,7 +112,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
-          <TypewriterText text={parsed.intro} className="text-base leading-relaxed break-words" />
+          <p className="text-base leading-relaxed break-words">{parsed.intro}</p>
         </div>
       )}
 
@@ -158,11 +157,9 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 4: Transition Text - Only show on first project - SHOW BEFORE FILE BUILDING */}
       {isFirstProject && (
         <div className="mt-4">
-          <TypewriterText
-            text="Let me start by creating this using a refined and beautifully structured design system."
-            className="text-lg text-white/90 italic break-words"
-            speedMs={20}
-          />
+          <p className="text-lg text-white/90 italic break-words">
+            Let me start by creating this using a refined and beautifully structured design system.
+          </p>
         </div>
       )}
 
