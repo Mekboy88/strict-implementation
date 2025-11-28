@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { BuildingResponse } from "./BuildingResponse";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -38,19 +37,9 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
         {needsTruncation && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+            className="mt-2 text-xs text-white hover:text-white/80 transition-colors font-bold"
           >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="w-3 h-3" />
-                See less
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-3 h-3" />
-                See more
-              </>
-            )}
+            {isExpanded ? "See less" : "See more"}
           </button>
         )}
       </div>
