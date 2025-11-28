@@ -37,7 +37,7 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
         {needsTruncation && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-xs text-white hover:text-white/80 transition-colors font-bold"
+            className="mt-2 text-xs text-white/70 hover:text-white/50 transition-colors font-bold"
           >
             {isExpanded ? "See less" : "See more"}
           </button>
