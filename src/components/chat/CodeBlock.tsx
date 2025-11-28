@@ -20,9 +20,9 @@ export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
   const tokens = highlightCode(code, language);
 
   return (
-    <div className="my-4 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-800/80 shadow-lg">
+    <div className="w-full my-4 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg">
       {filePath && (
-        <div className="flex items-center justify-between px-4 py-2 bg-neutral-900/50 border-b border-neutral-700">
+        <div className="flex items-center justify-between px-4 py-2 bg-neutral-950 border-b border-neutral-700">
           <span className="text-sm text-neutral-400 font-mono">📄 {filePath}</span>
           <button
             onClick={handleCopy}

@@ -43,7 +43,7 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // Strings
     while ((match = strings.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-green-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-400' });
       }
     }
     strings.lastIndex = 0;
@@ -51,7 +51,7 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // Keywords
     while ((match = keywords.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-blue-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-sky-400' });
       }
     }
     keywords.lastIndex = 0;
@@ -59,7 +59,7 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // JSX Tags
     while ((match = jsxTags.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-cyan-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-sky-400' });
       }
     }
     jsxTags.lastIndex = 0;
@@ -67,7 +67,7 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // Types
     while ((match = types.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-purple-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-yellow-400' });
       }
     }
     types.lastIndex = 0;
@@ -75,7 +75,7 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // Numbers
     while ((match = numbers.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-300' });
       }
     }
     numbers.lastIndex = 0;
@@ -87,14 +87,14 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     let currentPos = 0;
     lineTokens.forEach(token => {
       if (currentPos < token.start) {
-        tokens.push({ text: line.substring(currentPos, token.start), className: 'text-neutral-300' });
+        tokens.push({ text: line.substring(currentPos, token.start), className: 'text-neutral-200' });
       }
       tokens.push({ text: line.substring(token.start, token.end), className: token.className });
       currentPos = token.end;
     });
     
     if (currentPos < line.length) {
-      tokens.push({ text: line.substring(currentPos), className: 'text-neutral-300' });
+      tokens.push({ text: line.substring(currentPos), className: 'text-neutral-200' });
     }
     
     if (lineIndex < lines.length - 1) {
