@@ -34,48 +34,48 @@ export const highlightCode = (code: string, language: string): HighlightedToken[
     // Find all matches
     let match;
     
-    // Comments (highest priority)
+    // Comments (highest priority) - green
     while ((match = comments.exec(line)) !== null) {
-      lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-neutral-500' });
+      lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-green-500' });
     }
     comments.lastIndex = 0;
     
-    // Strings
+    // Strings - orange/salmon
     while ((match = strings.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-300' });
       }
     }
     strings.lastIndex = 0;
     
-    // Keywords
+    // Keywords - pink/magenta
     while ((match = keywords.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-sky-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-pink-400' });
       }
     }
     keywords.lastIndex = 0;
     
-    // JSX Tags
+    // JSX Tags - cyan
     while ((match = jsxTags.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-sky-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-cyan-300' });
       }
     }
     jsxTags.lastIndex = 0;
     
-    // Types
+    // Types - cyan/light blue
     while ((match = types.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-yellow-400' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-cyan-300' });
       }
     }
     types.lastIndex = 0;
     
-    // Numbers
+    // Numbers - light green
     while ((match = numbers.exec(line)) !== null) {
       if (!isInsideToken(match.index, lineTokens)) {
-        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-orange-300' });
+        lineTokens.push({ start: match.index, end: match.index + match[0].length, className: 'text-green-300' });
       }
     }
     numbers.lastIndex = 0;
