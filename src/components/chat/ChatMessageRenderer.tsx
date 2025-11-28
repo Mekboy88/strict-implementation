@@ -81,7 +81,9 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   // Check if this is a building response (has code blocks)
   const hasCodeBlocks = content.includes("```");
   
-  if (hasCodeBlocks) {
+  // CRITICAL: Always use BuildingResponse during streaming or if content has code blocks
+  // This prevents component tree switching which causes TypewriterText to remount and restart
+  if (isStreaming || hasCodeBlocks) {
     return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
   }
   

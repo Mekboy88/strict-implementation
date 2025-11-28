@@ -92,45 +92,66 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     projectName: ""
   });
 
+  // Parse content without side effects in useMemo
   const parsed = useMemo(() => {
-    const newParsed = parseContent(content);
-    const locked = lockedContentRef.current;
-    
-    // Lock each section once it has content
-    if (!locked.intro && newParsed.intro) {
-      locked.intro = newParsed.intro;
-    }
-    if (!locked.projectName && newParsed.projectName) {
-      locked.projectName = newParsed.projectName;
-    }
-    if (locked.designVision.length === 0 && newParsed.designVision.length > 0) {
-      locked.designVision = [...newParsed.designVision];
-    }
-    if (locked.features.length === 0 && newParsed.features.length > 0) {
-      locked.features = [...newParsed.features];
-    }
-    if (locked.files.length === 0 && newParsed.files.length > 0) {
-      locked.files = [...newParsed.files];
-    }
-    if (!locked.summary && newParsed.summary) {
-      locked.summary = newParsed.summary;
-    }
-    
-    // Return locked values if they exist, otherwise use new parsed
-    return {
-      intro: locked.intro || newParsed.intro,
-      designVision: locked.designVision.length > 0 ? locked.designVision : newParsed.designVision,
-      features: locked.features.length > 0 ? locked.features : newParsed.features,
-      files: locked.files.length > 0 ? locked.files : newParsed.files,
-      summary: locked.summary || newParsed.summary,
-      projectName: locked.projectName || newParsed.projectName
-    };
+    return parseContent(content);
   }, [content]);
 
-  const showDesignVision = parsed.designVision.length > 0;
-  const showFeatures = parsed.features.length > 0;
-  const showFiles = parsed.files.length > 0;
-  const showSummary = !isStreaming && parsed.summary;
+  // Lock content sections once they appear (Step 4: Move side effects to useEffect)
+  useEffect(() => {
+    const locked = lockedContentRef.current;
+    
+    if (!locked.intro && parsed.intro) {
+      locked.intro = parsed.intro;
+    }
+    if (!locked.projectName && parsed.projectName) {
+      locked.projectName = parsed.projectName;
+    }
+    if (locked.designVision.length === 0 && parsed.designVision.length > 0) {
+      locked.designVision = [...parsed.designVision];
+    }
+    if (locked.features.length === 0 && parsed.features.length > 0) {
+      locked.features = [...parsed.features];
+    }
+    if (locked.files.length === 0 && parsed.files.length > 0) {
+      locked.files = [...parsed.files];
+    }
+    if (!locked.summary && parsed.summary) {
+      locked.summary = parsed.summary;
+    }
+  }, [parsed]);
+
+  // Use locked content for rendering (Step 2: Graceful fallback)
+  const displayContent = {
+    intro: lockedContentRef.current.intro || parsed.intro,
+    designVision: lockedContentRef.current.designVision.length > 0 ? lockedContentRef.current.designVision : parsed.designVision,
+    features: lockedContentRef.current.features.length > 0 ? lockedContentRef.current.features : parsed.features,
+    files: lockedContentRef.current.files.length > 0 ? lockedContentRef.current.files : parsed.files,
+    summary: lockedContentRef.current.summary || parsed.summary,
+    projectName: lockedContentRef.current.projectName || parsed.projectName
+  };
+
+  // If no structured content detected, show plain text (Step 2: Graceful fallback)
+  const hasStructuredContent = displayContent.intro || displayContent.designVision.length > 0 || 
+                                displayContent.features.length > 0 || displayContent.files.length > 0;
+  
+  if (!hasStructuredContent) {
+    return (
+      <div className="w-full space-y-3 text-white/70">
+        <TypewriterText 
+          key="plain-content"
+          text={content} 
+          className="text-base leading-relaxed break-words" 
+          speedMs={20} 
+        />
+      </div>
+    );
+  }
+
+  const showDesignVision = displayContent.designVision.length > 0;
+  const showFeatures = displayContent.features.length > 0;
+  const showFiles = displayContent.files.length > 0;
+  const showSummary = !isStreaming && displayContent.summary;
   const isComplete = !isStreaming;
 
   // Show file section after transition text finishes (approximately 3 seconds for the typewriter)
@@ -148,16 +169,21 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   // Sync current file with streaming progress
   useEffect(() => {
     if (isStreaming && showFiles) {
-      setCurrentFileIndex(parsed.files.length - 1);
+      setCurrentFileIndex(displayContent.files.length - 1);
     }
-  }, [parsed.files.length, isStreaming, showFiles]);
+  }, [displayContent.files.length, isStreaming, showFiles]);
 
   return (
     <div className="w-full space-y-3 text-white/70">
       {/* Section 1: Intro */}
-      {parsed.intro && (
+      {displayContent.intro && (
         <div className="space-y-2 animate-fade-in" key="intro">
-          <TypewriterText text={parsed.intro} className="text-base leading-relaxed break-words" speedMs={20} />
+          <TypewriterText 
+            key={`intro-${displayContent.intro.slice(0, 30)}`}
+            text={displayContent.intro} 
+            className="text-base leading-relaxed break-words" 
+            speedMs={20} 
+          />
         </div>
       )}
 
@@ -166,14 +192,19 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
           <p className="text-base font-medium text-white/80">Design Vision:</p>
           <ul className="space-y-2 ml-1">
-            {parsed.designVision.map((item, i) => (
+            {displayContent.designVision.map((item, i) => (
               <li
                 key={`dv-${item.slice(0, 30)}-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${400 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
-                <TypewriterText text={item} className="inline" speedMs={15} />
+                <TypewriterText 
+                  key={`dv-text-${item.slice(0, 30)}`}
+                  text={item} 
+                  className="inline" 
+                  speedMs={15} 
+                />
               </li>
             ))}
           </ul>
@@ -185,14 +216,19 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
           <p className="text-base font-medium text-white/80">Features:</p>
           <ul className="space-y-2 ml-1">
-            {parsed.features.map((item, i) => (
+            {displayContent.features.map((item, i) => (
               <li
                 key={`ft-${item.slice(0, 30)}-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${600 + i * 100}ms` }}
               >
                 <span className="text-white/40 mt-1">•</span>
-                <TypewriterText text={item} className="inline" speedMs={15} />
+                <TypewriterText 
+                  key={`ft-text-${item.slice(0, 30)}`}
+                  text={item} 
+                  className="inline" 
+                  speedMs={15} 
+                />
               </li>
             ))}
           </ul>
@@ -203,6 +239,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {isFirstProject && (
         <div className="mt-4" key="transition">
           <TypewriterText
+            key="transition-text"
             text="Let me start by creating this using a refined and beautifully structured design system."
             className="text-lg text-white/90 italic break-words"
             speedMs={20}
@@ -211,12 +248,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       )}
 
       {/* Section 5: Files - Show building process while streaming - ONLY AFTER TRANSITION TEXT */}
-      {showFileSection && showFiles && isStreaming && parsed.files.length > 0 && (
+      {showFileSection && showFiles && isStreaming && displayContent.files.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
-            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
+            {getFileIcon(displayContent.files[currentFileIndex]?.path || '')}
             <span className="relative inline-block bg-gradient-to-r from-white/40 via-white to-white/40 bg-[length:200%_100%] animate-shimmer bg-clip-text text-transparent">
-              Creating {parsed.files[currentFileIndex]?.path}...
+              Creating {displayContent.files[currentFileIndex]?.path}...
             </span>
           </div>
         </div>
@@ -225,14 +262,19 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 5b: Files dropdown - Only show when complete */}
       {showFileSection && showFiles && isComplete && (
         <div className="mt-3">
-          <FilesEditedDropdown files={parsed.files} />
+          <FilesEditedDropdown files={displayContent.files} />
         </div>
       )}
 
       {/* Section 6: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }} key="summary">
-          <TypewriterText text={parsed.summary} className="text-base leading-relaxed" speedMs={20} />
+          <TypewriterText 
+            key={`summary-${displayContent.summary.slice(0, 30)}`}
+            text={displayContent.summary} 
+            className="text-base leading-relaxed" 
+            speedMs={20} 
+          />
         </div>
       )}
 
@@ -246,6 +288,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
                 <span className="text-lg font-semibold text-white">Refine &amp; Customize:</span>
                 <span className="text-white/80"> </span>
                 <TypewriterText 
+                  key="next-step-1"
                   text="Update colors, edit product lists, or include additional images through Visual Edits or prompts."
                   className="inline text-white/80"
                   speedMs={15}
@@ -257,6 +300,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
                 <span className="text-lg font-semibold text-white">Plan With Prompts:</span>
                 <span className="text-white/80"> </span>
                 <TypewriterText 
+                  key="next-step-2"
                   text="Switch to plan or design mode to design features such as a shopping cart, filtering tools, or categories."
                   className="inline text-white/80"
                   speedMs={15}
@@ -268,6 +312,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
                 <span className="text-lg font-semibold text-white">Expand With Backend Tools:</span>
                 <span className="text-white/80"> </span>
                 <TypewriterText 
+                  key="next-step-3"
                   text="Need product storage, inventory management, or user accounts? UR-DEV Cloud lets you add these capabilities with ease."
                   className="inline text-white/80"
                   speedMs={15}
@@ -281,7 +326,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 8: Completion Card - Only show on first project */}
       {isComplete && isFirstProject && (
         <div className="pt-4 animate-fade-in" style={{ animationDelay: '1400ms' }}>
-          <CompletionCard projectName={parsed.projectName} />
+          <CompletionCard projectName={displayContent.projectName} />
         </div>
       )}
     </div>
