@@ -26,13 +26,21 @@ export default function LivePreview({ files }: LivePreviewProps) {
     if (!iframeRef.current) return;
 
     console.log('📁 LivePreview received files:', Object.keys(files));
-    console.log('📄 Has src/app/page.tsx:', !!files['src/app/page.tsx']);
+    
+    // Try to find the best entry point
+    let entryPath = 'src/main.tsx';
+    if (!files[entryPath]) entryPath = 'src/App.tsx';
+    if (!files[entryPath]) entryPath = 'src/pages/Index.tsx';
+    if (!files[entryPath]) entryPath = 'src/app/page.tsx';
+    
+    console.log('📄 Using entry point:', entryPath);
+    console.log('📄 Entry exists:', !!files[entryPath]);
 
-    const entryPath = 'src/app/page.tsx';
     const filesForPreview = { ...files };
 
     if (!filesForPreview[entryPath] || !filesForPreview[entryPath].trim()) {
-      console.warn('⚠️ No valid src/app/page.tsx content found, using default preview page');
+      console.warn('⚠️ No valid entry point found, using default preview page');
+      entryPath = 'src/app/page.tsx';
       filesForPreview[entryPath] = DEFAULT_PAGE_TSX;
     }
 
