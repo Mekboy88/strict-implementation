@@ -406,12 +406,12 @@ function UrDevEditorPage() {
   const [errorBeingFixed, setErrorBeingFixed] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or when streaming
   React.useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [chatMessages]);
+  }, [chatMessages, isStreaming]);
 
   // Listen for error fix requests from LivePreview
   React.useEffect(() => {
@@ -1518,7 +1518,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
             </div>
 
             <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pt-10 pb-24 text-[11px] scroll-smooth">
-              <div className="min-h-full flex flex-col justify-center space-y-4">
+              <div className="min-h-full flex flex-col justify-start space-y-4">
                 {/* Chat Messages */}
                 {chatMessages.map((msg, index) => {
                   const isFirstAssistantWithCode = msg.role === 'assistant' && 
