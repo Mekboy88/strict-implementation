@@ -486,6 +486,314 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;`
+  },
+
+  // ========== ADDITIONAL CONFIG FILES ==========
+  {
+    id: 'vite-config',
+    name: 'vite.config.ts',
+    path: 'vite.config.ts',
+    language: 'typescript',
+    required: true,
+    content: `import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});`
+  },
+
+  {
+    id: 'tsconfig-json',
+    name: 'tsconfig.json',
+    path: 'tsconfig.json',
+    language: 'json',
+    required: true,
+    content: `{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}`
+  },
+
+  {
+    id: 'tsconfig-app',
+    name: 'tsconfig.app.json',
+    path: 'tsconfig.app.json',
+    language: 'json',
+    required: true,
+    content: `{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}`
+  },
+
+  {
+    id: 'tsconfig-node',
+    name: 'tsconfig.node.json',
+    path: 'tsconfig.node.json',
+    language: 'json',
+    required: true,
+    content: `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["vite.config.ts"]
+}`
+  },
+
+  {
+    id: 'postcss-config',
+    name: 'postcss.config.js',
+    path: 'postcss.config.js',
+    language: 'javascript',
+    required: true,
+    content: `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}`
+  },
+
+  {
+    id: 'components-json',
+    name: 'components.json',
+    path: 'components.json',
+    language: 'json',
+    required: true,
+    content: `{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/index.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  }
+}`
+  },
+
+  {
+    id: 'gitignore',
+    name: '.gitignore',
+    path: '.gitignore',
+    language: 'text',
+    required: true,
+    content: `# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?`
+  },
+
+  // ========== MOBILE FILES ==========
+  {
+    id: 'mobile-app',
+    name: 'App.tsx',
+    path: 'mobile/src/App.tsx',
+    language: 'tsx',
+    required: false,
+    content: `import { useState } from 'react';
+import './index.css';
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">
+          📱 Mobile App
+        </h1>
+        <p className="text-gray-600 mb-8">
+          Built with UR-DEV + Capacitor
+        </p>
+        
+        <div className="mb-8">
+          <button
+            onClick={() => setCount(count + 1)}
+            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
+          >
+            Count: {count}
+          </button>
+        </div>
+        
+        <p className="text-sm text-gray-500">
+          Edit mobile/src/App.tsx to customize your mobile experience
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default App;`
+  },
+
+  {
+    id: 'mobile-main',
+    name: 'main.tsx',
+    path: 'mobile/src/main.tsx',
+    language: 'tsx',
+    required: false,
+    content: `import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);`
+  },
+
+  {
+    id: 'mobile-index-page',
+    name: 'Index.tsx',
+    path: 'mobile/src/pages/Index.tsx',
+    language: 'tsx',
+    required: false,
+    content: `const Index = () => {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-8">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
+          Mobile Home
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          Welcome to your mobile app
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Index;`
+  },
+
+  {
+    id: 'mobile-css',
+    name: 'index.css',
+    path: 'mobile/src/index.css',
+    language: 'css',
+    required: false,
+    content: `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+  }
+}`
+  },
+
+  {
+    id: 'mobile-html',
+    name: 'index.html',
+    path: 'mobile/public/index.html',
+    language: 'html',
+    required: false,
+    content: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Mobile App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`
+  },
+
+  {
+    id: 'capacitor-config',
+    name: 'capacitor.config.ts',
+    path: 'mobile/capacitor.config.ts',
+    language: 'typescript',
+    required: false,
+    content: `import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.urdev.app',
+  appName: 'UR-DEV Mobile',
+  webDir: 'dist',
+  server: {
+    androidScheme: 'https'
+  }
+};
+
+export default config;`
   }
 ];
 
