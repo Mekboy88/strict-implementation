@@ -3,6 +3,7 @@ import { FileBuildingAnimation } from "./FileBuildingAnimation";
 import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { parseMarkdown } from "@/utils/chat/markdownParser";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -102,12 +103,8 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
       const text = content.substring(lastIndex, match.index).trim();
       if (text) {
         parts.push(
-          <div key={`text-${lastIndex}`} className="text-base text-blue-50 leading-relaxed">
-            {text.split('\n\n').map((paragraph, i) => (
-              <p key={i} className={i > 0 ? 'mt-3' : ''}>
-                {paragraph}
-              </p>
-            ))}
+          <div key={`text-${lastIndex}`} className="chat-prose text-base text-blue-50 leading-relaxed">
+            {parseMarkdown(text)}
           </div>
         );
       }
@@ -136,27 +133,19 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     const text = content.substring(lastIndex).trim();
     if (text) {
       parts.push(
-        <div key={`text-${lastIndex}`} className="text-base text-blue-50 leading-relaxed">
-          {text.split('\n\n').map((paragraph, i) => (
-            <p key={i} className={i > 0 ? 'mt-3' : ''}>
-              {paragraph}
-            </p>
-          ))}
+        <div key={`text-${lastIndex}`} className="chat-prose text-base text-blue-50 leading-relaxed">
+          {parseMarkdown(text)}
         </div>
       );
     }
   }
 
-  // If no code blocks found, show plain text
+  // If no code blocks found, show formatted markdown text
   if (!hasCode) {
     return (
       <div className="space-y-4">
-        <div className="text-base text-blue-50 leading-relaxed">
-          {content.split('\n\n').map((paragraph, i) => (
-            <p key={i} className={i > 0 ? 'mt-3' : ''}>
-              {paragraph}
-            </p>
-          ))}
+        <div className="chat-prose text-base text-blue-50 leading-relaxed">
+          {parseMarkdown(content)}
         </div>
       </div>
     );
