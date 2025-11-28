@@ -181,10 +181,10 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   // Show loading indicator while waiting for content
   if (isStreaming && !displayContent.intro) {
     return (
-      <div className="w-full space-y-3">
+      <div className="w-full space-y-6">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
-          <span className="text-base text-gray-400">Thinking...</span>
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <span className="text-base text-blue-100">Thinking...</span>
         </div>
       </div>
     );
@@ -196,11 +196,11 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
     const cleanFallback = content.replace(/```[\s\S]*?```/g, '').trim();
     
     return (
-      <div className="w-full space-y-3">
+      <div className="w-full space-y-6">
         <TypewriterText 
           key="plain-content"
           text={cleanFallback} 
-          className={`text-base leading-relaxed break-words ${isStreaming ? 'text-gray-400' : 'text-blue-50'}`}
+          className="text-base leading-relaxed break-words text-blue-50"
           speedMs={20} 
         />
       </div>
@@ -208,14 +208,14 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   }
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-6">
       {/* Section 1: Intro */}
       {displayContent.intro && (
         <div className="space-y-2 animate-fade-in" key="intro">
           <TypewriterText 
             key="intro"
             text={displayContent.intro} 
-            className={`text-base leading-relaxed break-words ${isStreaming ? 'text-gray-400' : 'text-blue-50'}`}
+            className="text-base leading-relaxed break-words text-blue-50"
             speedMs={20} 
           />
         </div>
@@ -228,7 +228,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <TypewriterText
             key="transition"
             text={displayContent.transitionText}
-            className={`text-lg italic break-words ${isStreaming ? 'text-gray-400' : 'text-blue-100'}`}
+            className="text-lg italic break-words text-blue-100"
             speedMs={20}
           />
         </div>
@@ -236,20 +236,20 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Design Vision */}
       {showDesignVision && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
-          <p className={`text-base font-medium ${isStreaming ? 'text-gray-400' : 'text-blue-100'}`}>Design Vision:</p>
-          <ul className="space-y-2 ml-1">
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '300ms' }} key="design-vision">
+          <p className="text-base font-medium text-blue-100">Design Vision:</p>
+          <ul className="space-y-3 ml-1">
             {displayContent.designVision.map((item, i) => (
               <li
                 key={`dv-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${400 + i * 100}ms` }}
               >
-                <span className={isStreaming ? 'text-gray-500 mt-1' : 'text-blue-200/40 mt-1'}>•</span>
+                <span className="text-blue-200/40 mt-1">•</span>
                 <TypewriterText 
                   key={`dv-text-${i}`}
                   text={item} 
-                  className={`inline ${isStreaming ? 'text-gray-400' : 'text-blue-50'}`}
+                  className="inline text-blue-50"
                   speedMs={15} 
                 />
               </li>
@@ -260,20 +260,20 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 5: Features */}
       {showFeatures && (
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
-          <p className={`text-base font-medium ${isStreaming ? 'text-gray-400' : 'text-blue-100'}`}>Features:</p>
-          <ul className="space-y-2 ml-1">
+        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '500ms' }} key="features">
+          <p className="text-base font-medium text-blue-100">Features:</p>
+          <ul className="space-y-3 ml-1">
             {displayContent.features.map((item, i) => (
               <li
                 key={`ft-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${600 + i * 100}ms` }}
               >
-                <span className={isStreaming ? 'text-gray-500 mt-1' : 'text-blue-200/40 mt-1'}>•</span>
+                <span className="text-blue-200/40 mt-1">•</span>
                 <TypewriterText 
                   key={`ft-text-${i}`}
                   text={item} 
-                  className={`inline ${isStreaming ? 'text-gray-400' : 'text-blue-50'}`}
+                  className="inline text-blue-50"
                   speedMs={15} 
                 />
               </li>
