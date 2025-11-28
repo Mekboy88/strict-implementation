@@ -264,407 +264,115 @@ function UrDevEditorPage() {
     });
   };
 
-  // Render STRICT, FIXED web project file tree - EXACT ORDER - MEMOIZED
+  // Build folder structure from actual project files
+  const buildFolderTree = useCallback(() => {
+    const folders = new Map<string, Set<string>>();
+    
+    // Extract all unique folder paths
+    projectFiles.forEach(file => {
+      const parts = file.path.split('/');
+      for (let i = 1; i < parts.length; i++) {
+        const folderPath = parts.slice(0, i).join('/');
+        if (!folders.has(folderPath)) {
+          folders.set(folderPath, new Set());
+        }
+        if (i === parts.length - 1) {
+          // This is a file
+          folders.get(folderPath)!.add(file.path);
+        } else {
+          // This is a subfolder
+          const subfolderPath = parts.slice(0, i + 1).join('/');
+          folders.get(folderPath)!.add(subfolderPath);
+        }
+      }
+    });
+    
+    return folders;
+  }, [projectFiles]);
+
+  // Render file tree dynamically
   const renderFileTree = useMemo(() => {
+    const folders = buildFolderTree();
+    
     const openFile = (path: string) => {
       const file = projectFiles.find(f => f.path === path);
       if (file) setActiveFileId(file.id);
     };
 
     const isFolderExpanded = (path: string) => expandedFolders.has(path);
-
+    const isFile = (path: string) => projectFiles.some(f => f.path === path);
+    
+    const renderItem = (path: string, depth: number = 0): JSX.Element | null => {
+      const name = path.split('/').pop() || path;
+      const isFileItem = isFile(path);
+      const isActive = projectFiles.find(f => f.path === path && f.id === activeFileId);
+      
+      if (isFileItem) {
+        return (
+          <button
+            key={path}
+            type="button"
+            onClick={() => openFile(path)}
+            className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+              isActive
+                ? 'bg-sky-500/25 text-sky-100'
+                : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+            }`}
+            style={{ marginLeft: `${depth * 1.25}rem` }}
+          >
+            <span className="flex items-center gap-2 min-w-0 flex-1">
+              <FileCode2 className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">{name}</span>
+            </span>
+          </button>
+        );
+      }
+      
+      const children = Array.from(folders.get(path) || []).sort((a, b) => {
+        const aIsFile = isFile(a);
+        const bIsFile = isFile(b);
+        if (aIsFile === bIsFile) return a.localeCompare(b);
+        return aIsFile ? 1 : -1; // Folders first
+      });
+      
+      return (
+        <div key={path}>
+          <button
+            onClick={() => toggleFolder(path)}
+            className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+            style={{ marginLeft: `${depth * 1.25}rem` }}
+          >
+            {isFolderExpanded(path) ? (
+              <ChevronDown className="h-3 w-3 flex-shrink-0" />
+            ) : (
+              <ChevronRight className="h-3 w-3 flex-shrink-0" />
+            )}
+            <Folder className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{name}</span>
+          </button>
+          {isFolderExpanded(path) && (
+            <div className="space-y-1 min-w-0">
+              {children.map(child => renderItem(child, depth + 1))}
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    // Get root-level items
+    const rootItems = Array.from(folders.get('') || []).sort((a, b) => {
+      const aIsFile = isFile(a);
+      const bIsFile = isFile(b);
+      if (aIsFile === bIsFile) return a.localeCompare(b);
+      return aIsFile ? 1 : -1;
+    });
+    
     return (
       <>
-        {/* EXACT ORDER AS SPECIFIED */}
-        
-        {/* 1. public folder */}
-        <button 
-          onClick={() => toggleFolder('public')}
-          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
-        >
-          {isFolderExpanded('public') ? (
-            <ChevronDown className="h-3 w-3 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="h-3 w-3 flex-shrink-0" />
-          )}
-          <Folder className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">public</span>
-        </button>
-        {isFolderExpanded('public') && (
-          <div className="ml-4 space-y-1">
-            <button
-              type="button"
-              onClick={() => openFile('public/robots.txt')}
-              className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">robots.txt</span>
-              </span>
-            </button>
-          </div>
-        )}
-
-        {/* 2. src folder */}
-        <button 
-          onClick={() => toggleFolder('src')}
-          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0"
-        >
-          {isFolderExpanded('src') ? (
-            <ChevronDown className="h-3 w-3 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="h-3 w-3 flex-shrink-0" />
-          )}
-          <Folder className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">src</span>
-        </button>
-        {isFolderExpanded('src') && (
-          <div className="ml-5 space-y-1 min-w-0">
-            {/* app folder */}
-            <button
-              onClick={() => toggleFolder('src/app')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-            >
-              {isFolderExpanded('src/app') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0 text-blue-400" />
-              <span className="truncate font-medium">app</span>
-            </button>
-            {isFolderExpanded('src/app') && (
-              <div className="ml-5 space-y-1 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => openFile('src/app/page.tsx')}
-                  className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    projectFiles.find((f) => f.path === 'src/app/page.tsx' && f.id === activeFileId)
-                      ? 'bg-sky-500/25 text-sky-100'
-                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
-                    <span className="truncate">page.tsx</span>
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => openFile('src/app/layout.tsx')}
-                  className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    projectFiles.find((f) => f.path === 'src/app/layout.tsx' && f.id === activeFileId)
-                      ? 'bg-sky-500/25 text-sky-100'
-                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
-                    <span className="truncate">layout.tsx</span>
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {/* components folder */}
-            <button
-              onClick={() => toggleFolder('src/components')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-            >
-              {isFolderExpanded('src/components') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">components</span>
-            </button>
-            {isFolderExpanded('src/components') && (
-              <div className="ml-5 space-y-1 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => openFile('src/components/Hero.tsx')}
-                  className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                    projectFiles.find((f) => f.path === 'src/components/Hero.tsx' && f.id === activeFileId)
-                      ? 'bg-sky-500/25 text-sky-100'
-                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-                  }`}
-                >
-                  <span className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">Hero.tsx</span>
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {/* ui folder */}
-            <button
-              onClick={() => toggleFolder('src/ui')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-            >
-              {isFolderExpanded('src/ui') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">ui</span>
-            </button>
-
-            {/* hooks folder */}
-            <button
-              onClick={() => toggleFolder('src/hooks')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-            >
-              {isFolderExpanded('src/hooks') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">hooks</span>
-            </button>
-
-            {/* lib folder */}
-            <button
-              onClick={() => toggleFolder('src/lib')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-            >
-              {isFolderExpanded('src/lib') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">lib</span>
-            </button>
-
-            {/* Root src files */}
-            <button
-              type="button"
-              onClick={() => openFile('src/App.tsx')}
-              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                projectFiles.find((f) => f.path === 'src/App.tsx' && f.id === activeFileId)
-                  ? 'bg-sky-500/25 text-sky-100'
-                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">App.tsx</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openFile('src/main.tsx')}
-              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                projectFiles.find((f) => f.path === 'src/main.tsx' && f.id === activeFileId)
-                  ? 'bg-sky-500/25 text-sky-100'
-                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">main.tsx</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openFile('src/App.css')}
-              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                projectFiles.find((f) => f.path === 'src/App.css' && f.id === activeFileId)
-                  ? 'bg-sky-500/25 text-sky-100'
-                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">App.css</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openFile('src/index.css')}
-              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                projectFiles.find((f) => f.path === 'src/index.css' && f.id === activeFileId)
-                  ? 'bg-sky-500/25 text-sky-100'
-                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">index.css</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openFile('src/vite-env.d.ts')}
-              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-                projectFiles.find((f) => f.path === 'src/vite-env.d.ts' && f.id === activeFileId)
-                  ? 'bg-sky-500/25 text-sky-100'
-                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <FileCode2 className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">vite-env.d.ts</span>
-              </span>
-            </button>
-          </div>
-        )}
-
-        {/* 3. .gitignore */}
-        <button
-          type="button"
-          onClick={() => openFile('.gitignore')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100 text-slate-400"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">.gitignore</span>
-          </span>
-        </button>
-
-        {/* 4. components.json */}
-        <button
-          type="button"
-          onClick={() => openFile('components.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">components.json</span>
-          </span>
-        </button>
-
-        {/* 5. eslint.config.js */}
-        <button
-          type="button"
-          onClick={() => openFile('eslint.config.js')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">eslint.config.js</span>
-          </span>
-        </button>
-
-        {/* 6. index.html */}
-        <button
-          type="button"
-          onClick={() => openFile('index.html')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">index.html</span>
-          </span>
-        </button>
-
-        {/* 7. package.json */}
-        <button
-          type="button"
-          onClick={() => openFile('package.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">package.json</span>
-          </span>
-        </button>
-
-        {/* 8. postcss.config.js */}
-        <button
-          type="button"
-          onClick={() => openFile('postcss.config.js')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">postcss.config.js</span>
-          </span>
-        </button>
-
-        {/* 9. README.md */}
-        <button
-          type="button"
-          onClick={() => openFile('README.md')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">README.md</span>
-          </span>
-        </button>
-
-        {/* 10. tailwind.config.ts */}
-        <button
-          type="button"
-          onClick={() => openFile('tailwind.config.ts')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">tailwind.config.ts</span>
-          </span>
-        </button>
-
-        {/* 11. tsconfig.app.json */}
-        <button
-          type="button"
-          onClick={() => openFile('tsconfig.app.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">tsconfig.app.json</span>
-          </span>
-        </button>
-
-        {/* 12. tsconfig.json */}
-        <button
-          type="button"
-          onClick={() => openFile('tsconfig.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">tsconfig.json</span>
-          </span>
-        </button>
-
-        {/* 13. tsconfig.node.json */}
-        <button
-          type="button"
-          onClick={() => openFile('tsconfig.node.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">tsconfig.node.json</span>
-          </span>
-        </button>
-
-        {/* 14. vite.config.ts */}
-        <button
-          type="button"
-          onClick={() => openFile('vite.config.ts')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">vite.config.ts</span>
-          </span>
-        </button>
+        {rootItems.map(item => renderItem(item, 0))}
       </>
     );
-  }, [projectFiles, activeFileId, expandedFolders]);
+  }, [projectFiles, activeFileId, expandedFolders, buildFolderTree]);
 
   const handleSaveProject = async () => {
     if (!currentProject) {
