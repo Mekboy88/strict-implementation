@@ -85,10 +85,16 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={isFirstMessage} />;
   }
   
-  // Plain text response
+  // Plain text response - regular chat
   return (
-    <div className="text-sm text-slate-200 leading-relaxed typing-animation">
-      {content}
+    <div className="space-y-4">
+      <div className="text-base text-slate-200 leading-relaxed">
+        {content.split('\n\n').map((paragraph, i) => (
+          <p key={i} className={i > 0 ? 'mt-3' : ''}>
+            {paragraph}
+          </p>
+        ))}
+      </div>
     </div>
   );
 };
