@@ -6,21 +6,18 @@ interface TypewriterTextProps {
   className?: string;
 }
 
-// Typewriter that keeps progress when text grows (streaming)
+// Simple, stable typewriter: each instance types its own text once, independent of others
 export const TypewriterText = ({ text, speedMs = 25, className = "" }: TypewriterTextProps) => {
   const [visibleCount, setVisibleCount] = useState(0);
-  const prevTextRef = useRef(text);
+  const initialTextRef = useRef(text);
 
   useEffect(() => {
-    // If the text changed completely (not just appended), restart animation
-    if (!text.startsWith(prevTextRef.current)) {
-      setVisibleCount(0);
-    }
-    prevTextRef.current = text;
+    const fullText = initialTextRef.current ?? "";
+    if (!fullText) return;
 
-    if (!text) return;
+    setVisibleCount(0);
 
-    const total = text.length;
+    const total = fullText.length;
     const interval = window.setInterval(() => {
       setVisibleCount((prev) => {
         if (prev >= total) {
@@ -34,11 +31,15 @@ export const TypewriterText = ({ text, speedMs = 25, className = "" }: Typewrite
     return () => {
       window.clearInterval(interval);
     };
-  }, [text, speedMs]);
+    // Run only once per mount so it doesn't restart when parents re-render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speedMs]);
+
+  const fullText = initialTextRef.current ?? "";
 
   return (
     <p className={className}>
-      {text.slice(0, visibleCount)}
+      {fullText.slice(0, visibleCount)}
     </p>
   );
 };
