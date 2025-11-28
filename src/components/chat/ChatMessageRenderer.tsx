@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { BuildingResponse } from "./BuildingResponse";
+import { FileBuildingAnimation } from "./FileBuildingAnimation";
 import { CodeBlock } from "./CodeBlock";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -79,9 +79,13 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
   
-  // Only use structured BuildingResponse for the first message
-  if (isFirstMessage) {
-    return <BuildingResponse content={content} isStreaming={isStreaming} isFirstProject={true} />;
+  // Show file building animation during streaming if files are being created
+  if (isStreaming && content.includes('src/')) {
+    return (
+      <div className="space-y-4">
+        <FileBuildingAnimation content={content} isStreaming={isStreaming} />
+      </div>
+    );
   }
   
   // For subsequent messages, parse and render code blocks
