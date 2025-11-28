@@ -10,10 +10,16 @@ interface TypewriterTextProps {
 export const TypewriterText = ({ text, speedMs = 25, className = "" }: TypewriterTextProps) => {
   const [visibleCount, setVisibleCount] = useState(0);
   const initialTextRef = useRef(text);
+  const hasStarted = useRef(false);
+  const hasCompleted = useRef(false);
 
   useEffect(() => {
     const fullText = initialTextRef.current ?? "";
     if (!fullText) return;
+
+    // Don't restart if already started
+    if (hasStarted.current) return;
+    hasStarted.current = true;
 
     setVisibleCount(0);
 
@@ -22,6 +28,7 @@ export const TypewriterText = ({ text, speedMs = 25, className = "" }: Typewrite
       setVisibleCount((prev) => {
         if (prev >= total) {
           window.clearInterval(interval);
+          hasCompleted.current = true;
           return prev;
         }
         return prev + 1;
@@ -36,6 +43,11 @@ export const TypewriterText = ({ text, speedMs = 25, className = "" }: Typewrite
   }, [speedMs]);
 
   const fullText = initialTextRef.current ?? "";
+
+  // If already completed, show full text immediately
+  if (hasCompleted.current) {
+    return <p className={className}>{fullText}</p>;
+  }
 
   return (
     <p className={className}>

@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useMemo, useRef, memo } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
@@ -78,10 +78,54 @@ const parseContent = (content: string): ParsedContent => {
   return { intro, designVision, features, files, summary, projectName };
 };
 
-export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
-  const parsed = parseContent(content);
+export const BuildingResponse = memo(({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [showFileSection, setShowFileSection] = useState(false);
+  
+  // Use refs to lock content once it appears to prevent re-parsing
+  const lockedContentRef = useRef<ParsedContent>({
+    intro: "",
+    designVision: [],
+    features: [],
+    files: [],
+    summary: "",
+    projectName: ""
+  });
+
+  const parsed = useMemo(() => {
+    const newParsed = parseContent(content);
+    const locked = lockedContentRef.current;
+    
+    // Lock each section once it has content
+    if (!locked.intro && newParsed.intro) {
+      locked.intro = newParsed.intro;
+    }
+    if (!locked.projectName && newParsed.projectName) {
+      locked.projectName = newParsed.projectName;
+    }
+    if (locked.designVision.length === 0 && newParsed.designVision.length > 0) {
+      locked.designVision = [...newParsed.designVision];
+    }
+    if (locked.features.length === 0 && newParsed.features.length > 0) {
+      locked.features = [...newParsed.features];
+    }
+    if (locked.files.length === 0 && newParsed.files.length > 0) {
+      locked.files = [...newParsed.files];
+    }
+    if (!locked.summary && newParsed.summary) {
+      locked.summary = newParsed.summary;
+    }
+    
+    // Return locked values if they exist, otherwise use new parsed
+    return {
+      intro: locked.intro || newParsed.intro,
+      designVision: locked.designVision.length > 0 ? locked.designVision : newParsed.designVision,
+      features: locked.features.length > 0 ? locked.features : newParsed.features,
+      files: locked.files.length > 0 ? locked.files : newParsed.files,
+      summary: locked.summary || newParsed.summary,
+      projectName: locked.projectName || newParsed.projectName
+    };
+  }, [content]);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
@@ -124,7 +168,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <ul className="space-y-2 ml-1">
             {parsed.designVision.map((item, i) => (
               <li
-                key={`dv-${i}`}
+                key={`dv-${item.slice(0, 30)}-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${400 + i * 100}ms` }}
               >
@@ -143,7 +187,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
           <ul className="space-y-2 ml-1">
             {parsed.features.map((item, i) => (
               <li
-                key={`ft-${i}`}
+                key={`ft-${item.slice(0, 30)}-${i}`}
                 className="flex items-start gap-2 text-base animate-fade-in"
                 style={{ animationDelay: `${600 + i * 100}ms` }}
               >
@@ -242,4 +286,4 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       )}
     </div>
   );
-};
+});
