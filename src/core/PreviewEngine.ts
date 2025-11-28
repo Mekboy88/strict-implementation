@@ -71,20 +71,18 @@ class HotReloadManager {
   processChange(filePath: string, content: string): void {
     console.log("[HotReload] Processing change:", filePath);
 
-    this.changedFiles.set(filePath, {
-      content,
-      timestamp: Date.now(),
-    });
+    this.changedFiles.set(filePath, content);
   }
 
   getChangedFiles(): Array<{ filePath: string; content: string; timestamp: number }> {
     const result: Array<{ filePath: string; content: string; timestamp: number }> = [];
+    const now = Date.now();
 
-    this.changedFiles.forEach((value, key) => {
+    this.changedFiles.forEach((content, filePath) => {
       result.push({
-        filePath: key,
-        content: value.content,
-        timestamp: value.timestamp,
+        filePath,
+        content,
+        timestamp: now,
       });
     });
 
