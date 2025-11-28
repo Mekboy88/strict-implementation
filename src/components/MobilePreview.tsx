@@ -3,7 +3,7 @@ import { usePreviewStore } from "@/stores/usePreviewStore";
 import { AlertCircle } from "lucide-react";
 
 const MobilePreview = () => {
-  const { mobilePreviewHtml } = usePreviewStore();
+  const { mobileHtml } = usePreviewStore();
   const selectedModel = { name: "iPhone 15 Pro Max", width: 430, height: 932 };
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [previewError, setPreviewError] = useState(false);
@@ -25,11 +25,11 @@ const MobilePreview = () => {
   };
 
   useEffect(() => {
-    if (mobilePreviewHtml && isValidHtml(mobilePreviewHtml)) {
+    if (mobileHtml && isValidHtml(mobileHtml)) {
       setIsPreviewLoading(true);
       setPreviewError(false);
     }
-  }, [mobilePreviewHtml]);
+  }, [mobileHtml]);
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-ide-editor p-8 relative">
@@ -39,7 +39,7 @@ const MobilePreview = () => {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10"></div>
             
             <div className="w-full h-full bg-white relative">
-              {mobilePreviewHtml && isValidHtml(mobilePreviewHtml) ? (
+              {mobileHtml && isValidHtml(mobileHtml) ? (
                 previewError ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50 p-4">
                     <div className="text-center">
@@ -62,7 +62,7 @@ const MobilePreview = () => {
                 ) : (
                   <iframe
                     ref={iframeRef}
-                    srcDoc={mobilePreviewHtml}
+                    srcDoc={mobileHtml}
                     className="w-full h-full border-0"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                     onLoad={handleIframeLoad}

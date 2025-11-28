@@ -91,12 +91,12 @@ export class EditorSystem {
     return this.fileTree.getAllFiles();
   }
 
-  getPreviewHtml(): string {
-    return this.previewEngine.getPreviewHtml();
+  getPreviewIframe(): HTMLIFrameElement | null {
+    return this.previewEngine.getPreviewIframe();
   }
 
-  setPreviewHtml(html: string): void {
-    this.previewEngine.setPreviewHtml(html);
+  setPreviewIframe(iframe: HTMLIFrameElement): void {
+    this.previewEngine.setPreviewIframe(iframe);
   }
 
   getErrors(): any[] {

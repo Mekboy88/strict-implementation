@@ -8,7 +8,7 @@ import LivePreview from "./LivePreview";
 
 const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) => {
   const { activeFile, fileContent, updateFileContent } = useEditorStore();
-  const { desktopPreviewHtml } = usePreviewStore();
+  const { desktopHtml } = usePreviewStore();
   const allFiles = useFileSystemStore((state) => state.getAllFiles());
   const editorRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -35,13 +35,13 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
     console.error('Preview iframe failed to load');
   };
 
-  // Reset preview state when desktopPreviewHtml changes
+  // Reset preview state when desktopHtml changes
   useEffect(() => {
-    if (desktopPreviewHtml && isValidHtml(desktopPreviewHtml)) {
+    if (desktopHtml && isValidHtml(desktopHtml)) {
       setIsPreviewLoading(true);
       setPreviewError(false);
     }
-  }, [desktopPreviewHtml]);
+  }, [desktopHtml]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (activeFile && value !== undefined) {
@@ -94,7 +94,7 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
       >
         {viewMode === 'preview' ? (
           /* Preview Mode - Prefer HTML pipeline, fallback to LivePreview */
-          desktopPreviewHtml && isValidHtml(desktopPreviewHtml) ? (
+          desktopHtml && isValidHtml(desktopHtml) ? (
             previewError ? (
               /* Error fallback */
               <div className="w-full h-full bg-ide-editor flex items-center justify-center">
@@ -136,7 +136,7 @@ const EditorPanel = ({ viewMode = 'code' }: { viewMode?: 'code' | 'preview' }) =
                 <iframe
                   ref={iframeRef}
                   className="w-full h-full bg-white border-0"
-                  srcDoc={desktopPreviewHtml}
+                  srcDoc={desktopHtml}
                   title="Live Preview"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
                   onLoad={handleIframeLoad}
