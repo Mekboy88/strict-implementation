@@ -30,7 +30,7 @@ export const FilesEditedDropdown = ({ files }: FilesEditedDropdownProps) => {
     <div className="w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-white/70 hover:text-white/90 text-sm transition-colors ml-auto"
+        className="flex items-center gap-2 text-white/70 hover:text-white/90 text-sm transition-colors"
       >
         <span>Files Edited</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
