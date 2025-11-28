@@ -1,128 +1,281 @@
 /**
- * Preview Bundler with Error Handling
- * Bundles React code for preview iframe
+ * Preview Bundler with Complete Error Handling
+ * Bundles React/TypeScript code for preview iframe
  */
 
-import { compileJSX } from "./jsxCompiler";
-import { resolveModules, stripImports } from "./moduleResolver";
+interface ModuleInfo {
+  path: string;
+  code: string;
+  dependencies: string[];
+}
 
-export function bundleForPreview(
-  files: Record<string, string>,
-  entryPoint: string = "src/app/page.tsx"
-): string {
+export function bundleForPreview(files: Record<string, string>, entryPoint: string = "src/main.tsx"): string {
   try {
+    console.log("[Bundler] Starting bundle for:", entryPoint);
+
     const entryCode = files[entryPoint];
     if (!entryCode) {
-      console.error('[Bundler] Entry point not found:', entryPoint);
-      return generateErrorBundle('Entry point not found: ' + entryPoint);
+      console.error("[Bundler] Entry point not found:", entryPoint);
+      return generateErrorBundle("Entry point not found: " + entryPoint);
     }
-    
-    console.log('[Bundler] Starting bundle for:', entryPoint);
-    
-    // Check if entry has imports
-    const hasImports = /^import\s+/m.test(entryCode);
-    
-    if (!hasImports) {
-      console.log('[Bundler] Fast path: no imports detected');
-      return bundleSingleFile(entryCode);
+
+    // Handle different entry points
+    if (entryPoint.includes("main.tsx") || entryPoint.includes("App.tsx")) {
+      return bundleReactApp(files, entryPoint);
+    } else if (entryPoint.includes("page.tsx")) {
+      return bundleNextPage(files, entryPoint);
+    } else {
+      return bundleGeneric(files, entryPoint);
     }
-    
-    console.log('[Bundler] Complex path: resolving modules');
-    return bundleWithModules(files, entryPoint);
-    
   } catch (error) {
-    console.error('[Bundler] Fatal error:', error);
+    console.error("[Bundler] Fatal error:", error);
     return generateErrorBundle(error instanceof Error ? error.message : String(error));
   }
 }
 
-function bundleSingleFile(code: string): string {
+function bundleReactApp(files: Record<string, string>, entryPoint: string): string {
   try {
-    // Remove exports
-    code = code.replace(/export\s+default\s+/g, '');
-    code = code.replace(/export\s+/g, '');
-    
-    // Compile JSX
-    code = compileJSX(code);
-    
-    console.log('[Bundler] Single file compiled, size:', code.length);
-    
-    return `
-${code}
+    const modules = resolveDependencies(files, entryPoint);
+    console.log("[Bundler] Resolved", modules.length, "modules");
 
-// Auto-detect and expose component
-const __main__ = (typeof Page !== "undefined") ? Page : 
-                 (typeof App !== "undefined") ? App : null;
-
-if (__main__) {
-  window.__PREVIEW_RENDER__ = __main__;
-  console.log('[Preview] Component exposed:', __main__.name);
-} else {
-  console.error('[Preview] No Page or App component found');
-}
-`;
-  } catch (error) {
-    console.error('[Bundler] Single file compilation failed:', error);
-    throw error;
-  }
-}
-
-function bundleWithModules(files: Record<string, string>, entryPoint: string): string {
-  try {
-    const modules = resolveModules(files, entryPoint);
-    console.log('[Bundler] Resolved', modules.length, 'modules');
-    
-    if (modules.length === 0) {
-      throw new Error('No modules resolved');
-    }
-    
     const transformedModules: string[] = [];
-    
-    // Process dependencies first, entry last
+
     for (const module of modules) {
       try {
-        let code = stripImports(module.code);
-        code = code.replace(/export\s+default\s+/g, '');
-        code = code.replace(/export\s+(function|const|class)\s+/g, '$1 ');
-        code = compileJSX(code);
-        
-        transformedModules.push(`\n// Module: ${module.path}\n${code}\n`);
-        console.log('[Bundler] Transformed:', module.path);
+        let code = module.code;
+
+        // Remove TypeScript types
+        code = stripTypeScript(code);
+
+        // Handle imports/exports
+        code = handleImportsExports(code, module.dependencies);
+
+        // Transform JSX (simplified)
+        code = transformJSX(code);
+
+        transformedModules.push(`// ${module.path}\n${code}\n`);
+        console.log("[Bundler] Transformed:", module.path);
       } catch (error) {
         console.error(`[Bundler] Failed to transform ${module.path}:`, error);
-        // Continue with other modules
+        transformedModules.push(`// Failed to load ${module.path}\nconsole.error('Failed to load ${module.path}');\n`);
       }
     }
-    
-    return `
-${transformedModules.join('\n')}
 
-// Auto-detect and expose component
-const __main__ = (typeof Page !== "undefined") ? Page : 
-                 (typeof App !== "undefined") ? App : null;
-
-if (__main__) {
-  window.__PREVIEW_RENDER__ = __main__;
-  console.log('[Preview] Component exposed:', __main__.name);
-} else {
-  console.error('[Preview] No Page or App component found');
-}
-`;
+    return createPreviewBundle(transformedModules.join("\n"), "react");
   } catch (error) {
-    console.error('[Bundler] Module bundling failed:', error);
-    throw error;
+    console.error("[Bundler] React bundling failed:", error);
+    return generateErrorBundle(error instanceof Error ? error.message : String(error));
   }
+}
+
+function bundleNextPage(files: Record<string, string>, entryPoint: string): string {
+  const pageCode = files[entryPoint] || "";
+  const layoutCode = files["src/app/layout.tsx"] || "";
+
+  let code = "";
+
+  // Add layout if exists
+  if (layoutCode) {
+    code += handleLayoutCode(layoutCode);
+  }
+
+  // Add page code
+  code += transformPageCode(pageCode);
+
+  return createPreviewBundle(code, "next");
+}
+
+function bundleGeneric(files: Record<string, string>, entryPoint: string): string {
+  const entryCode = files[entryPoint] || "";
+  let code = entryCode;
+
+  // Basic transformations
+  code = stripTypeScript(code);
+  code = transformJSX(code);
+
+  return createPreviewBundle(code, "generic");
+}
+
+function resolveDependencies(files: Record<string, string>, entryPoint: string): ModuleInfo[] {
+  const resolved: ModuleInfo[] = [];
+  const visited = new Set<string>();
+  const queue = [entryPoint];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+
+    const code = files[current];
+    if (!code) continue;
+
+    const dependencies = extractDependencies(code);
+    resolved.push({
+      path: current,
+      code,
+      dependencies,
+    });
+
+    // Add dependencies to queue
+    dependencies.forEach((dep) => {
+      if (!visited.has(dep)) {
+        queue.push(dep);
+      }
+    });
+
+    visited.add(current);
+  }
+
+  return resolved;
+}
+
+function extractDependencies(code: string): string[] {
+  const dependencies: string[] = [];
+
+  // Extract import statements
+  const importRegex = /import\s+.*?\s+from\s+['"]([^'"]+)['"]/g;
+  let match;
+
+  while ((match = importRegex.exec(code)) !== null) {
+    dependencies.push(match[1]);
+  }
+
+  // Also check for relative imports
+  const relativeImportRegex = /import\s+['"]([^'"]+)['"]/g;
+  while ((match = relativeImportRegex.exec(code)) !== null) {
+    const dep = match[1];
+    if (dep.startsWith("./") || dep.startsWith("../")) {
+      dependencies.push(dep);
+    }
+  }
+
+  return dependencies;
+}
+
+function stripTypeScript(code: string): string {
+  // Remove type annotations
+  code = code.replace(/:\s*[A-Za-z<>[\]{},\s|*&]+/g, "");
+  code = code.replace(/interface\s+[A-Za-z]+\s*{[^}]*}/g, "");
+  code = code.replace(/type\s+[A-Za-z]+\s*=/g, "");
+  return code;
+}
+
+function handleImportsExports(code: string, dependencies: string[]): string {
+  // Remove import statements but keep the code structure
+  code = code.replace(/import\s+.*?from\s+['"][^'"]+['"];?/g, "");
+  code = code.replace(/import\s+['"][^'"]+['"];?/g, "");
+
+  // Remove export statements
+  code = code.replace(/export\s+(default\s+)?/g, "");
+  code = code.replace(/export\s+/g, "");
+
+  return code;
+}
+
+function transformJSX(code: string): string {
+  // Basic JSX transformation - in a real system you'd use Babel
+  // This is a simplified version for demo
+
+  // Transform JSX to React.createElement calls
+  code = code.replace(/<(\w+)([^>]*)>/g, (match, tag, attrs) => {
+    return `React.createElement('${tag}', ${attrs ? transformAttributes(attrs) : "null"}`;
+  });
+
+  // Handle closing tags
+  code = code.replace(/<\/(\w+)>/g, "))");
+
+  // Handle self-closing tags
+  code = code.replace(/<(\w+)([^>]*)\/>/g, (match, tag, attrs) => {
+    return `React.createElement('${tag}', ${attrs ? transformAttributes(attrs) : "null"}, null)`;
+  });
+
+  return code;
+}
+
+function transformAttributes(attrs: string): string {
+  // Simple attribute transformation
+  return "{}";
+}
+
+function handleLayoutCode(code: string): string {
+  // Extract layout JSX and wrap page content
+  code = stripTypeScript(code);
+  code = handleImportsExports(code, []);
+  return `const Layout = ${code.replace(/const\s+Layout\s*=/, "").trim()};\n`;
+}
+
+function transformPageCode(code: string): string {
+  // Extract page component
+  code = stripTypeScript(code);
+  code = handleImportsExports(code, []);
+  return `const Page = ${code.replace(/const\s+Page\s*=|export\s+default\s+/, "").trim()};\n`;
+}
+
+function createPreviewBundle(code: string, framework: string): string {
+  const baseCode = `
+    // Preview Bundle
+    // Framework: ${framework}
+    
+    // Minimal React support for preview
+    const React = {
+      createElement: function(tag, props, ...children) {
+        return { tag, props: props || {}, children: children.filter(Boolean) };
+      },
+      useState: function(initial) {
+        let state = initial;
+        return [state, () => {}];
+      },
+      useEffect: function() {},
+      Fragment: 'Fragment'
+    };
+    
+    ${code}
+    
+    // Expose component for rendering
+    const __PREVIEW_COMPONENT__ = 
+      (typeof Page !== "undefined") ? Page : 
+      (typeof App !== "undefined") ? App : 
+      (typeof defaultExport !== "undefined") ? defaultExport : 
+      null;
+    
+    if (__PREVIEW_COMPONENT__) {
+      window.__PREVIEW_RENDER__ = __PREVIEW_COMPONENT__;
+      console.log('[Preview] Component ready:', __PREVIEW_COMPONENT__.name || 'Anonymous');
+    } else {
+      console.error('[Preview] No component found to render');
+    }
+  `;
+
+  return baseCode.trim();
 }
 
 function generateErrorBundle(errorMessage: string): string {
   return `
-function Page() {
-  return React.createElement('div', 
-    { style: { padding: '2rem', color: '#dc2626', fontFamily: 'monospace' } },
-    React.createElement('h2', null, 'Preview Build Error'),
-    React.createElement('p', null, errorMessage)
-  );
-}
-window.__PREVIEW_RENDER__ = Page;
-`;
+    // Error Bundle
+    function PreviewError() {
+      return React.createElement('div', {
+        style: {
+          padding: '2rem',
+          color: '#dc2626',
+          fontFamily: 'monospace',
+          backgroundColor: '#fef2f2',
+          border: '2px solid #fecaca',
+          borderRadius: '8px',
+          margin: '1rem'
+        }
+      }, 
+        React.createElement('h2', { style: { marginBottom: '1rem' }}, 'Preview Build Error'),
+        React.createElement('pre', { 
+          style: { 
+            backgroundColor: '#fee2e2', 
+            padding: '1rem', 
+            borderRadius: '4px',
+            overflow: 'auto'
+          } 
+        }, errorMessage)
+      );
+    }
+    
+    window.__PREVIEW_RENDER__ = PreviewError;
+    console.error('[Bundler] Error bundle generated:', errorMessage);
+  `;
 }
