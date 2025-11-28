@@ -40,9 +40,9 @@ export const FilesEditedDropdown = ({ files }: FilesEditedDropdownProps) => {
         <div className="mt-2 space-y-1 animate-accordion-down">
           {files.map((file, index) => (
             <div key={index} className="flex items-center gap-1.5">
-              <span className="text-white/30 text-base">{getFileIcon(file.path)}</span>
+              <span className="text-white/30 scale-75">{getFileIcon(file.path)}</span>
               <span className="text-white/40 text-xs">Created</span>
-              <span className="font-mono truncate bg-white/5 backdrop-blur-sm px-2 py-0.5 rounded text-white/50 text-sm">{file.path}</span>
+              <span className="font-mono truncate bg-white/5 backdrop-blur-sm px-2 py-0.5 rounded text-white/50 text-[10px]">{file.path}</span>
             </div>
           ))}
         </div>
