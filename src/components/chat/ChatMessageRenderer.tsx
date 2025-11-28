@@ -1,9 +1,8 @@
-import { useState, useMemo } from "react";
-import { BuildingResponse } from "./BuildingResponse";
+import React, { useState } from "react";
 import { Copy, Check } from "lucide-react";
+import { BuildingResponse } from "./BuildingResponse";
+import { StreamingText } from "./StreamingText";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { detectMessageType } from "@/services/chat/messageClassifier";
-import { useChatStateStore } from "@/stores/useChatStateStore";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -12,33 +11,14 @@ interface ChatMessageRendererProps {
   isFirstMessage?: boolean;
 }
 
-export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage = false }: ChatMessageRendererProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({
+  content,
+  role,
+  isStreaming,
+}) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const MAX_LINES = 15;
-  
-  const isFirstProject = useChatStateStore(state => state.isFirstProject);
-  
-  // Detect message type
-  const messageType = useMemo(() => {
-    const hasCodeBlocks = content.includes('```');
-    return detectMessageType(content, isFirstMessage && isFirstProject, hasCodeBlocks);
-  }, [content, isFirstMessage, isFirstProject]);
-
-  // Calculate if content needs truncation
-  const { needsTruncation, truncatedContent } = useMemo(() => {
-    if (role !== 'user') return { needsTruncation: false, truncatedContent: content };
-    
-    const lines = content.split('\n');
-    if (lines.length <= MAX_LINES) {
-      return { needsTruncation: false, truncatedContent: content };
-    }
-    
-    return {
-      needsTruncation: true,
-      truncatedContent: lines.slice(0, MAX_LINES).join('\n')
-    };
-  }, [content, role]);
 
   const handleCopy = async () => {
     try {
@@ -50,12 +30,18 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     }
   };
 
-  // If user message, show with see more/less functionality
-  if (role === 'user') {
+  // User message rendering
+  if (role === "user") {
+    const lines = content.split('\n');
+    const needsTruncation = lines.length > MAX_LINES;
+    const displayContent = needsTruncation && !isExpanded 
+      ? lines.slice(0, MAX_LINES).join('\n') + '...'
+      : content;
+
     return (
       <div className="relative max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3 pr-10">
         <p className="text-sm whitespace-pre-wrap">
-          {needsTruncation && !isExpanded ? truncatedContent : content}
+          {displayContent}
         </p>
         {needsTruncation && (
           <button
@@ -87,25 +73,24 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
       </div>
     );
   }
-  
-  // Check if this is a building response
-  const isBuildingResponse = messageType === 'first-build' || messageType === 'build';
-  
-  if (isBuildingResponse) {
+
+  // Assistant message rendering
+  // Check if this looks like a build response (has code or file mentions)
+  const isBuildResponse = /```|(?:src\/|\.tsx|\.jsx|\.css|creating|editing|file)/gi.test(content);
+
+  if (isBuildResponse) {
     return (
-      <BuildingResponse 
-        content={content} 
-        isStreaming={isStreaming} 
-        isFirstProject={isFirstProject} 
-        messageType={messageType}
+      <BuildingResponse
+        content={content}
+        isStreaming={isStreaming}
       />
     );
   }
-  
-  // Plain text response
+
+  // Plain text chat response
   return (
-    <div className="text-sm text-slate-200 leading-relaxed typing-animation">
-      {content}
+    <div className="text-sm text-slate-200 leading-relaxed">
+      <StreamingText content={content} isComplete={!isStreaming} />
     </div>
   );
 };
