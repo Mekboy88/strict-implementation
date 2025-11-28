@@ -4,6 +4,7 @@ import { PreviewEngine } from './PreviewEngine';
 import { HotReloadManager } from './HotReloadManager';
 import { ErrorHandler } from './ErrorHandler';
 import { CommunicationHub } from './CommunicationHub';
+import { DebugManager } from './DebugManager';
 import { eventBus } from './EventBus';
 
 /**
@@ -15,6 +16,7 @@ export class EditorSystem {
   public previewEngine: PreviewEngine;
   public hotReload: HotReloadManager;
   public errorHandler: ErrorHandler;
+  public debugManager: DebugManager;
   private communicationHub: CommunicationHub;
 
   constructor() {
@@ -24,9 +26,13 @@ export class EditorSystem {
     this.previewEngine = new PreviewEngine();
     this.hotReload = new HotReloadManager();
     this.errorHandler = new ErrorHandler();
+    this.debugManager = new DebugManager();
     this.communicationHub = new CommunicationHub();
 
     this.initializeCommunication();
+    
+    // Start debugging automatically
+    this.debugManager.startMonitoring();
   }
 
   private initializeCommunication(): void {
@@ -101,13 +107,25 @@ export class EditorSystem {
     this.errorHandler.clear();
   }
 
+  getDebugData(): string {
+    return this.debugManager.exportDebugData();
+  }
+
+  runHealthCheck() {
+    return this.debugManager.runHealthCheck();
+  }
+
   destroy(): void {
+    // Stop monitoring
+    this.debugManager.stopMonitoring();
+    
     // Clean up all subsystems
     this.fileTree.clear();
     this.codeEditor.clear();
     this.previewEngine.clear();
     this.hotReload.clear();
     this.errorHandler.clear();
+    this.debugManager.clearLogs();
     eventBus.clear();
   }
 }
