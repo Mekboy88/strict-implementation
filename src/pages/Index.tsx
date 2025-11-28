@@ -346,7 +346,7 @@ function UrDevEditorPage() {
         
         {isFolderExpanded('src') && (
           <div className="ml-5 space-y-1 min-w-0">
-            {/* app folder - ALWAYS SHOW WITH REQUIRED FILES */}
+            {/* app folder - ALWAYS VISIBLE */}
             <button 
               onClick={() => toggleFolder('src/app')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -361,7 +361,6 @@ function UrDevEditorPage() {
             </button>
             {isFolderExpanded('src/app') && (
               <div className="ml-5 space-y-1 min-w-0">
-                {/* Always show page.tsx as REQUIRED */}
                 <button
                   onClick={() => {
                     const pageFile = projectFiles.find(f => f.path === 'src/app/page.tsx');
@@ -378,7 +377,6 @@ function UrDevEditorPage() {
                   <span className="ml-auto text-[10px] text-green-400 flex-shrink-0">✅ REQUIRED</span>
                 </button>
                 
-                {/* Always show layout.tsx as REQUIRED */}
                 <button
                   onClick={() => {
                     const layoutFile = projectFiles.find(f => f.path === 'src/app/layout.tsx');
@@ -397,30 +395,26 @@ function UrDevEditorPage() {
               </div>
             )}
             
-            {/* components folder */}
-            {folders['src/components'].length > 0 && (
-              <>
-                <button 
-                  onClick={() => toggleFolder('src/components')}
-                  className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
-                >
-                  {isFolderExpanded('src/components') ? (
-                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-3 w-3 flex-shrink-0" />
-                  )}
-                  <Folder className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">components</span>
-                </button>
-                {isFolderExpanded('src/components') && (
-                  <div className="ml-5 space-y-1 min-w-0">
-                    {folders['src/components'].map(renderFile)}
-                  </div>
-                )}
-              </>
+            {/* components folder - ALWAYS VISIBLE */}
+            <button 
+              onClick={() => toggleFolder('src/components')}
+              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
+            >
+              {isFolderExpanded('src/components') ? (
+                <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              ) : (
+                <ChevronRight className="h-3 w-3 flex-shrink-0" />
+              )}
+              <Folder className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">components</span>
+            </button>
+            {isFolderExpanded('src/components') && folders['src/components'].length > 0 && (
+              <div className="ml-5 space-y-1 min-w-0">
+                {folders['src/components'].map(renderFile)}
+              </div>
             )}
             
-            {/* ui folder - ALWAYS SHOW */}
+            {/* ui folder - ALWAYS VISIBLE */}
             <button 
               onClick={() => toggleFolder('src/ui')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -439,7 +433,7 @@ function UrDevEditorPage() {
               </div>
             )}
             
-            {/* hooks folder - ALWAYS SHOW */}
+            {/* hooks folder - ALWAYS VISIBLE */}
             <button 
               onClick={() => toggleFolder('src/hooks')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -458,7 +452,7 @@ function UrDevEditorPage() {
               </div>
             )}
             
-            {/* lib folder - ALWAYS SHOW */}
+            {/* lib folder - ALWAYS VISIBLE */}
             <button 
               onClick={() => toggleFolder('src/lib')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
