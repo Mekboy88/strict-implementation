@@ -261,7 +261,7 @@ function UrDevEditorPage() {
     });
   };
 
-  // Render STRICT, FIXED web project file tree (ignores extra files) - MEMOIZED
+  // Render STRICT, FIXED web project file tree - EXACT ORDER - MEMOIZED
   const renderFileTree = useMemo(() => {
     const openFile = (path: string) => {
       const file = projectFiles.find(f => f.path === path);
@@ -272,41 +272,9 @@ function UrDevEditorPage() {
 
     return (
       <>
-        {/* ROOT FILES */}
-        <button
-          type="button"
-          onClick={() => openFile('index.html')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">index.html</span>
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => openFile('package.json')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">package.json</span>
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => openFile('tailwind.config.ts')}
-          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
-        >
-          <span className="flex items-center gap-2 min-w-0 flex-1">
-            <FileCode2 className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">tailwind.config.ts</span>
-          </span>
-        </button>
-
-        {/* public folder */}
+        {/* EXACT ORDER AS SPECIFIED */}
+        
+        {/* 1. public folder */}
         <button 
           onClick={() => toggleFolder('public')}
           className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
@@ -334,8 +302,7 @@ function UrDevEditorPage() {
           </div>
         )}
 
-        {/* src folder */}
-        {/* src folder */}
+        {/* 2. src folder */}
         <button 
           onClick={() => toggleFolder('src')}
           className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-200 hover:bg-white/5 min-w-0"
@@ -348,7 +315,6 @@ function UrDevEditorPage() {
           <Folder className="h-3 w-3 flex-shrink-0" />
           <span className="truncate">src</span>
         </button>
-
         {isFolderExpanded('src') && (
           <div className="ml-5 space-y-1 min-w-0">
             {/* app folder */}
@@ -474,7 +440,7 @@ function UrDevEditorPage() {
               <span className="truncate">lib</span>
             </button>
 
-            {/* root src files in exact order */}
+            {/* Root src files */}
             <button
               type="button"
               onClick={() => openFile('src/App.tsx')}
@@ -551,6 +517,150 @@ function UrDevEditorPage() {
             </button>
           </div>
         )}
+
+        {/* 3. .gitignore */}
+        <button
+          type="button"
+          onClick={() => openFile('.gitignore')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100 text-slate-400"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">.gitignore</span>
+          </span>
+        </button>
+
+        {/* 4. components.json */}
+        <button
+          type="button"
+          onClick={() => openFile('components.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">components.json</span>
+          </span>
+        </button>
+
+        {/* 5. eslint.config.js */}
+        <button
+          type="button"
+          onClick={() => openFile('eslint.config.js')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">eslint.config.js</span>
+          </span>
+        </button>
+
+        {/* 6. index.html */}
+        <button
+          type="button"
+          onClick={() => openFile('index.html')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">index.html</span>
+          </span>
+        </button>
+
+        {/* 7. package.json */}
+        <button
+          type="button"
+          onClick={() => openFile('package.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">package.json</span>
+          </span>
+        </button>
+
+        {/* 8. postcss.config.js */}
+        <button
+          type="button"
+          onClick={() => openFile('postcss.config.js')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">postcss.config.js</span>
+          </span>
+        </button>
+
+        {/* 9. README.md */}
+        <button
+          type="button"
+          onClick={() => openFile('README.md')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">README.md</span>
+          </span>
+        </button>
+
+        {/* 10. tailwind.config.ts */}
+        <button
+          type="button"
+          onClick={() => openFile('tailwind.config.ts')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">tailwind.config.ts</span>
+          </span>
+        </button>
+
+        {/* 11. tsconfig.app.json */}
+        <button
+          type="button"
+          onClick={() => openFile('tsconfig.app.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">tsconfig.app.json</span>
+          </span>
+        </button>
+
+        {/* 12. tsconfig.json */}
+        <button
+          type="button"
+          onClick={() => openFile('tsconfig.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">tsconfig.json</span>
+          </span>
+        </button>
+
+        {/* 13. tsconfig.node.json */}
+        <button
+          type="button"
+          onClick={() => openFile('tsconfig.node.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">tsconfig.node.json</span>
+          </span>
+        </button>
+
+        {/* 14. vite.config.ts */}
+        <button
+          type="button"
+          onClick={() => openFile('vite.config.ts')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">vite.config.ts</span>
+          </span>
+        </button>
       </>
     );
   }, [projectFiles, activeFileId, expandedFolders]);
