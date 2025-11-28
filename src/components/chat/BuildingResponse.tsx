@@ -164,8 +164,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 7: Next Steps */}
-      {isComplete && (
+      {/* Section 7: Next Steps - Only show on first project */}
+      {isComplete && isFirstProject && (
         <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1000ms' }}>
           <p className="text-base font-medium text-white/80 typing-animation">Next Steps</p>
           <div className="space-y-4">
@@ -191,8 +191,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </div>
       )}
 
-      {/* Section 8: Completion Card */}
-      {isComplete && (
+      {/* Section 8: Completion Card - Only show on first project */}
+      {isComplete && isFirstProject && (
         <div className="pt-4 animate-fade-in" style={{ animationDelay: '1400ms' }}>
           <CompletionCard projectName={parsed.projectName} />
         </div>
