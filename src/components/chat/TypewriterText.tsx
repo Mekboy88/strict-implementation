@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TypewriterTextProps {
   text: string;
@@ -6,11 +6,18 @@ interface TypewriterTextProps {
   className?: string;
 }
 
+// Typewriter that keeps progress when text grows (streaming)
 export const TypewriterText = ({ text, speedMs = 25, className = "" }: TypewriterTextProps) => {
   const [visibleCount, setVisibleCount] = useState(0);
+  const prevTextRef = useRef(text);
 
   useEffect(() => {
-    setVisibleCount(0);
+    // If the text changed completely (not just appended), restart animation
+    if (!text.startsWith(prevTextRef.current)) {
+      setVisibleCount(0);
+    }
+    prevTextRef.current = text;
+
     if (!text) return;
 
     const total = text.length;
