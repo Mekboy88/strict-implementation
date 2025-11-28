@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, memo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { FileCode, Image, FileJson, File } from "lucide-react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
@@ -78,7 +78,7 @@ const parseContent = (content: string): ParsedContent => {
   return { intro, designVision, features, files, summary, projectName };
 };
 
-const BuildingResponseComponent = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
+export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [showFileSection, setShowFileSection] = useState(false);
   
@@ -287,7 +287,3 @@ const BuildingResponseComponent = ({ content, isStreaming, isFirstProject = fals
     </div>
   );
 };
-
-BuildingResponseComponent.displayName = 'BuildingResponse';
-
-export const BuildingResponse = memo(BuildingResponseComponent);
