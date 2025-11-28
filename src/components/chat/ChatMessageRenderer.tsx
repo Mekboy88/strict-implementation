@@ -44,7 +44,7 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   if (role === 'user') {
     return (
       <div className="relative max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3 pr-10">
-        <p className="text-sm whitespace-pre-wrap">
+        <p className="text-lg whitespace-pre-wrap">
           {needsTruncation && !isExpanded ? truncatedContent : content}
         </p>
         {needsTruncation && (
