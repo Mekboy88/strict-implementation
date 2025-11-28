@@ -297,7 +297,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 6: Animated files while building */}
       {isStreaming && showFiles && (
-        <FileBuildingAnimation files={displayContent.files} isStreaming={isStreaming} />
+        <FileBuildingAnimation content={content} isStreaming={isStreaming} />
       )}
       
       {/* Section 6b: Files dropdown - Only show when complete */}
