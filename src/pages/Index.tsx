@@ -261,75 +261,79 @@ function UrDevEditorPage() {
     });
   };
 
-  // Render dynamic file tree
+  // Render STRICT, FIXED web project file tree (ignores extra files)
   const renderFileTree = () => {
-    const folders: Record<string, FileItem[]> = {
-      root: [],
-      public: [],
-      src: [],
-      'src/app': [],
-      'src/components': [],
-      'src/ui': [],
-      'src/hooks': [],
-      'src/lib': [],
+    const openFile = (path: string) => {
+      const file = projectFiles.find(f => f.path === path);
+      if (file) setActiveFileId(file.id);
     };
-
-    projectFiles.forEach(file => {
-      if (file.path.startsWith('public/')) folders.public.push(file);
-      else if (file.path.startsWith('src/app/')) folders['src/app'].push(file);
-      else if (file.path.startsWith('src/components/')) folders['src/components'].push(file);
-      else if (file.path.startsWith('src/ui/')) folders['src/ui'].push(file);
-      else if (file.path.startsWith('src/hooks/')) folders['src/hooks'].push(file);
-      else if (file.path.startsWith('src/lib/')) folders['src/lib'].push(file);
-      else if (file.path.startsWith('src/')) folders.src.push(file);
-      else folders.root.push(file);
-    });
-
-    const renderFile = (file: FileItem) => (
-      <button
-        key={file.id}
-        type="button"
-        onClick={() => setActiveFileId(file.id)}
-        className={`ml-4 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
-          activeFileId === file.id ? 'bg-sky-500/25 text-sky-100' : 'hover:bg-white/5 hover:text-sky-100'
-        }`}
-      >
-        <span className="flex items-center gap-2 min-w-0 flex-1">
-          <FileCode2 className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate">{file.name}</span>
-        </span>
-      </button>
-    );
 
     const isFolderExpanded = (path: string) => expandedFolders.has(path);
 
     return (
       <>
-        {folders.root.map(renderFile)}
-        
+        {/* ROOT FILES */}
+        <button
+          type="button"
+          onClick={() => openFile('index.html')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">index.html</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openFile('package.json')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">package.json</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => openFile('tailwind.config.ts')}
+          className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
+        >
+          <span className="flex items-center gap-2 min-w-0 flex-1">
+            <FileCode2 className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">tailwind.config.ts</span>
+          </span>
+        </button>
+
         {/* public folder */}
-        {folders.public.length > 0 && (
-          <>
-            <button 
-              onClick={() => toggleFolder('public')}
-              className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
+        <button 
+          onClick={() => toggleFolder('public')}
+          className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-400 hover:bg-white/5 min-w-0"
+        >
+          {isFolderExpanded('public') ? (
+            <ChevronDown className="h-3 w-3 flex-shrink-0" />
+          ) : (
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+          )}
+          <Folder className="h-3 w-3 flex-shrink-0" />
+          <span className="truncate">public</span>
+        </button>
+        {isFolderExpanded('public') && (
+          <div className="ml-4 space-y-1">
+            <button
+              type="button"
+              onClick={() => openFile('public/robots.txt')}
+              className="ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 hover:bg-white/5 hover:text-sky-100"
             >
-              {isFolderExpanded('public') ? (
-                <ChevronDown className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              )}
-              <Folder className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">public</span>
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">robots.txt</span>
+              </span>
             </button>
-            {isFolderExpanded('public') && (
-              <div className="ml-4 space-y-1">
-                {folders.public.map(renderFile)}
-              </div>
-            )}
-          </>
+          </div>
         )}
-        
+
         {/* src folder */}
         <button 
           onClick={() => toggleFolder('src')}
@@ -343,10 +347,13 @@ function UrDevEditorPage() {
           <Folder className="h-3 w-3 flex-shrink-0" />
           <span className="truncate">src</span>
         </button>
+      </>
+    );
+  };
         
         {isFolderExpanded('src') && (
           <div className="ml-5 space-y-1 min-w-0">
-            {/* app folder - ALWAYS VISIBLE */}
+            {/* app folder */}
             <button 
               onClick={() => toggleFolder('src/app')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -362,40 +369,40 @@ function UrDevEditorPage() {
             {isFolderExpanded('src/app') && (
               <div className="ml-5 space-y-1 min-w-0">
                 <button
-                  onClick={() => {
-                    const pageFile = projectFiles.find(f => f.path === 'src/app/page.tsx');
-                    if (pageFile) setActiveFileId(pageFile.id);
-                  }}
-                  className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-white/5 min-w-0 ${
-                    projectFiles.find(f => f.path === 'src/app/page.tsx' && f.id === activeFileId) 
-                      ? 'bg-sky-500/25 text-sky-100' 
-                      : 'text-slate-300'
+                  type="button"
+                  onClick={() => openFile('src/app/page.tsx')}
+                  className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                    projectFiles.find(f => f.path === 'src/app/page.tsx' && f.id === activeFileId)
+                      ? 'bg-sky-500/25 text-sky-100'
+                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
                   }`}
                 >
-                  <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
-                  <span className="truncate">page.tsx</span>
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
+                    <span className="truncate">page.tsx</span>
+                  </span>
                   <span className="ml-auto text-[10px] text-green-400 flex-shrink-0">✅ REQUIRED</span>
                 </button>
-                
+
                 <button
-                  onClick={() => {
-                    const layoutFile = projectFiles.find(f => f.path === 'src/app/layout.tsx');
-                    if (layoutFile) setActiveFileId(layoutFile.id);
-                  }}
-                  className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-white/5 min-w-0 ${
-                    projectFiles.find(f => f.path === 'src/app/layout.tsx' && f.id === activeFileId) 
-                      ? 'bg-sky-500/25 text-sky-100' 
-                      : 'text-slate-300'
+                  type="button"
+                  onClick={() => openFile('src/app/layout.tsx')}
+                  className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                    projectFiles.find(f => f.path === 'src/app/layout.tsx' && f.id === activeFileId)
+                      ? 'bg-sky-500/25 text-sky-100'
+                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
                   }`}
                 >
-                  <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
-                  <span className="truncate">layout.tsx</span>
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0 text-blue-400" />
+                    <span className="truncate">layout.tsx</span>
+                  </span>
                   <span className="ml-auto text-[10px] text-green-400 flex-shrink-0">✅ REQUIRED</span>
                 </button>
               </div>
             )}
-            
-            {/* components folder - ALWAYS VISIBLE */}
+
+            {/* components folder */}
             <button 
               onClick={() => toggleFolder('src/components')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -408,13 +415,26 @@ function UrDevEditorPage() {
               <Folder className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">components</span>
             </button>
-            {isFolderExpanded('src/components') && folders['src/components'].length > 0 && (
+            {isFolderExpanded('src/components') && (
               <div className="ml-5 space-y-1 min-w-0">
-                {folders['src/components'].map(renderFile)}
+                <button
+                  type="button"
+                  onClick={() => openFile('src/components/Hero.tsx')}
+                  className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                    projectFiles.find(f => f.path === 'src/components/Hero.tsx' && f.id === activeFileId)
+                      ? 'bg-sky-500/25 text-sky-100'
+                      : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Hero.tsx</span>
+                  </span>
+                </button>
               </div>
             )}
-            
-            {/* ui folder - ALWAYS VISIBLE */}
+
+            {/* ui folder */}
             <button 
               onClick={() => toggleFolder('src/ui')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -427,13 +447,8 @@ function UrDevEditorPage() {
               <Folder className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">ui</span>
             </button>
-            {isFolderExpanded('src/ui') && folders['src/ui'].length > 0 && (
-              <div className="ml-5 space-y-1 min-w-0">
-                {folders['src/ui'].map(renderFile)}
-              </div>
-            )}
-            
-            {/* hooks folder - ALWAYS VISIBLE */}
+
+            {/* hooks folder */}
             <button 
               onClick={() => toggleFolder('src/hooks')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -446,13 +461,8 @@ function UrDevEditorPage() {
               <Folder className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">hooks</span>
             </button>
-            {isFolderExpanded('src/hooks') && folders['src/hooks'].length > 0 && (
-              <div className="ml-5 space-y-1 min-w-0">
-                {folders['src/hooks'].map(renderFile)}
-              </div>
-            )}
-            
-            {/* lib folder - ALWAYS VISIBLE */}
+
+            {/* lib folder */}
             <button 
               onClick={() => toggleFolder('src/lib')}
               className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-slate-300 hover:bg-white/5 min-w-0"
@@ -465,14 +475,82 @@ function UrDevEditorPage() {
               <Folder className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">lib</span>
             </button>
-            {isFolderExpanded('src/lib') && folders['src/lib'].length > 0 && (
-              <div className="ml-5 space-y-1 min-w-0">
-                {folders['src/lib'].map(renderFile)}
-              </div>
-            )}
-            
-            {/* root src files */}
-            {folders.src.map(renderFile)}
+
+            {/* root src files in exact order */}
+            <button
+              type="button"
+              onClick={() => openFile('src/App.tsx')}
+              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                projectFiles.find(f => f.path === 'src/App.tsx' && f.id === activeFileId)
+                  ? 'bg-sky-500/25 text-sky-100'
+                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">App.tsx</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openFile('src/main.tsx')}
+              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                projectFiles.find(f => f.path === 'src/main.tsx' && f.id === activeFileId)
+                  ? 'bg-sky-500/25 text-sky-100'
+                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">main.tsx</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openFile('src/App.css')}
+              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                projectFiles.find(f => f.path === 'src/App.css' && f.id === activeFileId)
+                  ? 'bg-sky-500/25 text-sky-100'
+                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">App.css</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openFile('src/index.css')}
+              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                projectFiles.find(f => f.path === 'src/index.css' && f.id === activeFileId)
+                  ? 'bg-sky-500/25 text-sky-100'
+                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">index.css</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => openFile('src/vite-env.d.ts')}
+              className={`ml-0 flex items-center justify-between rounded-md px-2 py-1 text-left min-w-0 mr-2 ${
+                projectFiles.find(f => f.path === 'src/vite-env.d.ts' && f.id === activeFileId)
+                  ? 'bg-sky-500/25 text-sky-100'
+                  : 'hover:bg-white/5 hover:text-sky-100 text-slate-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 min-w-0 flex-1">
+                <FileCode2 className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">vite-env.d.ts</span>
+              </span>
+            </button>
           </div>
         )}
       </>
