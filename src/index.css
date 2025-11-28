@@ -212,4 +212,38 @@ All colors MUST be HSL.
   .chat-heading:first-child {
     @apply mt-0;
   }
+
+  /* Streaming text animations */
+  .streaming-text-container {
+    @apply min-h-[24px];
+  }
+
+  .streaming-cursor {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* File entry staggered animation */
+  @keyframes fadeInFile {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .file-entry {
+    transition: all 0.3s ease-out;
+  }
+
+  .file-animation-container {
+    @apply transition-all duration-300 ease-out;
+  }
 }
