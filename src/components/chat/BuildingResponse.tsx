@@ -143,9 +143,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 5: Files - Show building process while streaming */}
       {showFiles && isStreaming && parsed.files.length > 0 && (
         <div className="space-y-3 -mt-2">
-          <div className="flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation">
-            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
-            <span>Creating {parsed.files[currentFileIndex]?.path}...</span>
+          <div className="relative flex items-center gap-2 text-lg font-medium text-white/80 animate-fade-in typing-animation overflow-hidden">
+            <div className="relative z-10 flex items-center gap-2">
+              {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
+              <span>Creating {parsed.files[currentFileIndex]?.path}...</span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
           </div>
         </div>
       )}
