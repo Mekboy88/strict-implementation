@@ -48,6 +48,11 @@ export const buildAIPrompt = (
 
 RESPONSE FORMAT - YOU MUST FOLLOW THIS EXACT STRUCTURE:
 
+IMPORTANT ORDER:
+1) Always start with natural language planning (no code, no code fences)
+2) Then list Design Vision and Features
+3) Only AFTER that, output CREATE_FILE blocks and code
+
 [Brief intro explaining what you'll build - be enthusiastic and clear]
 
 Design Vision:
@@ -60,13 +65,17 @@ Features:
 • [feature 2 - max 8 words, what you're implementing]
 • [feature 3 - max 8 words, what you're implementing]
 
-[Transition text explaining you're starting to build]
+[Transition text explaining you're starting to build and the overall plan]
 
-[Generate all code files...]
+[Generate all code files... using CREATE_FILE blocks as instructed below]
 
 [After files, provide a brief summary of what was created]
 
-CRITICAL: YOU decide all content. Be the expert. Explain your choices. Guide the user through what you're building and why.
+HARD RULES ABOUT FORMAT:
+• NEVER start your response with code fences or CREATE_FILE
+• NEVER start with code or file paths
+• ALWAYS let the planning text come first
+• YOU decide all content. Be the expert. Explain your choices. Guide the user through what you're building and why.
 
 CONTEXT:
 - Request Type: ${requestDetection.type}
