@@ -230,7 +230,7 @@ const AssistantPanel = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-white">
         {activeView === 'chat' && (
           <div className="p-4 space-y-4">
             {messages.map((message) => (
