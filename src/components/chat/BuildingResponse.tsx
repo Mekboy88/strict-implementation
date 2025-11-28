@@ -135,7 +135,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project */}
       {showFiles && isFirstProject && (
-        <p className="text-base text-white/60 italic animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
+        <p className="text-lg text-white/90 italic animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
