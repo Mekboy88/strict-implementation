@@ -172,8 +172,8 @@ function handleImportsExports(code: string, dependencies: string[]): string {
 }
 
 function transformJSX(code: string): string {
-  // Don't transform - let the browser handle it as a string template
-  // We'll render it differently
+  // JSX will be compiled by Babel Standalone in the browser
+  // Just return the code as-is for now
   return code;
 }
 
@@ -202,22 +202,50 @@ function createPreviewBundle(code: string, framework: string): string {
     
     ${code}
     
-    // Find and expose the component
-    let __PREVIEW_COMPONENT__ = null;
+    // Create render function that returns a React element
+    window.__PREVIEW_RENDER__ = function() {
+      try {
+        if (typeof Page !== "undefined") {
+          console.log('[Preview] Rendering Page component');
+          return React.createElement(Page);
+        } else if (typeof App !== "undefined") {
+          console.log('[Preview] Rendering App component');
+          return React.createElement(App);
+        } else {
+          console.error('[Preview] No Page or App component found');
+          return React.createElement('div', {
+            style: {
+              padding: '2rem',
+              textAlign: 'center',
+              color: '#dc2626'
+            }
+          }, 
+            React.createElement('h2', null, '⚠️ No Component Found'),
+            React.createElement('p', null, 'Export a default Page or App component')
+          );
+        }
+      } catch (error) {
+        console.error('[Preview] Error creating element:', error);
+        return React.createElement('div', {
+          style: {
+            padding: '2rem',
+            color: '#dc2626'
+          }
+        }, 
+          React.createElement('h2', null, '❌ Render Error'),
+          React.createElement('pre', {
+            style: {
+              background: '#fee',
+              padding: '1rem',
+              borderRadius: '4px',
+              overflow: 'auto'
+            }
+          }, error.message)
+        );
+      }
+    };
     
-    // Try to find exported component
-    if (typeof Page !== "undefined") {
-      __PREVIEW_COMPONENT__ = Page;
-    } else if (typeof App !== "undefined") {
-      __PREVIEW_COMPONENT__ = App;
-    }
-    
-    if (__PREVIEW_COMPONENT__) {
-      window.__PREVIEW_RENDER__ = __PREVIEW_COMPONENT__;
-      console.log('[Preview] Component found:', __PREVIEW_COMPONENT__.name || 'Anonymous');
-    } else {
-      console.error('[Preview] No component exported');
-    }
+    console.log('[Preview] Render function ready');
   `;
 
   return baseCode.trim();

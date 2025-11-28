@@ -148,6 +148,10 @@ function generateBundledPreview(bundledCode: string): string {
         <div id="debug" style="position:fixed;bottom:0;left:0;right:0;max-height:32px;overflow:hidden;background:#0f172a;color:#94a3b8;padding:4px 8px;font-family:monospace;font-size:9px;border-top:1px solid #334155;z-index:9999;display:flex;gap:8px;align-items:center;">
           <span style="color:#38bdf8;font-weight:600;">🔍</span>
         </div>
+        
+        <!-- Load Babel Standalone for JSX compilation -->
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        
         <script>
           // Debug logger
           const debugLog = (msg, type = 'info') => {
@@ -190,9 +194,19 @@ function generateBundledPreview(bundledCode: string): string {
           
           scriptDOM.onload = function() {
             debugLog('ReactDOM loaded', 'success');
+            
+            // Compile JSX with Babel
             try {
+              debugLog('Compiling JSX with Babel...', 'info');
+              const compiledCode = Babel.transform(\`${bundledCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, {
+                presets: ['react']
+              }).code;
+              
+              debugLog('JSX compiled', 'success');
               debugLog('Executing code...', 'info');
-              ${bundledCode}
+              
+              // Execute compiled code
+              eval(compiledCode);
               
               if (window.__PREVIEW_RENDER__) {
                 debugLog('Rendering...', 'info');
@@ -207,9 +221,10 @@ function generateBundledPreview(bundledCode: string): string {
               }
             } catch (error) {
               debugLog('Error: ' + error.message, 'error');
+              console.error('[Preview] Full error:', error);
               document.getElementById('root').innerHTML = 
                 '<div style="padding:2rem;color:#dc2626;"><h2>❌ Error</h2><pre style="background:#fee;padding:1rem;border-radius:4px;overflow:auto;">' + 
-                error.message + '</pre></div>';
+                error.message + '\\n\\n' + (error.stack || '') + '</pre></div>';
             }
           };
           
