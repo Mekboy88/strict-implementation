@@ -97,7 +97,7 @@ WORKFLOW:
           ...(messages || []),
         ],
         stream: true,
-        max_tokens: 1024,
+        max_tokens: 8192, // Increased to support longer code generation
         temperature: 0.7,
       }),
     });

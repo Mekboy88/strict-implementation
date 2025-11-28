@@ -29,7 +29,7 @@ export default function LivePreview({ files, isFixingError = false, onRequestFix
   const [isInitializing, setIsInitializing] = useState(true);
   const { currentError, setError, clearError } = usePreviewErrorStore();
 
-  // Listen to iframe errors via postMessage
+  // Listen to iframe errors and success via postMessage
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'preview-error') {
@@ -41,12 +41,15 @@ export default function LivePreview({ files, isFixingError = false, onRequestFix
           column: errorData.column,
           timestamp: Date.now(),
         });
+      } else if (event.data?.type === 'preview-rendered') {
+        // Preview rendered successfully - clear any existing errors
+        clearError();
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [setError]);
+  }, [setError, clearError]);
 
   useEffect(() => {
     if (!iframeRef.current) return;
@@ -297,6 +300,9 @@ function generateBundledPreview(bundledCode: string): string {
                 const component = window.__PREVIEW_RENDER__();
                 ReactDOM.render(component, root);
                 debugLog('Rendered!', 'success');
+                
+                // Notify parent that preview rendered successfully
+                window.parent.postMessage({ type: 'preview-rendered' }, '*');
               } else {
                 debugLog('No component', 'error');
                 document.getElementById('root').innerHTML = 
