@@ -78,7 +78,7 @@ const parseContent = (content: string): ParsedContent => {
   return { intro, designVision, features, files, summary, projectName };
 };
 
-export const BuildingResponse = memo(({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
+const BuildingResponseComponent = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [showFileSection, setShowFileSection] = useState(false);
   
@@ -286,4 +286,8 @@ export const BuildingResponse = memo(({ content, isStreaming, isFirstProject = f
       )}
     </div>
   );
-});
+};
+
+BuildingResponseComponent.displayName = 'BuildingResponse';
+
+export const BuildingResponse = memo(BuildingResponseComponent);
