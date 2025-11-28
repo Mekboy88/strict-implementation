@@ -399,9 +399,7 @@ function UrDevEditorPage() {
   
   // Chat state
   interface ChatMsg { id: string; role: 'user' | 'assistant'; content: string; }
-  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { id: 'welcome', role: 'assistant', content: "Hi! I'm UR-DEV AI. Tell me what you want to build and I'll help you create it." }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [isFixingError, setIsFixingError] = useState(false);
