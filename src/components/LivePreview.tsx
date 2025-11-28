@@ -135,23 +135,31 @@ function generateBundledPreview(bundledCode: string): string {
         <script src="https://cdn.tailwindcss.com"></script>
         <style>${PREVIEW_STYLES}</style>
       </head>
-      <body>
-        <div id="debug" style="position:fixed;top:0;right:0;background:#1e293b;color:#10b981;padding:8px 12px;font-family:monospace;font-size:11px;z-index:9999;max-width:300px;border-bottom-left-radius:8px;"></div>
-        <div id="root"></div>
+      <body class="min-h-screen bg-slate-950 text-slate-50">
+        <div id="debug" style="width:100%;max-height:160px;overflow:auto;background:#020617;color:#e5e7eb;padding:8px 12px;font-family:monospace;font-size:11px;border-bottom:1px solid #1f2937;box-sizing:border-box;position:relative;z-index:10;">
+          <div style="color:#38bdf8;font-weight:600;margin-bottom:4px;">🔍 Preview Debug Panel</div>
+        </div>
+        <div id="root" style="min-height:calc(100vh - 160px);"></div>
         <script>
           // Debug logger
           const debugLog = (msg, type = 'info') => {
             const debug = document.getElementById('debug');
-            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#60a5fa';
-            debug.innerHTML += '<div style="color:' + color + ';margin:2px 0;">' + msg + '</div>';
-            console.log('[Debug]', msg);
+            if (!debug) return;
+            const color = type === 'error' ? '#f97373' : type === 'success' ? '#4ade80' : '#60a5fa';
+            const line = document.createElement('div');
+            line.textContent = msg;
+            line.style.margin = '2px 0';
+            line.style.color = color;
+            debug.appendChild(line);
+            debug.scrollTop = debug.scrollHeight;
+            console.log('[Preview Debug]', msg);
           };
           
           debugLog('🔧 Preview initializing...', 'info');
           
           // Catch any early errors
           window.onerror = function(msg, url, line, col, error) {
-            debugLog('❌ Error: ' + msg, 'error');
+            debugLog('❌ Global error: ' + msg, 'error');
             console.error('[Preview Global Error]', msg, error);
             document.getElementById('root').innerHTML = 
               '<div style="padding:2rem;color:red;font-family:monospace;"><h2>JavaScript Error</h2><pre>' + msg + '</pre></div>';
