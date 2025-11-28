@@ -1517,7 +1517,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
               </button>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pt-2 flex flex-col justify-end pb-[110%] space-y-4 text-[11px] scroll-smooth">
+            <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pt-10 pb-24 flex flex-col justify-center space-y-4 text-[11px] scroll-smooth">
               {/* Chat Messages */}
               {chatMessages.map((msg, index) => {
                 const isFirstAssistantWithCode = msg.role === 'assistant' && 
