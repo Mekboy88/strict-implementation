@@ -50,6 +50,7 @@ import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { ConsolePanel } from "@/components/ConsolePanel";
+import { DebugPanel } from "@/components/DebugPanel";
 import { ERROR_FIX_PROMPT, BLANK_PREVIEW_PROMPT, SYSTEM_PROMPT_BASE } from "@/config/aiSystemPrompt";
 import { CORE_PROJECT_FILES, getMissingCoreFiles, initializeProjectFiles, getDefaultPageContent } from "@/utils/projectInitializer";
 import { useFileSystemStore } from "@/stores/useFileSystemStore";
@@ -2376,6 +2377,9 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
 
       {/* Error Panel - Shows errors from the new editor system */}
       <ErrorPanel />
+
+      {/* Debug Panel - Comprehensive debugging interface */}
+      <DebugPanel />
 
       {/* Console Panel - Can be toggled if needed */}
       {/* Uncomment to show console output */}
