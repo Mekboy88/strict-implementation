@@ -185,7 +185,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 6: Summary */}
       {showSummary && (
         <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }}>
-          <TypewriterText text={parsed.summary} className="text-base leading-relaxed" />
+          <p className="text-base leading-relaxed">{parsed.summary}</p>
         </div>
       )}
 
