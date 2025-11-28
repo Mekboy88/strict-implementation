@@ -175,4 +175,41 @@ All colors MUST be HSL.
   .typing-animation {
     animation: typing 0.4s ease-out forwards;
   }
+
+  /* Chat message typography */
+  .chat-prose {
+    @apply text-blue-50 leading-relaxed;
+  }
+
+  .chat-prose strong {
+    @apply font-semibold text-blue-100;
+  }
+
+  .chat-prose em {
+    @apply italic;
+  }
+
+  .chat-code {
+    @apply px-1.5 py-0.5 rounded bg-neutral-800/60 text-blue-200 font-mono text-sm border border-neutral-700/50;
+  }
+
+  .chat-list {
+    @apply list-disc list-inside space-y-1.5 my-3 ml-2;
+  }
+
+  .chat-list-ordered {
+    @apply list-decimal;
+  }
+
+  .chat-list li {
+    @apply text-blue-50 leading-relaxed;
+  }
+
+  .chat-heading {
+    @apply font-semibold text-blue-100 mt-4 mb-2;
+  }
+
+  .chat-heading:first-child {
+    @apply mt-0;
+  }
 }
