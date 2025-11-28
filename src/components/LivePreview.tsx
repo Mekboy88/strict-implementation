@@ -146,40 +146,45 @@ function generateBundledPreview(bundledCode: string): string {
             return true;
           };
           
-          // React-like runtime
-          try {
-            ${PREVIEW_RUNTIME}
-            console.log('[Preview] Runtime loaded');
-          } catch (e) {
-            console.error('[Preview] Runtime error:', e);
-            document.getElementById('root').innerHTML = 
-              '<div style="padding:2rem;color:red;"><h2>Runtime Error</h2><pre>' + e.message + '</pre></div>';
-          }
+          // Load React from CDN
+          const script = document.createElement('script');
+          script.crossOrigin = 'anonymous';
+          script.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
           
-          // Bundled code
-          try {
-            console.log('[Preview] Executing bundled code...');
-            ${bundledCode}
-            console.log('[Preview] Bundled code executed');
-            
-            // Render the component
-            if (window.__PREVIEW_RENDER__) {
-              console.log('[Preview] Found component, rendering...');
-              const root = document.getElementById('root');
-              const vnode = window.__PREVIEW_RENDER__();
-              ReactDOM.render(vnode, root);
-              console.log('[Preview] ✅ Render complete');
-            } else {
-              console.error('[Preview] ❌ No __PREVIEW_RENDER__ found');
+          const scriptDOM = document.createElement('script');
+          scriptDOM.crossOrigin = 'anonymous';
+          scriptDOM.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
+          
+          script.onload = function() {
+            document.head.appendChild(scriptDOM);
+          };
+          
+          scriptDOM.onload = function() {
+            try {
+              console.log('[Preview] React loaded, executing code...');
+              ${bundledCode}
+              
+              // Render the component
+              if (window.__PREVIEW_RENDER__) {
+                console.log('[Preview] Rendering component...');
+                const root = document.getElementById('root');
+                const component = window.__PREVIEW_RENDER__();
+                ReactDOM.render(component, root);
+                console.log('[Preview] ✅ Rendered');
+              } else {
+                console.error('[Preview] No component found');
+                document.getElementById('root').innerHTML = 
+                  '<div style="padding:2rem;text-align:center;"><h2>No Component</h2><p>Export a default Page or App component</p></div>';
+              }
+            } catch (error) {
+              console.error('[Preview] Error:', error);
               document.getElementById('root').innerHTML = 
-                '<div style="padding:2rem;text-align:center;"><h2>No Component Found</h2><p>Make sure your component exports a default Page or App function.</p></div>';
+                '<div style="padding:2rem;color:#dc2626;font-family:monospace;"><h2>Error</h2><pre>' + 
+                error.message + '</pre></div>';
             }
-          } catch (error) {
-            console.error('[Preview] ❌ Execution error:', error);
-            document.getElementById('root').innerHTML = 
-              '<div style="padding:2rem;color:#dc2626;font-family:monospace;"><h2>Preview Error</h2><pre>' + 
-              error.message + '\\n\\nStack:\\n' + (error.stack || 'No stack trace') + '</pre></div>';
-          }
+          };
+          
+          document.head.appendChild(script);
         </script>
       </body>
     </html>
