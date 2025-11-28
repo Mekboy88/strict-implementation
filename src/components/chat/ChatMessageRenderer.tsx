@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { BuildingResponse } from "./BuildingResponse";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TypewriterText } from "./TypewriterText";
 
 interface ChatMessageRendererProps {
   content: string;
@@ -90,9 +91,11 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     <div className="space-y-4">
       <div className="text-base text-slate-200 leading-relaxed">
         {content.split('\n\n').map((paragraph, i) => (
-          <p key={i} className={i > 0 ? 'mt-3' : ''}>
-            {paragraph}
-          </p>
+          <TypewriterText
+            key={i}
+            text={paragraph}
+            className={i > 0 ? 'mt-3 block' : 'block'}
+          />
         ))}
       </div>
     </div>
