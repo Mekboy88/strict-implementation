@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { FileBuildingAnimation } from "./FileBuildingAnimation";
 import { CodeBlock } from "./CodeBlock";
-import { TypewriterText } from "./TypewriterText";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { parseMarkdown } from "@/utils/chat/markdownParser";
@@ -84,19 +83,8 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   // Show file building animation during streaming if files are being created
   if (isStreaming && content.includes('src/')) {
     return (
-      <div className="w-full max-w-full overflow-hidden space-y-4">
+      <div className="space-y-4">
         <FileBuildingAnimation content={content} isStreaming={isStreaming} />
-      </div>
-    );
-  }
-  
-  // For streaming text without code, show typewriter effect
-  if (isStreaming && !content.includes('```')) {
-    return (
-      <div className="w-full max-w-full overflow-hidden">
-        <div className="chat-prose text-base text-blue-50 leading-relaxed">
-          <TypewriterText text={content} speedMs={15} />
-        </div>
       </div>
     );
   }

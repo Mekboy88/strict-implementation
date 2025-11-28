@@ -45,16 +45,13 @@ export const FileBuildingAnimation = ({ content, isStreaming = true }: FileBuild
     }
   }, [detectedFiles, isStreaming]);
 
-  // Always show the "Building..." header when there are files
-  const showHeader = detectedFiles.length > 0 || isStreaming;
-  
   // Show "Analyzing..." if streaming but no files detected yet
   if (isStreaming && detectedFiles.length === 0) {
     return (
-      <div className="space-y-3 py-3 animate-fade-in">
+      <div className="space-y-2 py-3">
         <div className="flex items-center gap-2">
           <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-          <span className="text-sm text-blue-200 font-medium">Analyzing your request...</span>
+          <span className="text-sm text-blue-200">Analyzing your request...</span>
         </div>
       </div>
     );
@@ -63,32 +60,21 @@ export const FileBuildingAnimation = ({ content, isStreaming = true }: FileBuild
   if (detectedFiles.length === 0) return null;
 
   return (
-    <div className="space-y-3 py-3">
-      {/* Header - Always visible */}
-      {showHeader && (
-        <div className="flex items-center gap-2 mb-2 animate-fade-in sticky top-0 bg-gradient-to-b from-ide-panel to-transparent pb-2">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-          <span className="text-sm text-blue-200 font-medium">Building your project...</span>
-        </div>
-      )}
+    <div className="space-y-2 py-3">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+        <span className="text-sm text-blue-200">Building your project...</span>
+      </div>
       
-      {/* Files list - Progressive reveal */}
-      <div className="space-y-2 pl-4 border-l-2 border-blue-900/30">
+      <div className="space-y-2">
         {detectedFiles.map((file, index) => {
           const isCompleted = completedFiles.has(file.path);
-          const shouldShow = index === 0 || completedFiles.has(detectedFiles[index - 1]?.path);
-          
-          if (!shouldShow && isStreaming) return null;
           
           return (
             <div
               key={file.path}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-950/20 border border-blue-900/30 transition-all duration-300 animate-fade-in hover:bg-blue-950/30"
-              style={{ 
-                animationDelay: `${index * 150}ms`,
-                opacity: shouldShow ? 1 : 0,
-                transform: shouldShow ? 'translateY(0)' : 'translateY(-10px)'
-              }}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-950/20 border border-blue-900/30 animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <FileCode className="w-4 h-4 text-blue-400 flex-shrink-0" />
               
