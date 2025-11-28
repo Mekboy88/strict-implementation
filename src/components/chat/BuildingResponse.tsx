@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FilesEditedDropdown } from "./FilesEditedDropdown";
 import { CompletionCard } from "./CompletionCard";
 import { TypewriterText } from "./TypewriterText";
@@ -77,8 +77,8 @@ const parseContent = (content: string): ParsedContent => {
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const [showFileSection, setShowFileSection] = useState(false);
   
-  // Use refs to lock content once it appears to prevent re-parsing
-  const lockedContentRef = useRef<ParsedContent>({
+  // Use state to lock content once it appears to prevent re-parsing and shaking
+  const [lockedContent, setLockedContent] = useState<ParsedContent>({
     intro: "",
     designVision: [],
     features: [],
@@ -95,64 +95,68 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
   // Lock content sections ONLY when they are complete
   useEffect(() => {
-    const locked = lockedContentRef.current;
-    
     // Check if sections are complete by looking for next section markers
     const hasDesignVision = content.includes('Design Vision:');
     const hasFeatures = content.includes('Features:');
     const hasCodeBlocks = content.includes('```');
     
-    // Only lock intro when Design Vision section starts (meaning intro is complete)
-    if (!locked.intro && parsed.intro && hasDesignVision) {
-      locked.intro = parsed.intro;
-    }
-    
-    // Only lock Design Vision when Features section starts
-    if (locked.designVision.length === 0 && parsed.designVision.length > 0 && hasFeatures) {
-      locked.designVision = [...parsed.designVision];
-    }
-    
-    // Only lock Features when code blocks start
-    if (locked.features.length === 0 && parsed.features.length > 0 && hasCodeBlocks) {
-      locked.features = [...parsed.features];
-    }
-    
-    // Only lock transition text when code blocks start
-    if (!locked.transitionText && parsed.transitionText && hasCodeBlocks) {
-      locked.transitionText = parsed.transitionText;
-    }
-    
-    // Lock files when code blocks exist
-    if (locked.files.length === 0 && parsed.files.length > 0) {
-      locked.files = [...parsed.files];
-    }
-    
-    // Only lock summary when streaming is done
-    if (!locked.summary && parsed.summary && !isStreaming) {
-      locked.summary = parsed.summary;
-    }
-    
-    // Lock project name when intro is locked
-    if (!locked.projectName && parsed.projectName && locked.intro) {
-      locked.projectName = parsed.projectName;
-    }
+    setLockedContent(prev => {
+      const updated = { ...prev };
+      
+      // Only lock intro when Design Vision section starts (meaning intro is complete)
+      if (!prev.intro && parsed.intro && hasDesignVision) {
+        updated.intro = parsed.intro;
+      }
+      
+      // Only lock Design Vision when Features section starts
+      if (prev.designVision.length === 0 && parsed.designVision.length > 0 && hasFeatures) {
+        updated.designVision = [...parsed.designVision];
+      }
+      
+      // Only lock Features when code blocks start
+      if (prev.features.length === 0 && parsed.features.length > 0 && hasCodeBlocks) {
+        updated.features = [...parsed.features];
+      }
+      
+      // Only lock transition text when code blocks start
+      if (!prev.transitionText && parsed.transitionText && hasCodeBlocks) {
+        updated.transitionText = parsed.transitionText;
+      }
+      
+      // Lock files when code blocks exist
+      if (prev.files.length === 0 && parsed.files.length > 0) {
+        updated.files = [...parsed.files];
+      }
+      
+      // Only lock summary when streaming is done
+      if (!prev.summary && parsed.summary && !isStreaming) {
+        updated.summary = parsed.summary;
+      }
+      
+      // Lock project name when intro is locked
+      if (!prev.projectName && parsed.projectName && updated.intro) {
+        updated.projectName = parsed.projectName;
+      }
+      
+      return updated;
+    });
   }, [parsed, content, isStreaming]);
 
   // Only show sections when they're locked (complete) or when streaming is done
   const displayContent = {
-    intro: lockedContentRef.current.intro || (!isStreaming ? parsed.intro : ''),
-    designVision: lockedContentRef.current.designVision.length > 0 
-      ? lockedContentRef.current.designVision 
+    intro: lockedContent.intro || (!isStreaming ? parsed.intro : ''),
+    designVision: lockedContent.designVision.length > 0 
+      ? lockedContent.designVision 
       : (!isStreaming ? parsed.designVision : []),
-    features: lockedContentRef.current.features.length > 0 
-      ? lockedContentRef.current.features 
+    features: lockedContent.features.length > 0 
+      ? lockedContent.features 
       : (!isStreaming ? parsed.features : []),
-    transitionText: lockedContentRef.current.transitionText || (!isStreaming ? parsed.transitionText : ''),
-    files: lockedContentRef.current.files.length > 0 
-      ? lockedContentRef.current.files 
+    transitionText: lockedContent.transitionText || (!isStreaming ? parsed.transitionText : ''),
+    files: lockedContent.files.length > 0 
+      ? lockedContent.files 
       : (!isStreaming ? parsed.files : []),
-    summary: lockedContentRef.current.summary || (!isStreaming ? parsed.summary : ''),
-    projectName: lockedContentRef.current.projectName || (!isStreaming ? parsed.projectName : ''),
+    summary: lockedContent.summary || (!isStreaming ? parsed.summary : ''),
+    projectName: lockedContent.projectName || (!isStreaming ? parsed.projectName : ''),
   };
 
   // Derive all boolean values BEFORE useEffect hooks
