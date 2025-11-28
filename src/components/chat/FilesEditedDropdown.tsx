@@ -30,23 +30,19 @@ export const FilesEditedDropdown = ({ files }: FilesEditedDropdownProps) => {
     <div className="w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium transition-all duration-300 ml-auto bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-lg hover:bg-white/15"
+        className="flex items-center gap-2 text-white/70 hover:text-white/90 text-sm transition-colors ml-auto bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg"
       >
         <span>{isOpen ? 'Close' : 'Edited'}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
-        <div className="mt-3 space-y-2 animate-fade-in">
+        <div className="mt-2 space-y-1 transition-all duration-700 ease-out animate-fade-in">
           {files.map((file, index) => (
-            <div 
-              key={index} 
-              className="flex items-center gap-2 animate-fade-in bg-white/5 rounded-lg px-3 py-2 hover:bg-white/10 transition-colors duration-200"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <span className="text-white/70">{getFileIcon(file.path)}</span>
-              <span className="text-white/60 text-sm font-medium">Created</span>
-              <span className="font-mono truncate bg-white/10 backdrop-blur-sm px-2 py-1 rounded text-white/80 text-xs">{file.path}</span>
+            <div key={index} className="flex items-center gap-1.5">
+              <span className="text-white/60 text-base">{getFileIcon(file.path)}</span>
+              <span className="text-white/70 text-sm">Created</span>
+              <span className="font-mono truncate bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded text-white/80 text-[10px]">{file.path}</span>
             </div>
           ))}
         </div>

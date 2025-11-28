@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import SnippetsLibrary from "./SnippetsLibrary";
 import PreviewHistoryPanel from "./PreviewHistoryPanel";
 import EnhancedChatInput from "./chat/EnhancedChatInput";
-import { TypingIndicator } from "./chat/TypingIndicator";
+import { Shimmer } from "./chat/Shimmer";
 import { FileShimmer } from "./chat/FileShimmer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -261,7 +261,7 @@ const AssistantPanel = ({
                 </div>
               </div>
             ))}
-            {isStreaming && <TypingIndicator />}
+            {isStreaming && <Shimmer />}
             <div ref={messagesEndRef} />
           </div>
         )}
