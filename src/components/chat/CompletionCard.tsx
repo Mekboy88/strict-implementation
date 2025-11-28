@@ -30,8 +30,8 @@ export const CompletionCard = ({ projectName }: CompletionCardProps) => {
     ? 'from-blue-500/[0.15] via-blue-400/[0.10] to-blue-600/[0.08]' 
     : 'from-gray-500/[0.05] via-gray-400/[0.03] to-gray-800/[0.02]';
   const dotBg = stage === 'complete' ? 'bg-blue-400/80' : 'bg-gray-400/60';
-  const textColor = stage === 'complete' ? 'text-blue-100' : 'text-gray-300';
-  const subtextColor = stage === 'complete' ? 'text-blue-200/90' : 'text-gray-400/60';
+  const textColor = stage === 'complete' ? 'text-white/75' : 'text-gray-300';
+  const subtextColor = stage === 'complete' ? 'text-white/60' : 'text-gray-400/60';
 
   return (
     <div className={`inline-flex items-start gap-3 rounded-2xl px-6 py-3 border ${borderColor} bg-gradient-to-br ${bgGradient} backdrop-blur-sm transition-all duration-700`}>
