@@ -37,11 +37,12 @@ export const FilesEditedDropdown = ({ files }: FilesEditedDropdownProps) => {
       </button>
       
       {isOpen && (
-        <div className="mt-3 space-y-2 animate-accordion-down">
+        <div className="mt-2 space-y-1 animate-accordion-down bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/10">
           {files.map((file, index) => (
-            <div key={index} className="flex items-center gap-2 text-white/60 text-xs">
-              <span className="text-white/40">{getFileIcon(file.path)}</span>
-              <span className="font-mono">{file.path}</span>
+            <div key={index} className="flex items-center gap-1.5 text-white/50 text-[10px]">
+              <span className="text-white/30 scale-75">{getFileIcon(file.path)}</span>
+              <span className="text-white/40">Created</span>
+              <span className="font-mono truncate">{file.path}</span>
             </div>
           ))}
         </div>
