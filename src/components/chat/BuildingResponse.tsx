@@ -79,7 +79,7 @@ const parseContent = (content: string): ParsedContent => {
 
 export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const parsed = parseContent(content);
-  const [visibleFiles, setVisibleFiles] = useState<number>(0);
+  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
@@ -87,21 +87,12 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
 
-  // Animate files appearing one by one
+  // Sync current file with streaming progress
   useEffect(() => {
-    if (showFiles && !isStreaming) {
-      const timer = setInterval(() => {
-        setVisibleFiles(prev => {
-          if (prev < parsed.files.length) {
-            return prev + 1;
-          }
-          clearInterval(timer);
-          return prev;
-        });
-      }, 150);
-      return () => clearInterval(timer);
+    if (isStreaming && showFiles) {
+      setCurrentFileIndex(parsed.files.length - 1);
     }
-  }, [showFiles, isStreaming, parsed.files.length]);
+  }, [parsed.files.length, isStreaming, showFiles]);
 
   return (
     <div className="w-full space-y-6 text-white/70">
@@ -149,24 +140,20 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
         </p>
       )}
 
-      {/* Section 5: Files - Show building process */}
-      {showFiles && (
+      {/* Section 5: Files - Show building process while streaming */}
+      {showFiles && isStreaming && parsed.files.length > 0 && (
         <div className="space-y-3">
-          {parsed.files.slice(0, visibleFiles).map((file, index) => (
-            <div 
-              key={index} 
-              className="flex items-center gap-2 text-base text-white/70 animate-fade-in typing-animation"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {getFileIcon(file.path)}
-              <span>Creating {file.path}...</span>
-            </div>
-          ))}
-          {isComplete && visibleFiles === parsed.files.length && (
-            <div className="mt-3">
-              <FilesEditedDropdown files={parsed.files} />
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-base text-white/70 animate-fade-in typing-animation">
+            {getFileIcon(parsed.files[currentFileIndex]?.path || '')}
+            <span>Creating {parsed.files[currentFileIndex]?.path}...</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Section 5b: Files dropdown - Only show when complete */}
+      {showFiles && isComplete && (
+        <div className="mt-3">
+          <FilesEditedDropdown files={parsed.files} />
         </div>
       )}
 
