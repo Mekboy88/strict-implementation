@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { highlightCode } from '@/utils/syntaxHighlighter';
 
@@ -6,10 +6,30 @@ interface CodeBlockProps {
   code: string;
   language: string;
   filePath?: string;
+  isStreaming?: boolean;
 }
 
-export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
+export const CodeBlock = ({ code, language, filePath, isStreaming = false }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
+  const [displayCount, setDisplayCount] = useState(0);
+
+  useEffect(() => {
+    if (!isStreaming) {
+      setDisplayCount(code.length);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setDisplayCount((prev) => {
+        if (prev < code.length) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 8); // Faster for code: 8ms per character
+
+    return () => clearInterval(interval);
+  }, [code.length, isStreaming, code]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -17,7 +37,9 @@ export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const tokens = highlightCode(code, language);
+  // Get displayed code (slice during streaming, full after)
+  const displayedCode = isStreaming ? code.slice(0, displayCount) : code;
+  const tokens = highlightCode(displayedCode, language);
 
   return (
     <div className="w-full max-w-full my-4 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg">
@@ -45,6 +67,9 @@ export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
                 {token.text}
               </span>
             ))}
+            {isStreaming && displayCount < code.length && (
+              <span className="streaming-cursor inline-block w-1 h-4 bg-primary ml-0.5" />
+            )}
           </code>
         </pre>
       </div>

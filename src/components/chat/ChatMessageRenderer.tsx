@@ -84,16 +84,38 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   // During streaming, show text first with typing effect, then files below
   if (isStreaming) {
     const hasFiles = content.includes('src/');
+    const hasCodeBlocks = content.includes('```');
     
-    // Extract text content (everything before code blocks)
-    const textContent = content.split('```')[0].trim();
+    // Split content at first code block
+    const firstCodeBlockIndex = content.indexOf('```');
+    const textContent = firstCodeBlockIndex !== -1 
+      ? content.substring(0, firstCodeBlockIndex).trim()
+      : content.trim();
+    
+    // Extract streaming code if present
+    let streamingCode = '';
+    let codeLanguage = 'typescript';
+    if (hasCodeBlocks) {
+      const codeMatch = /```(?:typescript|tsx|ts|jsx|javascript|js)?\s*\n([\s\S]*?)(?:```|$)/.exec(content);
+      if (codeMatch) {
+        streamingCode = codeMatch[1];
+        codeLanguage = content.match(/```(\w+)/)?.[1] || 'typescript';
+      }
+    }
     
     return (
       <div className="w-full max-w-full overflow-hidden space-y-4">
         {textContent && (
-          <StreamingText content={textContent} isStreaming={isStreaming} />
+          <StreamingText content={textContent} isStreaming={true} />
         )}
-        {hasFiles && (
+        {streamingCode && (
+          <CodeBlock 
+            code={streamingCode}
+            language={codeLanguage}
+            isStreaming={true}
+          />
+        )}
+        {hasFiles && !hasCodeBlocks && (
           <div className="file-animation-container">
             <FileBuildingAnimation content={content} isStreaming={isStreaming} />
           </div>

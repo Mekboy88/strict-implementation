@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { parseMarkdown } from "@/utils/chat/markdownParser";
 
 interface StreamingTextProps {
@@ -7,58 +7,48 @@ interface StreamingTextProps {
 }
 
 export const StreamingText = ({ content, isStreaming }: StreamingTextProps) => {
-  const [displayedText, setDisplayedText] = useState("");
-  const previousContentRef = useRef("");
-  const intervalRef = useRef<number | null>(null);
+  const [displayCount, setDisplayCount] = useState(0);
 
   useEffect(() => {
-    // If streaming stopped, show full text immediately
+    // If not streaming, show all content immediately
     if (!isStreaming) {
-      setDisplayedText(content);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      setDisplayCount(content.length);
       return;
     }
 
-    // Only process new characters that were added
-    if (content.length > previousContentRef.current.length) {
-      const newChars = content.slice(previousContentRef.current.length);
-      previousContentRef.current = content;
-
-      let charIndex = 0;
-      
-      // Clear any existing interval
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-
-      // Add characters progressively
-      intervalRef.current = window.setInterval(() => {
-        if (charIndex < newChars.length) {
-          setDisplayedText(prev => prev + newChars[charIndex]);
-          charIndex++;
-        } else {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-        }
-      }, 20); // 20ms per character for smooth typing effect
+    // Reset counter when content changes significantly (new message)
+    if (displayCount > content.length) {
+      setDisplayCount(0);
     }
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [content, isStreaming]);
+    // Single interval that increments like Pygame's num_chars
+    const interval = setInterval(() => {
+      setDisplayCount((prev) => {
+        if (prev < content.length) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 15); // 15ms per character = ~67 characters per second
+
+    return () => clearInterval(interval);
+  }, [content.length, isStreaming, displayCount, content]);
+
+  // Get the text to display (slice from beginning like Pygame)
+  const displayText = content.slice(0, displayCount);
 
   return (
     <div className="streaming-text-container">
       <div className="chat-prose text-base text-blue-50 leading-relaxed">
-        {parseMarkdown(displayedText || content)}
-        {isStreaming && (
-          <span className="streaming-cursor inline-block w-1 h-4 bg-primary ml-0.5 animate-pulse" />
+        {isStreaming ? (
+          // During streaming: show raw text without markdown parsing
+          <span className="whitespace-pre-wrap">{displayText}</span>
+        ) : (
+          // After streaming: parse and format markdown
+          parseMarkdown(content)
+        )}
+        {isStreaming && displayCount < content.length && (
+          <span className="streaming-cursor inline-block w-1 h-4 bg-primary ml-0.5" />
         )}
       </div>
     </div>

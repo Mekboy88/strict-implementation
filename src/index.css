@@ -216,15 +216,16 @@ All colors MUST be HSL.
   /* Streaming text animations */
   .streaming-text-container {
     @apply min-h-[24px];
+    transition: all 0.1s ease-out;
   }
 
   .streaming-cursor {
-    animation: blink 1s step-end infinite;
+    animation: blink 0.8s ease-in-out infinite;
   }
 
   @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.2; }
   }
 
   /* File entry staggered animation */
