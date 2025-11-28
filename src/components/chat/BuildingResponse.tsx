@@ -6,6 +6,7 @@ import { CompletionCard } from "./CompletionCard";
 interface BuildingResponseProps {
   content: string;
   isStreaming: boolean;
+  isFirstProject?: boolean;
 }
 
 interface ParsedContent {
@@ -76,14 +77,31 @@ const parseContent = (content: string): ParsedContent => {
   return { intro, designVision, features, files, summary, projectName };
 };
 
-export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps) => {
+export const BuildingResponse = ({ content, isStreaming, isFirstProject = false }: BuildingResponseProps) => {
   const parsed = parseContent(content);
+  const [visibleFiles, setVisibleFiles] = useState<number>(0);
 
   const showDesignVision = parsed.designVision.length > 0;
   const showFeatures = parsed.features.length > 0;
   const showFiles = parsed.files.length > 0;
   const showSummary = !isStreaming && parsed.summary;
   const isComplete = !isStreaming;
+
+  // Animate files appearing one by one
+  useEffect(() => {
+    if (showFiles && !isStreaming) {
+      const timer = setInterval(() => {
+        setVisibleFiles(prev => {
+          if (prev < parsed.files.length) {
+            return prev + 1;
+          }
+          clearInterval(timer);
+          return prev;
+        });
+      }, 150);
+      return () => clearInterval(timer);
+    }
+  }, [showFiles, isStreaming, parsed.files.length]);
 
   return (
     <div className="w-full space-y-6 text-white/70">
@@ -117,24 +135,38 @@ export const BuildingResponse = ({ content, isStreaming }: BuildingResponseProps
             {parsed.features.map((item, i) => (
               <li key={i} className="flex items-start gap-2 text-sm animate-fade-in" style={{ animationDelay: `${600 + i * 100}ms` }}>
                 <span className="text-white/40 mt-1">•</span>
-                <span>{item}</span>
+                <span className="typing-animation">{item}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Section 4: Transition Text */}
-      {showFiles && (
-        <p className="text-sm text-white/60 italic animate-fade-in" style={{ animationDelay: '700ms' }}>
+      {/* Section 4: Transition Text - Only show on first project */}
+      {showFiles && isFirstProject && (
+        <p className="text-sm text-white/60 italic animate-fade-in typing-animation" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
 
-      {/* Section 5: Files */}
+      {/* Section 5: Files - Show building process */}
       {showFiles && (
-        <div className="space-y-3 animate-fade-in" style={{ animationDelay: '800ms' }}>
-          {isComplete && <FilesEditedDropdown files={parsed.files} />}
+        <div className="space-y-3">
+          {parsed.files.slice(0, visibleFiles).map((file, index) => (
+            <div 
+              key={index} 
+              className="flex items-center gap-2 text-sm text-white/70 animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              {getFileIcon(file.path)}
+              <span className="typing-animation">Creating {file.path}...</span>
+            </div>
+          ))}
+          {isComplete && visibleFiles === parsed.files.length && (
+            <div className="mt-3">
+              <FilesEditedDropdown files={parsed.files} />
+            </div>
+          )}
         </div>
       )}
 

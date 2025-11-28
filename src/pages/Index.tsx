@@ -1519,7 +1519,11 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
 
             <div ref={chatContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4 text-[11px]">
               {/* Chat Messages */}
-              {chatMessages.map((msg) => {
+              {chatMessages.map((msg, index) => {
+                const isFirstAssistantWithCode = msg.role === 'assistant' && 
+                  msg.content.includes('```') && 
+                  index === chatMessages.findIndex(m => m.role === 'assistant' && m.content.includes('```'));
+                
                 return (
                   <div
                     key={msg.id}
@@ -1536,6 +1540,7 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                         content={msg.content} 
                         role={msg.role}
                         isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
+                        isFirstMessage={isFirstAssistantWithCode}
                       />
                     )}
                   </div>
