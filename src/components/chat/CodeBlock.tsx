@@ -20,7 +20,7 @@ export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
   const tokens = highlightCode(code, language);
 
   return (
-    <div className="w-full my-4 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg">
+    <div className="w-full max-w-full my-4 rounded-lg overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg">
       {filePath && (
         <div className="flex items-center justify-between px-4 py-2 bg-neutral-950 border-b border-neutral-700">
           <span className="text-sm text-neutral-400 font-mono">📄 {filePath}</span>
@@ -38,7 +38,7 @@ export const CodeBlock = ({ code, language, filePath }: CodeBlockProps) => {
         </div>
       )}
       <div className="p-4 overflow-x-auto">
-        <pre className="font-mono text-sm leading-relaxed">
+        <pre className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words">
           <code>
             {tokens.map((token, index) => (
               <span key={index} className={token.className}>

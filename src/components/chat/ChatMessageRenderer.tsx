@@ -143,7 +143,7 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
   // If no code blocks found, show formatted markdown text
   if (!hasCode) {
     return (
-      <div className="space-y-4">
+      <div className="w-full max-w-full overflow-hidden space-y-4">
         <div className="chat-prose text-base text-blue-50 leading-relaxed">
           {parseMarkdown(content)}
         </div>
@@ -151,5 +151,5 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
     );
   }
 
-  return <div className="space-y-4">{parts}</div>;
+  return <div className="w-full max-w-full overflow-hidden space-y-4">{parts}</div>;
 };

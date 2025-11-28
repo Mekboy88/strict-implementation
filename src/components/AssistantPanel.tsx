@@ -237,16 +237,18 @@ const AssistantPanel = ({
             {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${
+                className={`flex w-full ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <ChatMessageRenderer
-                  content={message.content}
-                  role={message.role}
-                  isStreaming={isStreaming && index === messages.length - 1}
-                  isFirstMessage={index === 1 && message.role === 'assistant'}
-                />
+                <div className="max-w-full overflow-hidden">
+                  <ChatMessageRenderer
+                    content={message.content}
+                    role={message.role}
+                    isStreaming={isStreaming && index === messages.length - 1}
+                    isFirstMessage={index === 1 && message.role === 'assistant'}
+                  />
+                </div>
               </div>
             ))}
             {isStreaming && <Shimmer />}
