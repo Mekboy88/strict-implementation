@@ -46,6 +46,24 @@ export const buildAIPrompt = (
   
   return `${userMessage}
 
+RESPONSE FORMAT - YOU MUST FOLLOW THIS STRUCTURE:
+
+I'll create [brief description of what you're building].
+
+Design Vision:
+• [design choice 1 - max 8 words]
+• [design choice 2 - max 8 words]
+• [design choice 3 - max 8 words]
+
+Features:
+• [feature 1 - max 8 words]
+• [feature 2 - max 8 words]
+• [feature 3 - max 8 words]
+
+Let me start by creating this using a refined and beautifully structured design system.
+
+[Then generate all code files...]
+
 CONTEXT:
 - Request Type: ${requestDetection.type}
 - Description: ${requestDetection.description}
