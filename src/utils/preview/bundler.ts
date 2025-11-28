@@ -152,10 +152,30 @@ function extractDependencies(code: string): string[] {
 }
 
 function stripTypeScript(code: string): string {
-  // Remove type annotations
-  code = code.replace(/:\s*[A-Za-z<>[\]{},\s|*&]+/g, "");
-  code = code.replace(/interface\s+[A-Za-z]+\s*{[^}]*}/g, "");
-  code = code.replace(/type\s+[A-Za-z]+\s*=/g, "");
+  // Remove non-null assertions: expr!
+  code = code.replace(/([a-zA-Z_$][\w$]*|\)|\])\s*!/g, '$1');
+  
+  // Remove type assertions: expr as Type
+  code = code.replace(/\s+as\s+[\w<>\[\]|&\s]+/g, '');
+  
+  // Remove angle bracket type assertions: <Type>expr
+  code = code.replace(/<[\w<>]+>(?=\s*\()/g, '');
+  
+  // Remove type annotations: : Type
+  code = code.replace(/:\s*[A-Za-z_][\w<>[\]{},\s|*&?]*(?=[\s)=,;{])/g, '');
+  
+  // Remove interface declarations
+  code = code.replace(/interface\s+\w+\s*(\<[^>]*\>)?\s*\{[^}]*\}/gs, '');
+  
+  // Remove type declarations
+  code = code.replace(/type\s+\w+\s*(\<[^>]*\>)?\s*=[^;]+;/g, '');
+  
+  // Remove generic type parameters from functions: <T, U>
+  code = code.replace(/\<[\w,\s]+\>\s*\(/g, '(');
+  
+  // Remove import type statements
+  code = code.replace(/import\s+type\s+[^;]+;/g, '');
+  
   return code;
 }
 

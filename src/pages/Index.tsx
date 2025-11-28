@@ -48,6 +48,10 @@ import { useProjectPersistence } from "@/hooks/useProjectPersistence";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { ProjectVariantSwitcher } from "@/components/ProjectVariantSwitcher";
 import { PlanWizard, PlanData } from "@/components/PlanWizard";
+import { Shimmer } from "@/components/chat/Shimmer";
+import { ChatMessageRenderer } from "@/components/chat/ChatMessageRenderer";
+import { BuildingExperience } from "@/components/chat/BuildingExperience";
+import { detectBuildPhase, extractFilesBeingCreated } from "@/utils/chat/messageContentParser";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { ConsolePanel } from "@/components/ConsolePanel";
 import { DebugPanel } from "@/components/DebugPanel";
@@ -401,6 +405,7 @@ function UrDevEditorPage() {
     { id: 'welcome', role: 'assistant', content: "Hi! I'm UR-DEV AI. Tell me what you want to build and I'll help you create it." }
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -457,18 +462,19 @@ function UrDevEditorPage() {
         await streamChat({
           messages: apiMessages,
           systemPrompt,
-          onDelta: (delta) => {
-            assistantContent += delta;
-            setChatMessages(prev => {
-              const last = prev[prev.length - 1];
-              if (last?.role === 'assistant' && last.id.startsWith('fixing-')) {
-                return prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
-                );
-              }
-              return [...prev, { id: `fixing-${Date.now()}`, role: 'assistant', content: assistantContent }];
-            });
-          },
+        onDelta: (delta) => {
+          assistantContent += delta;
+          setStreamingContent(assistantContent);
+          setChatMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.id.startsWith('fixing-')) {
+              return prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, content: assistantContent } : m
+              );
+            }
+            return [...prev, { id: `fixing-${Date.now()}`, role: 'assistant', content: assistantContent }];
+          });
+        },
           onDone: () => {
             // Parse code blocks and update files
             const codeBlocks = parseCodeBlocks(assistantContent);
@@ -490,11 +496,12 @@ function UrDevEditorPage() {
                   i === prev.length - 1 ? { ...m, id: `msg-${Date.now()}` } : m
                 );
               }
-              return prev;
-            });
-            setIsStreaming(false);
-          },
-          onError: (error) => {
+            return prev;
+          });
+          setIsStreaming(false);
+          setStreamingContent('');
+        },
+        onError: (error) => {
             toast({
               title: "Auto-Fix Failed",
               description: error.message || "Could not automatically fix the error",
@@ -610,6 +617,7 @@ export default function Page() {
           systemPrompt,
           onDelta: (delta) => {
             assistantContent += delta;
+            setStreamingContent(assistantContent);
             setChatMessages(prev => {
               const last = prev[prev.length - 1];
               if (last?.role === 'assistant' && last.id.startsWith('fixing-preview-')) {
@@ -642,6 +650,7 @@ export default function Page() {
               return prev;
             });
             setIsStreaming(false);
+            setStreamingContent('');
           },
           onError: (error) => {
             toast({
@@ -695,6 +704,7 @@ export default function Page() {
         systemPrompt,
         onDelta: (delta) => {
           assistantContent += delta;
+          setStreamingContent(assistantContent);
           setChatMessages(prev => {
             const last = prev[prev.length - 1];
             if (last?.role === 'assistant' && last.id.startsWith('streaming-')) {
@@ -736,6 +746,7 @@ export default function Page() {
             return prev;
           });
           setIsStreaming(false);
+          setStreamingContent('');
         },
         onError: (error) => {
           toast({
@@ -1507,36 +1518,36 @@ Please provide a comprehensive, step-by-step plan with actionable tasks that I c
                   key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className={`${
-                      msg.role === 'user'
-                        ? msg.content.includes('🔴 **Error Occurred')
-                          ? 'max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3'
-                          : 'max-w-[85%] bg-neutral-800/50 text-slate-50 rounded-2xl px-4 py-3'
-                        : 'w-full'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap text-slate-200">
-                      {msg.content}
-                      {msg.role === 'user' && msg.content.includes('🔴 **Error Occurred') && isStreaming && (
-                        <span className="inline-flex items-center gap-2 ml-2 text-sky-400">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          <span className="text-xs">AI is fixing...</span>
-                        </span>
-                      )}
-                    </p>
-                  </div>
+                  {msg.content.includes('🔴 **Error Occurred') ? (
+                    <div className="max-w-[85%] bg-red-900/20 border border-red-500/30 text-slate-50 rounded-2xl px-4 py-3">
+                      <p className="text-sm whitespace-pre-wrap text-slate-200">
+                        {msg.content}
+                        {isStreaming && (
+                          <span className="inline-flex items-center gap-2 ml-2 text-sky-400">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span className="text-xs">AI is fixing...</span>
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <ChatMessageRenderer 
+                      content={msg.content} 
+                      role={msg.role}
+                      isStreaming={isStreaming && msg.id === chatMessages[chatMessages.length - 1]?.id}
+                    />
+                  )}
                 </div>
               ))}
-              {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && !chatMessages[chatMessages.length - 1]?.content.includes('🔴 **Error Occurred') && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                    <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
-                  </div>
-                  <div className="w-full">
-                    <div className="text-slate-400 text-sm">Thinking...</div>
-                  </div>
-                </div>
+              
+              {/* Building Experience during streaming */}
+              {isStreaming && (
+                <BuildingExperience
+                  isBuilding={true}
+                  currentPhase={detectBuildPhase(streamingContent)}
+                  files={extractFilesBeingCreated(streamingContent)}
+                  explanation={streamingContent.split('```')[0].trim().slice(-200)}
+                />
               )}
             </div>
 
