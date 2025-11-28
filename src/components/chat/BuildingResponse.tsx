@@ -99,7 +99,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
       {/* Section 1: Intro */}
       {parsed.intro && (
         <div className="space-y-2 animate-fade-in">
-          <p className={`text-base leading-relaxed break-words ${isStreaming ? 'typing-animation' : ''}`}>{parsed.intro}</p>
+          <p className="text-base leading-relaxed break-words">{parsed.intro}</p>
         </div>
       )}
 
@@ -135,7 +135,7 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 4: Transition Text - Only show on first project */}
       {showFiles && isFirstProject && (
-        <p className={`text-lg text-white/90 italic break-words animate-fade-in ${isStreaming ? 'typing-animation' : ''}`} style={{ animationDelay: '700ms' }}>
+        <p className="text-lg text-white/90 italic break-words animate-fade-in" style={{ animationDelay: '700ms' }}>
           Let me start by creating this using a refined and beautifully structured design system.
         </p>
       )}
@@ -161,8 +161,8 @@ export const BuildingResponse = ({ content, isStreaming, isFirstProject = false 
 
       {/* Section 6: Summary */}
       {showSummary && (
-        <div className="space-y-2 animate-fade-in typing-animation" style={{ animationDelay: '900ms' }}>
-          <p className={`text-base leading-relaxed ${!isStreaming ? 'typing-animation' : ''}`}>{parsed.summary}</p>
+        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '900ms' }}>
+          <p className="text-base leading-relaxed">{parsed.summary}</p>
         </div>
       )}
 
