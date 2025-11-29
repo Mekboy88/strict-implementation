@@ -2,19 +2,30 @@ import { useState, useMemo } from "react";
 import { InlineFileEditingIndicator } from "./InlineFileEditingIndicator";
 import { StreamingText } from "./StreamingText";
 import { CodeBlock } from "./CodeBlock";
+import { ImageGeneratingIndicator } from "./ImageGeneratingIndicator";
 import { Copy, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { parseMarkdown } from "@/utils/chat/markdownParser";
 import { isErrorFixMessage } from "@/utils/chat/messageTypeDetector";
+import { hasImageRequests } from "@/services/ai/imageGenerationService";
 
 interface ChatMessageRendererProps {
   content: string;
   role: 'user' | 'assistant';
   isStreaming: boolean;
   isFirstMessage?: boolean;
+  isGeneratingImages?: boolean;
+  imageGenerationPrompt?: string;
 }
 
-export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage = false }: ChatMessageRendererProps) => {
+export const ChatMessageRenderer = ({ 
+  content, 
+  role, 
+  isStreaming, 
+  isFirstMessage = false,
+  isGeneratingImages = false,
+  imageGenerationPrompt = ''
+}: ChatMessageRendererProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const MAX_LINES = 15;
@@ -108,6 +119,9 @@ export const ChatMessageRenderer = ({ content, role, isStreaming, isFirstMessage
       <div className="w-full max-w-full overflow-hidden space-y-4">
         {textContent && (
           <StreamingText content={textContent} isStreaming={true} />
+        )}
+        {isGeneratingImages && imageGenerationPrompt && (
+          <ImageGeneratingIndicator prompt={imageGenerationPrompt} />
         )}
         {streamingCode && (
           <CodeBlock 
