@@ -45,6 +45,54 @@ export async function generateImage(params: GenerateImageParams): Promise<string
 }
 
 /**
+ * Detect placeholder image URLs in content
+ * Returns array of placeholder URLs with descriptions
+ */
+export function extractPlaceholderImages(content: string): Array<{url: string, description: string}> {
+  const placeholders: Array<{url: string, description: string}> = [];
+  
+  // Match via.placeholder.com URLs
+  const viaPlaceholderRegex = /https?:\/\/via\.placeholder\.com\/\d+(?:\?text=([^"'\s)]+))?/g;
+  let match;
+  while ((match = viaPlaceholderRegex.exec(content)) !== null) {
+    const url = match[0];
+    const text = match[1] ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : 'Image';
+    placeholders.push({ url, description: enhanceImagePrompt(text) });
+  }
+  
+  // Match placehold.co URLs
+  const placeholdCoRegex = /https?:\/\/placehold\.co\/\d+x?\d*(?:\?text=([^"'\s)]+))?/g;
+  while ((match = placeholdCoRegex.exec(content)) !== null) {
+    const url = match[0];
+    const text = match[1] ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : 'Image';
+    placeholders.push({ url, description: enhanceImagePrompt(text) });
+  }
+  
+  return placeholders;
+}
+
+/**
+ * Enhance a simple placeholder text into a better image generation prompt
+ */
+function enhanceImagePrompt(text: string): string {
+  const lowerText = text.toLowerCase();
+  
+  // Bakery-related keywords
+  if (lowerText.includes('bread') || lowerText.includes('bakery')) {
+    return `Fresh artisan ${text}, professional bakery photography, warm natural lighting, high quality`;
+  }
+  if (lowerText.includes('croissant') || lowerText.includes('pastry')) {
+    return `Delicious ${text}, bakery setting, golden brown, appetizing food photography`;
+  }
+  if (lowerText.includes('cake') || lowerText.includes('dessert')) {
+    return `Beautiful ${text}, elegant presentation, bakery display, professional food photography`;
+  }
+  
+  // Generic enhancement
+  return `Professional photo of ${text}, high quality, well-lit`;
+}
+
+/**
  * Parse AI response for image generation requests
  * Returns array of prompts that need images generated
  */

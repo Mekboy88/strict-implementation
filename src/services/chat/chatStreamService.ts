@@ -3,7 +3,7 @@
  * Includes automatic AI image generation for app builds
  */
 
-import { processImageRequests, hasImageRequests } from '@/services/ai/imageGenerationService';
+import { processImageRequests, hasImageRequests, extractPlaceholderImages, generateImage } from '@/services/ai/imageGenerationService';
 
 const SUPABASE_URL = "https://kzymqlmtysrvnrpcneno.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6eW1xbG10eXNydm5ycGNuZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzOTE1ODIsImV4cCI6MjA3ODk2NzU4Mn0.PqMj3ZUPt8sc0HRkK69aeEuN1pS8JnSIvzQcr1QhIlg";
@@ -141,22 +141,48 @@ export async function streamChat({
     }
 
     // Process any image generation requests after streaming completes
-    if (hasImageRequests(accumulatedContent)) {
-      console.log('Detected image generation requests, processing...');
+    let finalContent = accumulatedContent;
+    
+    // First check for GENERATE_IMAGE: commands
+    if (hasImageRequests(finalContent)) {
+      console.log('Detected GENERATE_IMAGE commands, processing...');
       try {
-        const processedContent = await processImageRequests(accumulatedContent, onImageGenerating);
-        
-        // Send the final content with actual image URLs
-        if (onContentProcessed && processedContent) {
-          console.log('Sending processed content with image URLs');
-          onContentProcessed(processedContent);
-        }
+        finalContent = await processImageRequests(finalContent, onImageGenerating);
       } catch (error) {
-        console.error('Failed to process image requests:', error);
-        // Continue even if image generation fails
+        console.error('Failed to process GENERATE_IMAGE commands:', error);
       }
     }
-
+    
+    // Then check for placeholder URLs and replace them
+    const placeholders = extractPlaceholderImages(finalContent);
+    if (placeholders.length > 0) {
+      console.log(`Detected ${placeholders.length} placeholder images, generating real ones...`);
+      
+      for (const placeholder of placeholders) {
+        try {
+          if (onImageGenerating) {
+            onImageGenerating(placeholder.description);
+          }
+          
+          console.log(`Generating image for: ${placeholder.description}`);
+          const realImageUrl = await generateImage({ prompt: placeholder.description });
+          
+          // Replace the placeholder URL with the real image URL
+          finalContent = finalContent.replace(placeholder.url, realImageUrl);
+          console.log(`Replaced placeholder with real image: ${realImageUrl}`);
+        } catch (error) {
+          console.error(`Failed to generate image for "${placeholder.description}":`, error);
+          // Keep the placeholder if generation fails
+        }
+      }
+    }
+    
+    // Send the final content with actual image URLs if any images were processed
+    if (finalContent !== accumulatedContent && onContentProcessed) {
+      console.log('Sending processed content with real image URLs');
+      onContentProcessed(finalContent);
+    }
+    
     onDone();
   } catch (error) {
     console.error('Chat stream error:', error);
