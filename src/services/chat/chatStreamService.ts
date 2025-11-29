@@ -97,8 +97,7 @@ export async function streamChat({
 
         const jsonStr = line.slice(6).trim();
         if (jsonStr === '[DONE]') {
-          onDone();
-          return;
+          break; // Exit loop but continue to image processing
         }
 
         try {
@@ -143,6 +142,8 @@ export async function streamChat({
     // Process any image generation requests after streaming completes
     let finalContent = accumulatedContent;
     
+    console.log('Stream complete, checking for images to generate...');
+    
     // First check for GENERATE_IMAGE: commands
     if (hasImageRequests(finalContent)) {
       console.log('Detected GENERATE_IMAGE commands, processing...');
@@ -183,6 +184,7 @@ export async function streamChat({
       onContentProcessed(finalContent);
     }
     
+    // Finally call onDone after all processing is complete
     onDone();
   } catch (error) {
     console.error('Chat stream error:', error);
