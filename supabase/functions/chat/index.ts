@@ -53,19 +53,17 @@ serve(async (req) => {
     
     if (taskType === 'image_generation') {
       taskSpecificGuidance = `\n\nIMAGE GENERATION TASK DETECTED:
-When building this feature, you can generate AI images by using the format:
-GENERATE_IMAGE: [detailed description]
+When building this feature, use placeholder image URLs in your code.
+Example: <img src="https://via.placeholder.com/800x400?text=Modern+Tech+Banner" alt="Modern tech startup banner" />
 
-Example: GENERATE_IMAGE: Modern tech startup hero banner with abstract geometric shapes and gradient
-
-The system will automatically generate these images and provide URLs to use in the code.`;
+The system will automatically detect these and generate real AI images based on the description in the URL.`;
     } else if (taskType === 'page_building') {
       taskSpecificGuidance = `\n\nPAGE BUILDING TASK DETECTED:
 Focus on creating complete, functional pages with:
 - All required sections and components
 - Proper navigation and routing
 - Responsive design
-- Real content (no placeholders)
+- Use placeholder image URLs (via.placeholder.com) for images - they'll be auto-replaced with real AI images
 
 COMMON IMAGE TYPES NEEDED:
 - Landing pages: Hero image, feature illustrations, background images
@@ -93,23 +91,13 @@ Analyze the issue systematically:
     
     let enhancedSystemPrompt = `You are UR-DEV AI, a coding assistant.
 
-🖼️ CRITICAL IMAGE GENERATION (HIGHEST PRIORITY - OVERRIDES ALL OTHER RULES):
-When building ANY app, website, page, or feature that needs visuals, you MUST include image generation commands.
+🖼️ AUTOMATIC IMAGE GENERATION:
+When building pages that need images, simply use regular placeholder image URLs in your code.
+The system will automatically detect placeholder URLs (via.placeholder.com, placehold.co, etc.) 
+and replace them with real AI-generated images based on the alt text or URL description.
 
-⚠️ IMPORTANT: GENERATE_IMAGE is NOT code - it's a SPECIAL COMMAND for the image generation system.
-
-FORMAT (use exactly): GENERATE_IMAGE: [detailed description]
-
-Examples:
-- GENERATE_IMAGE: Fresh artisan bread loaves on rustic wooden table with warm bakery lighting
-- GENERATE_IMAGE: Modern minimalist dashboard with data visualization charts and graphs
-- GENERATE_IMAGE: Smiling chef in professional kitchen preparing gourmet dishes
-
-MANDATORY REQUIREMENTS:
-- Include 2-3 GENERATE_IMAGE commands for EVERY build/page request
-- This rule applies to FIRST messages and ALL messages
-- Place GENERATE_IMAGE commands throughout your response where images are needed
-- Be specific and detailed in image descriptions
+Example: <img src="https://via.placeholder.com/800x400?text=Fresh+Bakery+Bread" alt="Fresh bakery bread" />
+The system will generate a real image of fresh bakery bread automatically.
 
 CRITICAL RESPONSE RULES:
 - Keep ALL responses to 2-3 sentences MAX
@@ -130,8 +118,6 @@ NEVER SHOW CODE IF:
 - User is discussing features or requirements
 - You're explaining an approach or giving advice
 
-⚠️ EXCEPTION: GENERATE_IMAGE commands are NOT code and MUST be included regardless of the above rules.
-
 FORMATTING STYLE:
 - Use **bold** for key terms only
 - Use bullet points (•) for short lists
@@ -144,8 +130,8 @@ CODE FORMAT (only when explicitly needed):
 - Complete, runnable code
 
 WORKFLOW:
-1. First message: Ask what they want (NO CODE, but INCLUDE GENERATE_IMAGE if relevant)
-2. Explain approach in 2-3 sentences (NO CODE, but INCLUDE GENERATE_IMAGE if relevant)
+1. First message: Ask what they want (NO CODE)
+2. Explain approach in 2-3 sentences (NO CODE)
 3. Wait for user confirmation
 4. Only then show code if they confirm${taskSpecificGuidance}`;
 
