@@ -1,6 +1,9 @@
 /**
  * Chat streaming service for real-time AI responses
+ * Includes automatic AI image generation for app builds
  */
+
+import { processImageRequests, hasImageRequests } from '@/services/ai/imageGenerationService';
 
 const SUPABASE_URL = "https://kzymqlmtysrvnrpcneno.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6eW1xbG10eXNydm5ycGNuZW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzOTE1ODIsImV4cCI6MjA3ODk2NzU4Mn0.PqMj3ZUPt8sc0HRkK69aeEuN1pS8JnSIvzQcr1QhIlg";
@@ -28,6 +31,7 @@ interface StreamChatOptions {
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError?: (error: Error) => void;
+  onImageGenerating?: (prompt: string) => void;
 }
 
 /**
@@ -40,7 +44,10 @@ export async function streamChat({
   onDelta,
   onDone,
   onError,
+  onImageGenerating,
 }: StreamChatOptions): Promise<void> {
+  let accumulatedContent = '';
+  
   try {
     const response = await fetch(CHAT_URL, {
       method: 'POST',
@@ -96,6 +103,7 @@ export async function streamChat({
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content as string | undefined;
           if (content) {
+            accumulatedContent += content;
             onDelta(content); // Send raw content with markdown preserved
           }
         } catch {
@@ -120,10 +128,24 @@ export async function streamChat({
         try {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) onDelta(content); // Send raw content with markdown preserved
+          if (content) {
+            accumulatedContent += content;
+            onDelta(content); // Send raw content with markdown preserved
+          }
         } catch {
           // Ignore parse errors in final flush
         }
+      }
+    }
+
+    // Process any image generation requests after streaming completes
+    if (hasImageRequests(accumulatedContent)) {
+      console.log('Detected image generation requests, processing...');
+      try {
+        await processImageRequests(accumulatedContent, onImageGenerating);
+      } catch (error) {
+        console.error('Failed to process image requests:', error);
+        // Continue even if image generation fails
       }
     }
 

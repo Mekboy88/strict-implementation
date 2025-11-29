@@ -44,6 +44,43 @@ ${taskGuidance}
 
 ${AI_CHEAT_SHEET}
 
+## 🎨 IMAGE GENERATION RULES
+
+When building apps, AUTOMATICALLY generate real images for these scenarios:
+- **Hero sections**: Use GENERATE_IMAGE: [description] for banner images
+- **Product pages**: Generate product photos and illustrations
+- **User avatars**: Create avatar illustrations (when not user-uploaded)
+- **Background images**: Generate appropriate backgrounds for sections
+- **Icons and illustrations**: Create custom graphics when needed
+- **Landing pages**: Generate compelling visual content
+
+**Format**: Use exactly this syntax in your response:
+GENERATE_IMAGE: [detailed description of the image needed]
+
+**Examples**:
+- GENERATE_IMAGE: Modern tech startup hero banner with abstract geometric shapes and gradient colors
+- GENERATE_IMAGE: Professional business dashboard screenshot showing analytics and charts
+- GENERATE_IMAGE: Minimalist product photo of wireless headphones on white background
+- GENERATE_IMAGE: Abstract background with soft blue and purple gradient waves
+
+The system will automatically:
+1. Detect GENERATE_IMAGE commands in your response
+2. Generate the images using AI
+3. Replace the commands with actual image URLs
+4. Insert them into the code you generate
+
+**When to generate images**:
+- User requests a landing page → Generate hero images
+- User builds e-commerce → Generate product photos
+- User creates portfolio → Generate project screenshots
+- User builds dashboard → Generate chart/graph illustrations
+- Any time visual content would enhance the app
+
+**Image sizes available**:
+- 1024x1024 (square, default)
+- 1536x1024 (landscape)
+- 1024x1536 (portrait)
+
 
 
 🚫 CRITICAL PROHIBITION - DEMO CONTENT IS FORBIDDEN 🚫

@@ -17,6 +17,25 @@ serve(async (req) => {
     
     // Extract user message for task detection
     const userMessage = messages[messages.length - 1]?.content || '';
+    
+    // Detect task type from user message
+    const TASK_PATTERNS = {
+      page_building: ['create page', 'build page', 'landing', 'dashboard', 'login', 'signup', 'profile', 'feed'],
+      ui_components: ['button', 'card', 'form', 'modal', 'table', 'list', 'alert', 'navigation', 'navbar'],
+      bug_fixing: ['fix', 'error', 'bug', 'not working', 'broken', 'issue', 'problem', 'crash'],
+      image_generation: ['generate image', 'create image', 'photo', 'picture', 'illustration', 'icon', 'hero image', 'background']
+    };
+    
+    function detectTaskType(message: string): string {
+      const msg = message.toLowerCase();
+      for (const [type, patterns] of Object.entries(TASK_PATTERNS)) {
+        if (patterns.some(p => msg.includes(p))) return type;
+      }
+      return 'general';
+    }
+    
+    const taskType = detectTaskType(userMessage);
+    console.log('Detected task type:', taskType, 'from message:', userMessage);
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
     if (!OPENAI_API_KEY) {
@@ -29,7 +48,41 @@ serve(async (req) => {
 
     console.log('Chat request received:', { messageCount: messages?.length, hasContext: !!context });
 
-    // Build enhanced system prompt with context
+    // Build enhanced system prompt with context and task-specific guidance
+    let taskSpecificGuidance = '';
+    
+    if (taskType === 'image_generation') {
+      taskSpecificGuidance = `\n\nIMAGE GENERATION TASK DETECTED:
+When building this feature, you can generate AI images by using the format:
+GENERATE_IMAGE: [detailed description]
+
+Example: GENERATE_IMAGE: Modern tech startup hero banner with abstract geometric shapes and gradient
+
+The system will automatically generate these images and provide URLs to use in the code.`;
+    } else if (taskType === 'page_building') {
+      taskSpecificGuidance = `\n\nPAGE BUILDING TASK DETECTED:
+Focus on creating complete, functional pages with:
+- All required sections and components
+- Proper navigation and routing
+- Responsive design
+- Real content (no placeholders)
+Consider generating images for hero sections, backgrounds, and visual elements.`;
+    } else if (taskType === 'ui_components') {
+      taskSpecificGuidance = `\n\nUI COMPONENT TASK DETECTED:
+Build reusable, well-structured components with:
+- Clear props interface
+- Proper TypeScript types
+- Tailwind CSS styling using design tokens
+- shadcn/ui integration where applicable`;
+    } else if (taskType === 'bug_fixing') {
+      taskSpecificGuidance = `\n\nBUG FIXING TASK DETECTED:
+Analyze the issue systematically:
+1. Identify the root cause
+2. Explain what's wrong and why
+3. Provide the fix with clear comments
+4. Suggest how to prevent similar issues`;
+    }
+    
     let enhancedSystemPrompt = `You are UR-DEV AI, a coding assistant.
 
 CRITICAL RESPONSE RULES:
@@ -66,7 +119,7 @@ WORKFLOW:
 1. First message: Ask what they want (NO CODE)
 2. Explain approach in 2-3 sentences (NO CODE)
 3. Wait for user confirmation
-4. Only then show code if they confirm`;
+4. Only then show code if they confirm${taskSpecificGuidance}`;
 
     // Add project context if provided
     if (context) {
