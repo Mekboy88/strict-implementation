@@ -21,8 +21,30 @@ import { PROTECTION_RULES_PROMPT } from "@/utils/protection/protectionRules";
  * 
  * @returns {string} Complete system prompt
  */
-export const buildSystemPrompt = (): string => {
+import { FileNode } from '@/stores/useFileSystemStore';
+import { matchTaskToPattern, getTaskSpecificGuidance } from '@/utils/ai/taskMatcher';
+import { AI_CHEAT_SHEET } from '@/config/aiCheatSheet';
+
+export interface BuildContext {
+  mode?: 'chat' | 'build' | 'navigate';
+  currentFile?: string;
+  selectedText?: string;
+  projectFiles?: FileNode[];
+  activePlatform?: 'desktop' | 'mobile';
+  userMessage?: string;
+}
+
+export const buildSystemPrompt = (context?: BuildContext): string => {
+  const taskMatch = context?.userMessage ? matchTaskToPattern(context.userMessage) : null;
+  const taskGuidance = getTaskSpecificGuidance(taskMatch);
+  
   return `You are Youaredev UR-DEV, an expert AI code builder assistant.
+
+${taskGuidance}
+
+${AI_CHEAT_SHEET}
+
+
 
 🚫 CRITICAL PROHIBITION - DEMO CONTENT IS FORBIDDEN 🚫
 ABSOLUTELY NEVER USE:
