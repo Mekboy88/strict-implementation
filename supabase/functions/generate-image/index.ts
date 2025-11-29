@@ -45,7 +45,7 @@ serve(async (req) => {
         prompt,
         n: 1,
         size,
-        output_format: 'url', // Return URL instead of base64 for faster response
+        output_format: 'png',
       }),
     });
 
@@ -67,32 +67,22 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const tempImageUrl = data.data?.[0]?.url;
+    const base64Image = data.data?.[0]?.b64_json;
 
-    if (!tempImageUrl) {
-      console.error('No image URL in response:', data);
+    if (!base64Image) {
+      console.error('No image data in response:', data);
       return new Response(
         JSON.stringify({ error: 'No image generated' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Image generated successfully (temp URL):', tempImageUrl);
+    console.log('Image generated successfully (base64 data received)');
 
-    // Download the image from OpenAI
-    console.log('Downloading image from OpenAI...');
-    const imageResponse = await fetch(tempImageUrl);
-    if (!imageResponse.ok) {
-      console.error('Failed to download image:', imageResponse.status);
-      return new Response(
-        JSON.stringify({ error: 'Failed to download image' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const imageBlob = await imageResponse.blob();
-    const imageBuffer = await imageBlob.arrayBuffer();
-    console.log('Image downloaded, size:', imageBuffer.byteLength, 'bytes');
+    // Convert base64 to buffer
+    console.log('Converting base64 to buffer...');
+    const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
+    console.log('Image buffer created, size:', imageBuffer.byteLength, 'bytes');
 
     // Initialize Supabase client with service role key for storage access
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
