@@ -803,6 +803,7 @@ export default function Page() {
     apiMessages.push({ role: 'user', content: userMsg.content });
 
     let assistantContent = '';
+    let finalProcessedContent = ''; // Track content after image processing
 
     // CRITICAL: Detect if this is the first project build message
     // If there are NO existing assistant messages with code blocks, use FIRST_PROJECT_BUILD_PROMPT
@@ -841,6 +842,7 @@ export default function Page() {
         onContentProcessed: (processedContent) => {
           // Update the final message with actual image URLs
           console.log('Updating message with processed content (image URLs)');
+          finalProcessedContent = processedContent; // Store processed content for onDone
           setChatMessages(prev => {
             const lastMsg = prev[prev.length - 1];
             if (lastMsg?.role === 'assistant') {
@@ -850,8 +852,9 @@ export default function Page() {
           });
         },
         onDone: () => {
-          // Parse code blocks and update files
-          const codeBlocks = parseCodeBlocks(assistantContent);
+          // Use finalProcessedContent if available (has real image URLs), otherwise use assistantContent
+          const contentToProcess = finalProcessedContent || assistantContent;
+          const codeBlocks = parseCodeBlocks(contentToProcess);
           if (codeBlocks.length > 0) {
             handleCodeFromAI(codeBlocks);
             // Automatically show preview when code is generated
