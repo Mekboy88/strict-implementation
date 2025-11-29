@@ -66,7 +66,22 @@ Focus on creating complete, functional pages with:
 - Proper navigation and routing
 - Responsive design
 - Real content (no placeholders)
-Consider generating images for hero sections, backgrounds, and visual elements.`;
+
+🎨 MANDATORY IMAGE GENERATION REQUIREMENT:
+You MUST include at least 2-3 GENERATE_IMAGE commands when building ANY page or app.
+Use this exact format: GENERATE_IMAGE: [detailed description]
+
+REQUIRED IMAGES FOR COMMON PAGE TYPES:
+- Landing pages: Hero image, feature illustration, background image
+- E-commerce: Product photos, category banners, promotional images
+- Dashboard: Chart illustrations, profile avatars, icon graphics
+- Portfolio: Project screenshots, profile photo, background pattern
+- Blog: Article header image, author avatar, category icons
+- Restaurant: Food photos, interior shots, menu backgrounds
+- Hotel: Room photos, exterior shots, amenity images
+
+YOU CANNOT BUILD A PAGE WITHOUT GENERATING IMAGES.
+Add GENERATE_IMAGE commands throughout your response where images are needed.`;
     } else if (taskType === 'ui_components') {
       taskSpecificGuidance = `\n\nUI COMPONENT TASK DETECTED:
 Build reusable, well-structured components with:
