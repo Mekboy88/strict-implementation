@@ -14,6 +14,9 @@ serve(async (req) => {
 
   try {
     const { messages, systemPrompt, context } = await req.json();
+    
+    // Extract user message for task detection
+    const userMessage = messages[messages.length - 1]?.content || '';
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
     if (!OPENAI_API_KEY) {
