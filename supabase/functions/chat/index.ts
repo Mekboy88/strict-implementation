@@ -175,7 +175,7 @@ WORKFLOW:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: (taskType === 'page_building' || taskType === 'image_generation') ? 'gpt-4o' : 'gpt-4o-mini', // Use smarter model for image-heavy tasks
         messages: [
           { role: 'system', content: systemPrompt || enhancedSystemPrompt },
           ...(messages || []),
