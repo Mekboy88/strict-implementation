@@ -32,6 +32,7 @@ interface StreamChatOptions {
   onDone: () => void;
   onError?: (error: Error) => void;
   onImageGenerating?: (prompt: string) => void;
+  onContentProcessed?: (processedContent: string) => void; // NEW: Callback for final content with image URLs
 }
 
 /**
@@ -45,6 +46,7 @@ export async function streamChat({
   onDone,
   onError,
   onImageGenerating,
+  onContentProcessed,
 }: StreamChatOptions): Promise<void> {
   let accumulatedContent = '';
   
@@ -142,7 +144,13 @@ export async function streamChat({
     if (hasImageRequests(accumulatedContent)) {
       console.log('Detected image generation requests, processing...');
       try {
-        await processImageRequests(accumulatedContent, onImageGenerating);
+        const processedContent = await processImageRequests(accumulatedContent, onImageGenerating);
+        
+        // Send the final content with actual image URLs
+        if (onContentProcessed && processedContent) {
+          console.log('Sending processed content with image URLs');
+          onContentProcessed(processedContent);
+        }
       } catch (error) {
         console.error('Failed to process image requests:', error);
         // Continue even if image generation fails

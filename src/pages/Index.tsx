@@ -832,6 +832,23 @@ export default function Page() {
             return [...prev, { id: `streaming-${Date.now()}`, role: 'assistant', content: assistantContent }];
           });
         },
+        onImageGenerating: (prompt) => {
+          toast({
+            title: "🎨 Generating image...",
+            description: prompt,
+          });
+        },
+        onContentProcessed: (processedContent) => {
+          // Update the final message with actual image URLs
+          console.log('Updating message with processed content (image URLs)');
+          setChatMessages(prev => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg?.role === 'assistant') {
+              return [...prev.slice(0, -1), { ...lastMsg, content: processedContent }];
+            }
+            return prev;
+          });
+        },
         onDone: () => {
           // Parse code blocks and update files
           const codeBlocks = parseCodeBlocks(assistantContent);
